@@ -649,6 +649,195 @@
   .chat-send-btn:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.4); }
 
   /* Markdown in chat */
+  /* ===== AI POPUP CHAT ===== */
+  .ai-fab {
+    position: fixed;
+    bottom: 72px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #9fd4c2, var(--chat-accent));
+    border: none;
+    color: #1c1510;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(143,212,192,0.4), 0 2px 8px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .ai-fab:active { transform: scale(0.92); }
+  .ai-fab.hidden { display: none; }
+
+  .ai-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 950;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .ai-popup-overlay.open { display: flex; }
+
+  .ai-popup {
+    background: var(--card);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 520px;
+    height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.6);
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .ai-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ai-popup-header .chat-avatar { font-size: 22px; flex-shrink: 0; }
+  .ai-popup-header-info { flex: 1; min-width: 0; }
+  .ai-popup-title { font-size: 14px; font-weight: 700; color: var(--chat-accent); }
+  .ai-popup-sub   { font-size: 10px; color: var(--muted); }
+  .ai-popup-close {
+    background: var(--surface);
+    border: none;
+    color: var(--muted);
+    font-size: 18px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ai-popup-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--card2);
+  }
+  .ai-new-chat-btn {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: all .15s;
+  }
+  .ai-new-chat-btn:active { background: var(--border); }
+  .ai-history-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    font-size: 11px;
+    font-family: 'Sarabun', sans-serif;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    transition: all .15s;
+    margin-left: auto;
+  }
+  .ai-history-btn:active { background: var(--surface); }
+  .ai-popup-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .ai-popup-chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 12px;
+  }
+  .ai-popup-chat-area::-webkit-scrollbar { width: 3px; }
+  .ai-popup-chat-area::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  /* Session history panel */
+  .ai-sessions-panel {
+    position: absolute;
+    inset: 0;
+    background: var(--card);
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    animation: fadeIn .15s ease;
+  }
+  .ai-sessions-panel.open { display: flex; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .ai-sessions-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .ai-sessions-back {
+    background: none; border: none; color: var(--chat-accent);
+    font-size: 18px; cursor: pointer; padding: 2px 6px;
+  }
+  .ai-sessions-list { flex: 1; overflow-y: auto; padding: 10px 12px; }
+  .ai-session-item {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .ai-session-item:active { border-color: var(--chat-accent); }
+  .ai-session-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ai-session-meta  { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+  .ai-session-del {
+    float: right; background: none; border: none;
+    color: var(--red); font-size: 14px; cursor: pointer; padding: 2px 4px;
+  }
+  .ai-sessions-empty { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+
+  .ai-popup .chat-api-area {
+    margin: 0;
+    padding: 10px 12px;
+    background: var(--card2);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ai-popup .chat-input-area {
+    padding: 10px 12px 14px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ai-popup .chat-tips {
+    padding: 8px 12px 4px;
+    flex-shrink: 0;
+  }
+
   .chat-msg strong { color: var(--accent); }
   .chat-msg code {
     background: rgba(0,0,0,0.3); border-radius: 4px;
@@ -898,7 +1087,7 @@
   <button class="tab-btn" onclick="switchTab('history')">📊 ประวัติ</button>
   <button class="tab-btn" onclick="switchTab('crm')">👤 สมาชิก</button>
   <button class="tab-btn" id="tab-btn-admin" onclick="switchTab('admin')" style="display:none;">⚙️ Admin</button>
-  <button class="tab-btn" onclick="switchTab('chat')">🌿 AI</button>
+
 </div>
 
 <!-- ===== ORDER TOTAL BAR ===== -->
@@ -1113,49 +1302,6 @@
       <button class="admin-btn danger" onclick="adminClearHistory()">🗑️ ล้างประวัติทั้งหมด</button>
       <button class="admin-btn danger" onclick="adminResetAll()">💥 รีเซ็ตระบบทั้งหมด</button>
       <button class="admin-btn" onclick="lockScreen()" style="margin-top:6px;border-color:var(--muted);color:var(--muted);">🔒 ล็อกหน้าจอ</button>
-    </div>
-  </div>
-</div>
-
-<div id="tab-chat" class="tab-pane">
-  <!-- Header -->
-  <div class="chat-header">
-    <div class="chat-avatar">🌿</div>
-    <div class="chat-header-info">
-      <div class="chat-name" id="chat-assistant-name">🤖 ผู้ช่วย AI ประจำร้าน</div>
-      <div class="chat-role">ผู้ช่วยขาย · ดูสต็อก · คำนวณยอด · ให้คำปรึกษา</div>
-    </div>
-    <div class="chat-status-dot"></div>
-  </div>
-
-  <!-- Chat messages -->
-  <div class="chat-history" id="chat-history"></div>
-
-  <!-- Quick tips -->
-  <div class="chat-tips" id="chat-tips">
-    <span class="tip-chip" onclick="setTip('สต็อกวันนี้มีอะไรบ้าง?')">📦 ดูสต็อก</span>
-    <span class="tip-chip" onclick="setTip('ยอดขายวันนี้เท่าไหร่?')">💰 ยอดขาย</span>
-    <span class="tip-chip" onclick="setTip('ช่วยสรุปของที่ขายดีให้หน่อย')">📊 ขายดี</span>
-    <span class="tip-chip" onclick="setTip('ลงของกี่รอบแล้ว รอบไหนลงอะไรบ้าง?')">🚚 ลงของ</span>
-    <span class="tip-chip" onclick="setTip('กระท่อมแต่ละแบบต่างกันยังไง?')">🌿 ประเภท</span>
-    <span class="tip-chip" onclick="setTip('วิธีชงน้ำกระท่อมที่ถูกต้อง')">☕ วิธีชง</span>
-  </div>
-
-  <!-- API Key -->
-  <div class="chat-api-area" id="api-area">
-    <div class="api-label">🔑 Gemini API Key (เก็บในเครื่อง ไม่ส่งออก)</div>
-    <div class="api-row">
-      <input class="api-key-input" id="api-key-input" type="password" placeholder="AIzaSy...">
-      <button class="api-save-btn" onclick="saveApiKey()">บันทึก</button>
-    </div>
-  </div>
-
-  <!-- Input -->
-  <div class="chat-input-area">
-    <div class="chat-input-row">
-      <textarea class="chat-textarea" id="chat-input" placeholder="ถามน้ำหวาน..." rows="1"
-        onkeydown="chatKeyDown(event)" oninput="autoResize(this)"></textarea>
-      <button class="chat-send-btn" onclick="sendChat()">➤</button>
     </div>
   </div>
 </div>
@@ -1518,7 +1664,6 @@ function switchTab(tab) {
   }
   if (tab === 'stock') { renderStock(); initDeliverySelect(); renderDeliveryLog(); }
   if (tab === 'history') renderHistory();
-  if (tab === 'chat' && document.getElementById('chat-history').children.length === 0) initChat();
 }
 
 // ===== PRESS FEEDBACK HELPER (SAFE — กันกดผิด) =====
@@ -2153,9 +2298,8 @@ function showToast(msg, isError = false) {
 }
 
 // ===================================================================
-//  🌿 CHAT — น้ำหวาน AI ประจำร้านกระท่อม
+//  🌿 CHAT — ใช้งานผ่าน Popup เท่านั้น (FAB ปุ่มล่างขวา)
 // ===================================================================
-let chatHist = [];
 let chatApiKey = localStorage.getItem('pos_chat_apikey') || '';
 
 function buildShopSystem() {
@@ -2215,204 +2359,6 @@ Product keys ที่ใช้ได้: ${effProds.filter(p=>!p.promoBase).map
 เป็นกันเอง ช่วยงานได้รอบด้าน พูดตรง ไม่วนเวียน ตอบสั้นแต่ครบ`;
 }
 
-function initChat() {
-  const box = document.getElementById('chat-history');
-  box.innerHTML = '';
-
-  // Check API key
-  if (chatApiKey) {
-    document.getElementById('api-area').style.display = 'none';
-  } else {
-    document.getElementById('api-area').style.display = 'block';
-  }
-
-  // Welcome message
-  appendChatMsg('bot', '🌿 สวัสดีค่ะ! ฉันชื่อน้ำหวาน ผู้ช่วย AI ประจำร้านนี้\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊');
-}
-
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key) { showToast('กรุณากรอก API Key', true); return; }
-  chatApiKey = key;
-  localStorage.setItem('pos_chat_apikey', key);
-  document.getElementById('api-area').style.display = 'none';
-  showToast('บันทึก API Key แล้ว ✅');
-  appendChatMsg('system', '── เชื่อมต่อ Gemini API สำเร็จ ──');
-}
-
-async function sendChat() {
-  const inp = document.getElementById('chat-input');
-  const msg = inp.value.trim();
-  if (!msg) return;
-
-  if (!chatApiKey) {
-    document.getElementById('api-area').style.display = 'block';
-    showToast('กรุณาใส่ API Key ก่อนค่ะ 🔑', true);
-    return;
-  }
-
-  inp.value = '';
-  inp.style.height = 'auto';
-  appendChatMsg('user', msg);
-
-  // Build context from current state
-  const stockSummary = getEffectiveProducts().filter(p=>!p.promoBase).map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
-  const history = loadHistory();
-  let todayCash = 0, todayTransfer = 0;
-  history.forEach(h => {
-    if (h.pay === 'cash') todayCash += h.total;
-    else if (h.pay === 'transfer') todayTransfer += h.total;
-  });
-
-  // คำนวณสถิติสมาชิก
-  const memberBills = history.filter(h => h.member && h.member !== 'ทั่วไป');
-  const uniqueMembers = new Set(memberBills.map(h => h.member));
-  const memberSpend = {};
-  memberBills.forEach(h => {
-    memberSpend[h.member] = (memberSpend[h.member] || 0) + h.total;
-  });
-  const memberDetail = [...uniqueMembers].map(m => {
-    const bills = memberBills.filter(h => h.member === m).length;
-    const spend = memberSpend[m];
-    return `  • ${m}: ${bills} บิล รวม ฿${spend}`;
-  }).join('\n') || '  (ยังไม่มี)';
-  const freeCnt = history.filter(h => h.pay === 'free').length;
-
-  // สต็อกใกล้หมด
-  const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
-  const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
-  const lowStr = lowItems.length > 0
-    ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ')
-    : 'ไม่มี';
-
-  // Redeem log
-  const redeemBills = history.filter(h => h.pay === 'free');
-  const redeemDetail = redeemBills.map(h => {
-    const member = (h.member && h.member !== 'ทั่วไป') ? h.member : '(ไม่ระบุ)';
-    const items = h.items.map(i => `${i.name}x${i.qty}`).join(', ');
-    return `  • ${member} แลก: ${items} เวลา ${h.time}`;
-  }).join('\n') || '  (ยังไม่มี)';
-
-  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===\nสต็อกปัจจุบัน: ${stockSummary}\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)\nลูกค้าทั่วไป (ไม่มีสมาชิก): ${history.length - memberBills.length} ครั้ง\nสมาชิกที่มาซื้อวันนี้: ${uniqueMembers.size} คน (${memberBills.length} บิล)\nรายละเอียดสมาชิก:\n${memberDetail}\nRedeem Log (แลกฟรีวันนี้):\n${redeemDetail}`;
-
-  const thinking = appendThinking();
-  chatHist.push({ role: 'user', content: msg });
-
-  // ส่งประวัติ max 10 messages
-  const msgs = chatHist.slice(-10);
-
-  try {
-    const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${chatApiKey}`;
-
-    // Build Gemini contents array (system prompt as first user/model turn)
-    const fullSystem = buildShopSystem() + contextNote;
-    const contents = [];
-    contents.push({ role: 'user',  parts: [{ text: '[SYSTEM]\n' + fullSystem }] });
-    contents.push({ role: 'model', parts: [{ text: 'เข้าใจแล้วค่ะ พร้อมช่วยเต็มที่เลย 😊' }] });
-
-    // Add conversation history (last 10 messages)
-    msgs.slice(-10).forEach(m => {
-      contents.push({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      });
-    });
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents,
-        generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
-      })
-    });
-
-    removeThinking(thinking);
-
-    if (!res.ok) {
-      const err = await res.json();
-      appendChatMsg('error', '❌ ' + (err.error?.message || 'Gemini API Error'));
-      chatHist.pop();
-      return;
-    }
-
-    const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับคำตอบ';
-    appendChatMsg('bot', reply, true);
-    chatHist.push({ role: 'assistant', content: reply });
-
-  } catch (e) {
-    removeThinking(thinking);
-    appendChatMsg('error', '❌ เชื่อมต่อไม่ได้: ' + e.message);
-    chatHist.pop();
-  }
-}
-
-function appendChatMsg(type, text, isMarkdown = false) {
-  const box = document.getElementById('chat-history');
-  const div = document.createElement('div');
-  div.className = 'chat-msg ' + type;
-
-  // ===== V10: Process <ACTION> tags from bot =====
-  if (type === 'bot' && text.includes('<ACTION>')) {
-    const actionMatch = text.match(/<ACTION>([\s\S]*?)<\/ACTION>/);
-    if (actionMatch) {
-      try {
-        const action = JSON.parse(actionMatch[1]);
-        if (action.type === 'add_stock' && action.key && action.qty > 0) {
-          stock[action.key] = (stock[action.key] || 0) + action.qty;
-          saveStock();
-          renderProducts();
-          // Show action confirmation chip
-          setTimeout(() => {
-            const chip = document.createElement('div');
-            chip.className = 'chat-msg system';
-            chip.textContent = `✅ ระบบอัปเดตสต็อก: ${action.name || action.key} +${action.qty} (รอบ ${action.round || '?'})`;
-            box.appendChild(chip);
-            box.scrollTop = box.scrollHeight;
-          }, 300);
-        }
-      } catch(e) { /* ignore parse error */ }
-      // Remove ACTION tag from displayed text
-      text = text.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
-    }
-  }
-
-  if (isMarkdown) {
-    div.innerHTML = renderMd(text);
-  } else {
-    div.textContent = text;
-    div.style.whiteSpace = 'pre-wrap';
-  }
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-  return div;
-}
-
-function appendThinking() {
-  const box = document.getElementById('chat-history');
-  const div = document.createElement('div');
-  div.className = 'thinking-dots';
-  div.innerHTML = '<span></span><span></span><span></span>';
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-  return div;
-}
-function removeThinking(el) { el?.remove(); }
-
-function setTip(text) {
-  const inp = document.getElementById('chat-input');
-  inp.value = text;
-  inp.focus();
-}
-
-function chatKeyDown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendChat();
-  }
-}
 
 function autoResize(el) {
   el.style.height = 'auto';
@@ -2761,8 +2707,8 @@ function saveShopSettings() {
   if (assistantName) localStorage.setItem('pos_assistant_name', assistantName);
   // Update title
   document.title = (shopName || 'POS Template') + ' v12';
-  const nameEl = document.getElementById('chat-assistant-name');
-  if (nameEl && assistantName) nameEl.textContent = `🤖 ${assistantName}`;
+  const nameEl = document.getElementById('popup-assistant-name');
+  if (nameEl && assistantName) nameEl.textContent = assistantName;
   showToast('✅ บันทึกชื่อร้านแล้ว');
 }
 
@@ -2774,8 +2720,8 @@ function loadShopSettings() {
   if (sn && shopName) sn.value = shopName;
   if (an && assistantName) an.value = assistantName;
   if (shopName) document.title = shopName + ' v12';
-  const nameEl = document.getElementById('chat-assistant-name');
-  if (nameEl && assistantName) nameEl.textContent = `🤖 ${assistantName}`;
+  const nameEl = document.getElementById('popup-assistant-name');
+  if (nameEl && assistantName) nameEl.textContent = assistantName;
 }
 
 function saveAdminPins() {
@@ -3214,7 +3160,6 @@ function switchTab(tab) {
     const n = getLoyaltyN(); document.getElementById('loyalty-n').value = n; document.getElementById('loyalty-n-show').textContent = n;
     const lt = LOW_THRESHOLD; document.getElementById('low-thresh-input').value = lt; document.getElementById('low-thresh-show').textContent = lt;
   }
-  if (tab === 'chat' && document.getElementById('chat-history').children.length === 0) initChat();
 }
 
 // renderProducts — generic, no hardcode
@@ -3532,6 +3477,357 @@ if ('serviceWorker' in navigator) {
       .catch(e => console.log('SW error', e));
   });
 }
+</script>
+<!-- ===== AI FLOATING BUTTON ===== -->
+<button class="ai-fab" id="ai-fab" onclick="openAiPopup()" title="คุยกับ AI">🌿</button>
+
+<!-- ===== AI POPUP ===== -->
+<div class="ai-popup-overlay" id="ai-popup-overlay" onclick="closeAiPopupOnOverlay(event)">
+  <div class="ai-popup" id="ai-popup" style="position:relative;">
+
+    <!-- Session History Panel (absolute overlay) -->
+    <div class="ai-sessions-panel" id="ai-sessions-panel">
+      <div class="ai-sessions-header">
+        <button class="ai-sessions-back" onclick="closeSessionsPanel()">←</button>
+        ประวัติการแชท
+      </div>
+      <div class="ai-sessions-list" id="ai-sessions-list"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="ai-popup-header">
+      <div class="chat-avatar">🌿</div>
+      <div class="ai-popup-header-info">
+        <div class="ai-popup-title" id="popup-assistant-name">ผู้ช่วย AI ประจำร้าน</div>
+        <div class="ai-popup-sub">ถามสต็อก ยอดขาย สั่งลงของ</div>
+      </div>
+      <button class="ai-popup-close" onclick="closeAiPopup()">✕</button>
+    </div>
+
+    <!-- Actions bar -->
+    <div class="ai-popup-actions">
+      <button class="ai-new-chat-btn" onclick="popupNewChat()">✏️ แชทใหม่</button>
+      <button class="ai-history-btn" onclick="openSessionsPanel()">🕐 ประวัติ</button>
+      <button class="ai-history-btn" onclick="togglePopupApiArea()" id="popup-api-toggle-btn" title="ตั้งค่า API Key">🔑</button>
+    </div>
+
+    <!-- API Key area (shown at top when no key set) -->
+    <div class="chat-api-area" id="popup-api-area" style="border-bottom:1px solid var(--border);border-top:none;">
+      <div class="api-label">🔑 Gemini API Key (เก็บในเครื่อง ไม่ส่งออก)</div>
+      <div class="api-row">
+        <input class="api-key-input" id="popup-api-key-input" type="password" placeholder="AIzaSy...">
+        <button class="api-save-btn" onclick="popupSaveApiKey()">บันทึก</button>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="ai-popup-body">
+      <div class="ai-popup-chat-area" id="popup-chat-history"></div>
+
+      <!-- Quick tips -->
+      <div class="chat-tips" id="popup-chat-tips">
+        <span class="tip-chip" onclick="popupSetTip('สต็อกวันนี้มีอะไรบ้าง?')">📦 ดูสต็อก</span>
+        <span class="tip-chip" onclick="popupSetTip('ยอดขายวันนี้เท่าไหร่?')">💰 ยอดขาย</span>
+        <span class="tip-chip" onclick="popupSetTip('ช่วยสรุปของที่ขายดีให้หน่อย')">📊 ขายดี</span>
+        <span class="tip-chip" onclick="popupSetTip('สต็อกใกล้หมดมีอะไรบ้าง?')">⚠️ ใกล้หมด</span>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <textarea class="chat-textarea" id="popup-chat-input" placeholder="ถามน้ำหวาน..." rows="1"
+          onkeydown="popupChatKeyDown(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send-btn" onclick="popupSendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+//  AI POPUP — Floating Chat Window
+// =====================================================
+
+let popupChatHist = [];
+let popupSessionId = null;
+const SESSIONS_KEY = 'pos_chat_sessions';
+
+// --- Session Storage Helpers ---
+function loadSessions() {
+  try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
+}
+function saveSessions(sessions) {
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions.slice(0, 30)));
+}
+function saveCurrentSession(title) {
+  if (!popupSessionId || popupChatHist.length === 0) return;
+  const sessions = loadSessions();
+  const idx = sessions.findIndex(s => s.id === popupSessionId);
+  const session = {
+    id: popupSessionId,
+    title: title || popupChatHist[0]?.content?.slice(0, 40) || 'แชท',
+    messages: popupChatHist.slice(),
+    savedAt: new Date().toLocaleString('th-TH'),
+    msgCount: popupChatHist.length,
+  };
+  if (idx >= 0) sessions[idx] = session;
+  else sessions.unshift(session);
+  saveSessions(sessions);
+}
+
+// --- Open / Close popup ---
+function togglePopupApiArea() {
+  const area = document.getElementById('popup-api-area');
+  const isHidden = area.style.display === 'none';
+  area.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) document.getElementById('popup-api-key-input').focus();
+}
+
+function openAiPopup() {
+  document.getElementById('ai-popup-overlay').classList.add('open');
+  document.getElementById('popup-assistant-name').textContent =
+    localStorage.getItem('pos_assistant_name') || 'ผู้ช่วย AI ประจำร้าน';
+
+  if (document.getElementById('popup-chat-history').children.length === 0) {
+    popupInitChat();
+  }
+  if (chatApiKey) {
+    document.getElementById('popup-api-area').style.display = 'none';
+    document.getElementById('popup-api-key-input').value = '';
+  } else {
+    document.getElementById('popup-api-area').style.display = 'block';
+  }
+  setTimeout(() => {
+    const box = document.getElementById('popup-chat-history');
+    box.scrollTop = box.scrollHeight;
+    document.getElementById('popup-chat-input').focus();
+  }, 100);
+}
+function closeAiPopup() {
+  document.getElementById('ai-popup-overlay').classList.remove('open');
+  saveCurrentSession();
+}
+function closeAiPopupOnOverlay(e) {
+  if (e.target === document.getElementById('ai-popup-overlay')) closeAiPopup();
+}
+
+// --- Init new chat ---
+function popupInitChat(keepHistory) {
+  popupSessionId = Date.now().toString();
+  if (!keepHistory) {
+    popupChatHist = [];
+    document.getElementById('popup-chat-history').innerHTML = '';
+  }
+  popupAppendMsg('bot', '🌿 สวัสดีค่ะ! ฉันชื่อน้ำหวาน\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊');
+}
+
+function popupNewChat() {
+  if (popupChatHist.length > 0) saveCurrentSession();
+  popupInitChat(false);
+}
+
+// --- Sessions panel ---
+function openSessionsPanel() {
+  const panel = document.getElementById('ai-sessions-panel');
+  panel.classList.add('open');
+  renderSessionsList();
+}
+function closeSessionsPanel() {
+  document.getElementById('ai-sessions-panel').classList.remove('open');
+}
+function renderSessionsList() {
+  const list = document.getElementById('ai-sessions-list');
+  const sessions = loadSessions();
+  if (sessions.length === 0) {
+    list.innerHTML = '<div class="ai-sessions-empty">ยังไม่มีประวัติการแชท<br><small>พิมพ์คุยกับ AI แล้วปิดหน้าต่างเพื่อบันทึก</small></div>';
+    return;
+  }
+  list.innerHTML = sessions.map((s, i) => `
+    <div class="ai-session-item" onclick="loadSession('${s.id}')">
+      <button class="ai-session-del" onclick="deleteSession(event,'${s.id}')">🗑</button>
+      <div class="ai-session-title">${escHtml(s.title)}</div>
+      <div class="ai-session-meta">
+        <span>💬 ${s.msgCount} ข้อความ</span>
+        <span>${s.savedAt}</span>
+      </div>
+    </div>
+  `).join('');
+}
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function loadSession(id) {
+  if (popupChatHist.length > 0) saveCurrentSession();
+  const sessions = loadSessions();
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+  popupSessionId = s.id;
+  popupChatHist = s.messages.slice();
+  const box = document.getElementById('popup-chat-history');
+  box.innerHTML = '';
+  popupChatHist.forEach(m => {
+    const role = m.role === 'user' ? 'user' : 'bot';
+    popupAppendMsg(role, m.content, role === 'bot');
+  });
+  closeSessionsPanel();
+  setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
+}
+function deleteSession(e, id) {
+  e.stopPropagation();
+  const sessions = loadSessions().filter(s => s.id !== id);
+  saveSessions(sessions);
+  renderSessionsList();
+}
+
+// --- API Key ---
+function popupSaveApiKey() {
+  const key = document.getElementById('popup-api-key-input').value.trim();
+  if (!key) { showToast('กรุณากรอก API Key', true); return; }
+  chatApiKey = key;
+  localStorage.setItem('pos_chat_apikey', key);
+  document.getElementById('popup-api-area').style.display = 'none';
+  showToast('บันทึก API Key แล้ว ✅');
+  popupAppendMsg('system', '── เชื่อมต่อ Gemini API สำเร็จ ──');
+}
+
+// --- Send message ---
+async function popupSendChat() {
+  const inp = document.getElementById('popup-chat-input');
+  const msg = inp.value.trim();
+  if (!msg) return;
+
+  if (!chatApiKey) {
+    document.getElementById('popup-api-area').style.display = 'block';
+    showToast('กรุณาใส่ API Key ก่อนค่ะ 🔑', true);
+    return;
+  }
+
+  inp.value = '';
+  inp.style.height = 'auto';
+  document.getElementById('popup-chat-tips').style.display = 'none';
+  popupAppendMsg('user', msg);
+
+  // Build context (reuse existing buildShopSystem + context functions)
+  const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
+  const stockSummary = getEffectiveProducts().filter(p=>!p.promoBase).map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
+  const history = loadHistory();
+  let todayCash = 0, todayTransfer = 0;
+  history.forEach(h => {
+    if (h.pay === 'cash') todayCash += h.total;
+    else if (h.pay === 'transfer') todayTransfer += h.total;
+  });
+  const memberBills = history.filter(h => h.member && h.member !== 'ทั่วไป');
+  const uniqueMembers = new Set(memberBills.map(h => h.member));
+  const freeCnt = history.filter(h => h.pay === 'free').length;
+  const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
+  const lowStr = lowItems.length > 0 ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
+  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===\nสต็อกปัจจุบัน: ${stockSummary}\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)`;
+
+  const thinking = popupAppendThinking();
+  popupChatHist.push({ role: 'user', content: msg });
+
+  const msgs = popupChatHist.slice(-10);
+  try {
+    const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${chatApiKey}`;
+    const fullSystem = buildShopSystem() + contextNote;
+    const contents = [];
+    contents.push({ role: 'user',  parts: [{ text: '[SYSTEM]\n' + fullSystem }] });
+    contents.push({ role: 'model', parts: [{ text: 'เข้าใจแล้วค่ะ พร้อมช่วยเต็มที่เลย 😊' }] });
+    msgs.slice(-10).forEach(m => {
+      contents.push({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] });
+    });
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 1000, temperature: 0.7 } })
+    });
+
+    popupRemoveThinking(thinking);
+    if (!res.ok) {
+      const err = await res.json();
+      popupAppendMsg('error', '❌ ' + (err.error?.message || 'Gemini API Error'));
+      popupChatHist.pop();
+      return;
+    }
+    const data = await res.json();
+    let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับคำตอบ';
+
+    // Process ACTION tags (same as main chat)
+    const box = document.getElementById('popup-chat-history');
+    if (reply.includes('<ACTION>')) {
+      const actionMatch = reply.match(/<ACTION>([\s\S]*?)<\/ACTION>/);
+      if (actionMatch) {
+        try {
+          const action = JSON.parse(actionMatch[1]);
+          if (action.type === 'add_stock' && action.key && action.qty > 0) {
+            stock[action.key] = (stock[action.key] || 0) + action.qty;
+            saveStock();
+            renderProducts();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `✅ ระบบอัปเดตสต็อก: ${action.name || action.key} +${action.qty} (รอบ ${action.round || '?'})`;
+              box.appendChild(chip);
+              box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+        } catch(e) {}
+        reply = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
+      }
+    }
+
+    popupAppendMsg('bot', reply, true);
+    popupChatHist.push({ role: 'assistant', content: reply });
+    saveCurrentSession();
+
+  } catch(e) {
+    popupRemoveThinking(thinking);
+    popupAppendMsg('error', '❌ เชื่อมต่อไม่ได้: ' + e.message);
+    popupChatHist.pop();
+  }
+}
+
+function popupAppendMsg(type, text, isMarkdown = false) {
+  const box = document.getElementById('popup-chat-history');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + type;
+  if (isMarkdown) {
+    div.innerHTML = renderMd(text);
+  } else {
+    div.textContent = text;
+    div.style.whiteSpace = 'pre-wrap';
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+function popupAppendThinking() {
+  const box = document.getElementById('popup-chat-history');
+  const div = document.createElement('div');
+  div.className = 'thinking-dots';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+function popupRemoveThinking(el) { el?.remove(); }
+
+function popupSetTip(text) {
+  const inp = document.getElementById('popup-chat-input');
+  inp.value = text;
+  inp.focus();
+}
+function popupChatKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    popupSendChat();
+  }
+}
+
+// Hide FAB when on the AI tab (not needed there) — handled in switchTab above
 </script>
 </body>
 </html>
