@@ -1,9 +1,16 @@
-Copyright (c) 2026 kerr77 (KAASOD). All rights reserved.
+KAASOD Public Source-Available License (Version 1.0)
+Copyright (c) 2026 kerr77. All rights reserved.
 
-Strictly Confidential & Proprietary.
+The source code in this repository is made publicly visible for educational, review, and transparency purposes only. 
 
-This software and all associated documentation, source code, and assets (the "Software") are the exclusive property of kerr77. 
+TERMS AND CONDITIONS
 
-No part of this Software may be reproduced, distributed, modified, sublicensed, resold, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the copyright owner.
+1. Personal & Educational Use: You are permitted to view the source code, download it for personal educational purposes, and fork this repository for non-commercial use.
 
-Any unauthorized commercial use, redistribution, or reverse engineering of this Software is strictly prohibited and will be subject to legal action to the maximum extent permitted by law.
+2. Commercial Prohibition: You are strictly prohibited from using this software, its source code, or any modified derivatives thereof for commercial purposes. This includes, but is not limited to: running a paid service, selling the software, or bundling it into any commercial product or platform.
+
+3. Production Prohibition: You may not deploy or run this software in a production environment for any business, commercial entity, or revenue-generating operation without explicit written permission from the copyright owner.
+
+4. Modification & Distribution: You may modify the code for personal learning, but you are not allowed to redistribute, publish, or host modified versions of this software publicly.
+
+For commercial licensing inquiries, hosting partnerships, or explicit permissions, please contact the author (kerr77).
