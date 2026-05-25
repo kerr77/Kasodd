@@ -2403,6 +2403,12 @@ ${prodLines}
 <ACTION>{"type":"create_product","key":"mixed_fruit_juice","name":"น้ำผลไม้รวม","price":70,"qty":100}</ACTION>
 หมายเหตุ: key ต้องเป็นภาษาอังกฤษ ไม่มีช่องว่าง ไม่ซ้ำกับสินค้าที่มีอยู่แล้ว
 
+▶ บันทึกรายจ่าย Petty Cash (ซื้อของ จ่ายค่าใช้จ่ายต่างๆ):
+<ACTION>{"type":"add_petty","desc":"[ชื่อรายการ]","amount":[จำนวนเงิน]}</ACTION>
+ตัวอย่าง: "ซื้อน้ำแข็งไป 50 บาท" → <ACTION>{"type":"add_petty","desc":"ซื้อน้ำแข็ง","amount":50}</ACTION>
+ตัวอย่าง: "จ่ายค่าแก๊ส 200 บาท" → <ACTION>{"type":"add_petty","desc":"ค่าแก๊ส","amount":200}</ACTION>
+หมายเหตุ: ใช้เมื่อผู้ใช้บอกว่าซื้อ/จ่าย/ค่า[อะไรก็ตาม]ไป[จำนวน]บาท ต้องส่ง ACTION ทันทีเสมอ
+
 
 
 Product keys ที่ใช้ได้: ${effProds.filter(p=>!p.promoBase).map(p=>`${p.name}=${p.key}`).join(', ')}
@@ -3574,6 +3580,7 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('ช่วยสรุปของที่ขายดีให้หน่อย')">📊 ขายดี</span>
         <span class="tip-chip" onclick="popupSetTip('สต็อกใกล้หมดมีอะไรบ้าง?')">⚠️ ใกล้หมด</span>
         <span class="tip-chip" onclick="popupSetTip('มีสินค้ามาใหม่ [ชื่อสินค้า] ราคา [ราคา] บาท จำนวน [จำนวน] ชิ้น')">✨ เพิ่มสินค้าใหม่</span>
+        <span class="tip-chip" onclick="popupSetTip('ซื้อ[รายการ]ไป [จำนวน] บาท')">💸 บันทึกค่าใช้จ่าย</span>
       </div>
     </div>
 
@@ -3999,6 +4006,26 @@ async function popupSendChat() {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
               chip.textContent = `✨ สร้างสินค้าใหม่: ${action.name} ราคา ฿${action.price} จำนวน ${action.qty || 0} ชิ้น`;
+              box.appendChild(chip);
+              box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- 5. บันทึกรายจ่าย Petty Cash ---
+          else if (action.type === 'add_petty' && action.desc && action.amount > 0) {
+            const petty = loadPetty();
+            petty.unshift({
+              desc: action.desc,
+              amount: action.amount,
+              time: new Date().toLocaleString('th-TH')
+            });
+            savePetty(petty);
+            renderPettyList();
+            renderShiftBar();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `💸 บันทึกรายจ่าย: ${action.desc} -฿${action.amount.toLocaleString()}`;
               box.appendChild(chip);
               box.scrollTop = box.scrollHeight;
             }, 300);
