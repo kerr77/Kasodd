@@ -4012,14 +4012,19 @@ function confirmSale(method) {
   autoSyncToServer();
 }
 
-// Override switchTab to render promo list in admin
-const _origSwitchTabPromo = switchTab;
-function switchTab(tab) {
-  _origSwitchTabPromo.call(this, tab);
-  if (tab === 'admin') {
-    renderPromoList();
-  }
-}
+// Extend switchTab to also render promo list when admin tab opens
+// (patch via addEventListener on tab buttons instead of function override)
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // slight delay so switchTab runs first
+    setTimeout(() => {
+      const adminPane = document.getElementById('tab-admin');
+      if (adminPane && adminPane.classList.contains('active')) {
+        renderPromoList();
+      }
+    }, 10);
+  });
+});
 </script>
 <script>
 if ('serviceWorker' in navigator) {
