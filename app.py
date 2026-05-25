@@ -228,16 +228,10 @@ def index():
     """Serve หน้า POS หลัก"""
     if INDEX_HTML.exists():
         html_content = INDEX_HTML.read_text(encoding='utf-8')
-        
-        # 1. ดึง API Key จาก Railway Environment Variable
         gemini_key = os.environ.get('GEMINI_API_KEY', '')
-        
-        # 2. ค้นหาบรรทัดรับค่าคีย์เดิม แล้วแทนที่ด้วยคีย์จาก Railway ทันที
         old_code = "let chatApiKey = localStorage.getItem('pos_chat_apikey') || '';"
         new_code = f"let chatApiKey = '{gemini_key}';"
-        html_content = html_content.replace(old_code, new_code)
-        
-        return html_content
+        return html_content.replace(old_code, new_code)
     return "<h1>❌ ไม่พบ index.html — วางไฟล์ไว้ที่รูทโปรเจกต์</h1>", 404
 
 # ════════════════════════════════════════════════════════════
