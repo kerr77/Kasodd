@@ -92,7 +92,7 @@ Pull request ยินดีต้อนรับทุกอันครับ
 
 ## 📄 License
 
-MIT License — ใช้ได้ฟรี แก้ได้ เอาไปต่อยอดได้
+Copyright (c) 2026 kerr77 (KAASOD). All rights reserved.
 
 ---
 
