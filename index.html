@@ -2299,8 +2299,8 @@ function showToast(msg, isError = false) {
 
 // ===================================================================
 //  🌿 CHAT — ใช้งานผ่าน Popup เท่านั้น (FAB ปุ่มล่างขวา)
+//  Gemini API Key อยู่ฝั่ง server — เรียกผ่าน /api/chat
 // ===================================================================
-let chatApiKey = localStorage.getItem('pos_chat_apikey') || '';
 
 function buildShopSystem() {
   const effProds = getEffectiveProducts();
@@ -3508,16 +3508,6 @@ if ('serviceWorker' in navigator) {
     <div class="ai-popup-actions">
       <button class="ai-new-chat-btn" onclick="popupNewChat()">✏️ แชทใหม่</button>
       <button class="ai-history-btn" onclick="openSessionsPanel()">🕐 ประวัติ</button>
-      <button class="ai-history-btn" onclick="togglePopupApiArea()" id="popup-api-toggle-btn" title="ตั้งค่า API Key">🔑</button>
-    </div>
-
-    <!-- API Key area (shown at top when no key set) -->
-    <div class="chat-api-area" id="popup-api-area" style="border-bottom:1px solid var(--border);border-top:none;">
-      <div class="api-label">🔑 Gemini API Key (เก็บในเครื่อง ไม่ส่งออก)</div>
-      <div class="api-row">
-        <input class="api-key-input" id="popup-api-key-input" type="password" placeholder="AIzaSy...">
-        <button class="api-save-btn" onclick="popupSaveApiKey()">บันทึก</button>
-      </div>
     </div>
 
     <!-- Chat area -->
@@ -3577,13 +3567,6 @@ function saveCurrentSession(title) {
 }
 
 // --- Open / Close popup ---
-function togglePopupApiArea() {
-  const area = document.getElementById('popup-api-area');
-  const isHidden = area.style.display === 'none';
-  area.style.display = isHidden ? 'block' : 'none';
-  if (isHidden) document.getElementById('popup-api-key-input').focus();
-}
-
 function openAiPopup() {
   document.getElementById('ai-popup-overlay').classList.add('open');
   document.getElementById('popup-assistant-name').textContent =
@@ -3591,12 +3574,6 @@ function openAiPopup() {
 
   if (document.getElementById('popup-chat-history').children.length === 0) {
     popupInitChat();
-  }
-  if (chatApiKey) {
-    document.getElementById('popup-api-area').style.display = 'none';
-    document.getElementById('popup-api-key-input').value = '';
-  } else {
-    document.getElementById('popup-api-area').style.display = 'block';
   }
   setTimeout(() => {
     const box = document.getElementById('popup-chat-history');
@@ -3680,35 +3657,18 @@ function deleteSession(e, id) {
   renderSessionsList();
 }
 
-// --- API Key ---
-function popupSaveApiKey() {
-  const key = document.getElementById('popup-api-key-input').value.trim();
-  if (!key) { showToast('กรุณากรอก API Key', true); return; }
-  chatApiKey = key;
-  localStorage.setItem('pos_chat_apikey', key);
-  document.getElementById('popup-api-area').style.display = 'none';
-  showToast('บันทึก API Key แล้ว ✅');
-  popupAppendMsg('system', '── เชื่อมต่อ Gemini API สำเร็จ ──');
-}
-
 // --- Send message ---
 async function popupSendChat() {
   const inp = document.getElementById('popup-chat-input');
   const msg = inp.value.trim();
   if (!msg) return;
 
-  if (!chatApiKey) {
-    document.getElementById('popup-api-area').style.display = 'block';
-    showToast('กรุณาใส่ API Key ก่อนค่ะ 🔑', true);
-    return;
-  }
-
   inp.value = '';
   inp.style.height = 'auto';
   document.getElementById('popup-chat-tips').style.display = 'none';
   popupAppendMsg('user', msg);
 
-  // Build context (reuse existing buildShopSystem + context functions)
+  // Build context
   const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
   const stockSummary = getEffectiveProducts().filter(p=>!p.promoBase).map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
   const history = loadHistory();
@@ -3718,7 +3678,6 @@ async function popupSendChat() {
     else if (h.pay === 'transfer') todayTransfer += h.total;
   });
   const memberBills = history.filter(h => h.member && h.member !== 'ทั่วไป');
-  const uniqueMembers = new Set(memberBills.map(h => h.member));
   const freeCnt = history.filter(h => h.pay === 'free').length;
   const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
   const lowStr = lowItems.length > 0 ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
@@ -3729,8 +3688,6 @@ async function popupSendChat() {
 
   const msgs = popupChatHist.slice(-10);
   try {
-    const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${chatApiKey}`;
     const fullSystem = buildShopSystem() + contextNote;
     const contents = [];
     contents.push({ role: 'user',  parts: [{ text: '[SYSTEM]\n' + fullSystem }] });
@@ -3739,7 +3696,8 @@ async function popupSendChat() {
       contents.push({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] });
     });
 
-    const res = await fetch(url, {
+    // เรียกผ่าน server proxy — key อยู่ฝั่ง server ปลอดภัย
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 1000, temperature: 0.7 } })
@@ -3748,7 +3706,11 @@ async function popupSendChat() {
     popupRemoveThinking(thinking);
     if (!res.ok) {
       const err = await res.json();
-      popupAppendMsg('error', '❌ ' + (err.error?.message || 'Gemini API Error'));
+      if (res.status === 403) {
+        popupAppendMsg('error', '❌ ยังไม่ได้เปิดใช้งาน AI — ติดต่อทีมงานเพื่อเปิด package AI');
+      } else {
+        popupAppendMsg('error', '❌ ' + (err.error?.message || err.error || 'เกิดข้อผิดพลาด'));
+      }
       popupChatHist.pop();
       return;
     }
