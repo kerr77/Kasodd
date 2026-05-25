@@ -1,10 +1,7 @@
-
 """
-app_v3.py — ค้าสด (KAASOD) SaaS v3
-- landing.html = หน้าแรก สมัคร/login
-- /pos = หน้า POS (ต้อง login ก่อน)
-- AI chat ส่ง Gemini format ตรงๆ กลับให้ index.html
-- แยก plan: starter=199, pro=399 (AI ใช้ได้เฉพาะ pro)
+app_v4.py — ค้าสด (KAASOD) SaaS v4
+- Starter 199฿: AI 20 ข้อความ/วัน
+- Pro 399฿: AI ไม่จำกัด + วิเคราะห์ยอดขาย + ประวัติไม่จำกัด
 """
 
 from flask import Flask, request, jsonify, session, redirect, Response
@@ -21,9 +18,11 @@ USERS_FILE = DATA_DIR / 'users.json'
 for d in [DATA_DIR, SHOPS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
-ADMIN_KEY  = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
-GEMINI_KEY = os.environ.get('GEMINI_API_KEY', '')
+ADMIN_KEY    = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
+GEMINI_KEY   = os.environ.get('GEMINI_API_KEY', '')
 GEMINI_MODEL = 'gemini-3.1-flash-lite'
+
+STARTER_DAILY_LIMIT = 20  # ข้อความ/วัน สำหรับ starter
 
 # ── helpers ────────────────────────────────────────────────
 
@@ -43,19 +42,43 @@ def shop_dir(sid):
     d.mkdir(exist_ok=True)
     return d
 
+def get_usage_file(shop_id):
+    return shop_dir(shop_id) / 'ai_usage.json'
+
+def get_today_usage(shop_id):
+    """นับจำนวน AI message วันนี้ของร้านนี้"""
+    f     = get_usage_file(shop_id)
+    today = datetime.now().strftime('%Y-%m-%d')
+    if not f.exists():
+        return 0
+    data = json.loads(f.read_text(encoding='utf-8'))
+    return data.get(today, 0)
+
+def increment_usage(shop_id):
+    """เพิ่ม count AI message วันนี้"""
+    f     = get_usage_file(shop_id)
+    today = datetime.now().strftime('%Y-%m-%d')
+    data  = json.loads(f.read_text(encoding='utf-8')) if f.exists() else {}
+    data[today] = data.get(today, 0) + 1
+    # เก็บแค่ 7 วันล่าสุด
+    keys = sorted(data.keys(), reverse=True)[:7]
+    data = {k: data[k] for k in keys}
+    f.write_text(json.dumps(data), encoding='utf-8')
+    return data[today]
+
 # ── pages ──────────────────────────────────────────────────
 
 @app.route('/')
 def index():
     f = Path('landing.html')
-    return f.read_text(encoding='utf-8') if f.exists() else ("<h1>ไม่พบ landing.html</h1>", 404)
+    return f.read_text(encoding='utf-8') if f.exists() else ('<h1>ไม่พบ landing.html</h1>', 404)
 
 @app.route('/pos')
 def pos():
     if 'shop_id' not in session:
         return redirect('/')
     f = Path('index.html')
-    return f.read_text(encoding='utf-8') if f.exists() else ("<h1>ไม่พบ index.html</h1>", 404)
+    return f.read_text(encoding='utf-8') if f.exists() else ('<h1>ไม่พบ index.html</h1>', 404)
 
 @app.route('/sw.js')
 def sw():
@@ -116,10 +139,19 @@ def logout():
 def me():
     if 'shop_id' not in session:
         return jsonify({'ok': False}), 401
+    shop_id = session['shop_id']
+    plan    = session.get('plan', 'starter')
+    usage   = get_today_usage(shop_id)
+    remaining = None if plan == 'pro' else max(0, STARTER_DAILY_LIMIT - usage)
     return jsonify({
-        'ok': True, 'shop_id': session['shop_id'],
-        'shop_name': session['shop_name'], 'username': session['username'],
-        'plan': session.get('plan', 'starter'),
+        'ok': True,
+        'shop_id':   shop_id,
+        'shop_name': session['shop_name'],
+        'username':  session['username'],
+        'plan':      plan,
+        'ai_usage_today':  usage,
+        'ai_remaining':    remaining,
+        'ai_daily_limit':  STARTER_DAILY_LIMIT if plan == 'starter' else None,
     })
 
 # ── AI chat ────────────────────────────────────────────────
@@ -127,16 +159,23 @@ def me():
 @app.route('/api/chat', methods=['POST'])
 def chat():
     if 'shop_id' not in session:
-        return jsonify({'error': 'ไม่ได้ login'}), 401
-
-    # ตรวจ plan
-    if session.get('plan') != 'pro':
-        return jsonify({
-            'error': {'code': 403, 'message': 'AI ประจำร้านสำหรับแพ็กเกจ Pro 399฿/เดือนเท่านั้นครับ\nอัปเกรดได้ที่ Line: @kaasod', 'status': 'PLAN_REQUIRED'}
-        }), 403
+        return jsonify({'error': {'code': 401, 'message': 'ไม่ได้ login', 'status': 'UNAUTHORIZED'}}), 401
 
     if not GEMINI_KEY:
         return jsonify({'error': {'code': 500, 'message': 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY', 'status': 'NO_KEY'}}), 500
+
+    shop_id = session['shop_id']
+    plan    = session.get('plan', 'starter')
+
+    # ตรวจ quota สำหรับ starter
+    if plan == 'starter':
+        usage = get_today_usage(shop_id)
+        if usage >= STARTER_DAILY_LIMIT:
+            return jsonify({'error': {
+                'code': 429,
+                'message': f'⚠️ ใช้ AI ครบ {STARTER_DAILY_LIMIT} ข้อความวันนี้แล้วครับ\n\n🚀 อัปเกรดเป็น Pro 399฿/เดือน ใช้ได้ไม่จำกัด!\nติดต่อ Line: @kaasod',
+                'status': 'QUOTA_EXCEEDED'
+            }}), 429
 
     data     = request.get_json(silent=True) or {}
     contents = data.get('contents', [])
@@ -152,8 +191,22 @@ def chat():
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
-        # ส่ง Gemini format ตรงๆ กลับไป — index.html อ่านได้เลย
+
+        # นับ usage หลัง call สำเร็จ
+        new_count = increment_usage(shop_id)
+
+        # แนบ quota info ไปด้วย (สำหรับ starter แสดง popup เตือน)
+        if plan == 'starter':
+            remaining = max(0, STARTER_DAILY_LIMIT - new_count)
+            resp['_quota'] = {
+                'used': new_count,
+                'remaining': remaining,
+                'limit': STARTER_DAILY_LIMIT,
+                'warn': remaining <= 5  # เตือนเมื่อเหลือ 5 ข้อความ
+            }
+
         return jsonify(resp)
+
     except urllib.error.HTTPError as e:
         err = json.loads(e.read().decode())
         return jsonify(err), e.code
@@ -162,7 +215,18 @@ def chat():
 
 @app.route('/api/chat/status')
 def chat_status():
-    return jsonify({'ai_ready': bool(GEMINI_KEY) and session.get('plan') == 'pro'})
+    if 'shop_id' not in session:
+        return jsonify({'ai_ready': False})
+    shop_id   = session['shop_id']
+    plan      = session.get('plan', 'starter')
+    usage     = get_today_usage(shop_id)
+    remaining = None if plan == 'pro' else max(0, STARTER_DAILY_LIMIT - usage)
+    return jsonify({
+        'ai_ready':    bool(GEMINI_KEY),
+        'plan':        plan,
+        'usage_today': usage,
+        'remaining':   remaining,
+    })
 
 # ── sync/backup ────────────────────────────────────────────
 
@@ -214,20 +278,23 @@ def admin_list():
     for u, d in users.items():
         plan_label   = '🤖 Pro 399฿' if d['plan'] == 'pro' else '📋 Starter 199฿'
         status_color = '#5aaa6a' if d['status'] == 'active' else '#e07b3a'
+        shop_id      = d.get('shop_id', '')
+        usage        = get_today_usage(shop_id) if shop_id else 0
         rows += f"""<tr>
           <td>{u}</td><td>{d['shop_name']}</td><td>{d['phone']}</td>
           <td>{plan_label}</td>
           <td style="color:{status_color};font-weight:bold">{d['status']}</td>
+          <td>{usage} msg วันนี้</td>
           <td>{d['created_at']}</td>
           <td><a href="/admin/approve/{u}?key={request.args.get('key')}">✅ อนุมัติ</a></td>
         </tr>"""
     return f"""<!DOCTYPE html><html><head><meta charset="utf-8">
     <style>body{{font-family:sans-serif;padding:20px;background:#0f0e0c;color:#f0e8dc}}
-    table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #2e2820;padding:10px}}
+    table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #2e2820;padding:8px}}
     th{{background:#1a1815;color:#c9a84c}}.s{{display:inline-block;background:#1a1815;
     border:1px solid #2e2820;border-radius:10px;padding:12px 20px;margin:8px;text-align:center}}
     .s b{{display:block;font-size:24px;color:#c9a84c}}a{{color:#e07b3a}}</style></head>
-    <body><h2 style="color:#c9a84c">ค้าสด — Admin</h2>
+    <body><h2 style="color:#c9a84c">ค้าสด — Admin v4</h2>
     <div>
       <div class="s"><b>{len(users)}</b>ร้านทั้งหมด</div>
       <div class="s"><b style="color:#5aaa6a">{active}</b>Active</div>
@@ -235,7 +302,7 @@ def admin_list():
       <div class="s"><b>{revenue:,}฿</b>รายได้/เดือน</div>
     </div><br>
     <table><tr><th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th>
-    <th>แพ็กเกจ</th><th>สถานะ</th><th>สมัครเมื่อ</th><th>Action</th></tr>
+    <th>แพ็กเกจ</th><th>สถานะ</th><th>AI วันนี้</th><th>สมัครเมื่อ</th><th>Action</th></tr>
     {rows}</table></body></html>"""
 
 # ── health ─────────────────────────────────────────────────
@@ -244,16 +311,18 @@ def admin_list():
 def health():
     users = load_users()
     return jsonify({
-        'status':  'ok',
-        'model':   GEMINI_MODEL,
-        'time':    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'total':   len(users),
-        'active':  sum(1 for u in users.values() if u['status'] == 'active'),
-        'pro':     sum(1 for u in users.values() if u['plan'] == 'pro' and u['status'] == 'active'),
-        'starter': sum(1 for u in users.values() if u['plan'] == 'starter' and u['status'] == 'active'),
-        'ai_key':  bool(GEMINI_KEY),
+        'status':        'ok',
+        'version':       'v4',
+        'model':         GEMINI_MODEL,
+        'starter_limit': STARTER_DAILY_LIMIT,
+        'time':          datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'total':         len(users),
+        'active':        sum(1 for u in users.values() if u['status'] == 'active'),
+        'pro':           sum(1 for u in users.values() if u['plan'] == 'pro' and u['status'] == 'active'),
+        'starter':       sum(1 for u in users.values() if u['plan'] == 'starter' and u['status'] == 'active'),
+        'ai_key':        bool(GEMINI_KEY),
     })
 
 if __name__ == '__main__':
-    print(f"🌿 ค้าสด v3 | model: {GEMINI_MODEL} | http://localhost:5000")
+    print(f"🌿 ค้าสด v4 | {GEMINI_MODEL} | starter limit: {STARTER_DAILY_LIMIT}/day")
     app.run(debug=True, host='0.0.0.0', port=5000)
