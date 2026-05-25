@@ -790,6 +790,232 @@ h1{{color:#c9a84c;font-size:18px;margin-bottom:4px}}
 </body></html>"""
     return page
 
+# ── shop analytics APIs (for AI context) ──────────────────
+
+@app.route('/api/shop/sales-report')
+def shop_sales_report():
+    """
+    Detailed Sales Report: product_name, quantity_sold, total_amount_per_item
+    AI ใช้เพื่อวิเคราะห์สินค้าขายดี และแนะนำการบริหารสต็อก
+    """
+    if 'shop_id' not in session:
+        return jsonify({'ok': False, 'msg': 'ไม่ได้ login'}), 401
+    shop_id = session['shop_id']
+
+    bfiles = sorted(shop_dir(shop_id).glob('backup_*.json'), reverse=True)[:7]
+    all_history = []
+    for bf in bfiles:
+        try:
+            raw = json.loads(bf.read_text(encoding='utf-8'))
+            h = raw.get('data', {}).get('history', [])
+            if isinstance(h, list):
+                all_history.extend(h)
+        except Exception:
+            pass
+
+    # Aggregate by product name
+    product_stats = {}
+    for sale in all_history:
+        for item in sale.get('items', []):
+            name = item.get('name', 'ไม่ระบุ')
+            qty  = item.get('qty', 1)
+            price = item.get('price', 0)
+            if name not in product_stats:
+                product_stats[name] = {
+                    'product_name': name,
+                    'quantity_sold': 0,
+                    'total_amount': 0,
+                    'unit_price': price,
+                }
+            product_stats[name]['quantity_sold'] += qty
+            product_stats[name]['total_amount']  += qty * price
+
+    sorted_products = sorted(product_stats.values(),
+                             key=lambda x: x['quantity_sold'], reverse=True)
+
+    total_revenue = sum(s.get('total', 0) for s in all_history)
+    total_bills   = len(all_history)
+    avg_bill      = round(total_revenue / total_bills, 2) if total_bills > 0 else 0
+
+    return jsonify({
+        'ok': True,
+        'summary': {
+            'total_revenue': total_revenue,
+            'total_bills': total_bills,
+            'avg_bill_amount': avg_bill,
+        },
+        'products': sorted_products,
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    })
+
+
+@app.route('/api/shop/low-stock')
+def shop_low_stock():
+    """
+    Real-time Inventory Alert: สินค้าที่สต็อกต่ำกว่าเกณฑ์
+    ?threshold=10 (default 10)
+    """
+    if 'shop_id' not in session:
+        return jsonify({'ok': False, 'msg': 'ไม่ได้ login'}), 401
+    shop_id   = session['shop_id']
+    threshold = int(request.args.get('threshold', 10))
+
+    bfiles = sorted(shop_dir(shop_id).glob('backup_*.json'), reverse=True)
+    if not bfiles:
+        return jsonify({'ok': True, 'threshold': threshold, 'low_stock': [], 'total': 0})
+
+    try:
+        raw      = json.loads(bfiles[0].read_text(encoding='utf-8'))
+        products = raw.get('data', {}).get('products',
+                   raw.get('data', {}).get('items', []))
+    except Exception:
+        return jsonify({'ok': True, 'threshold': threshold, 'low_stock': [], 'total': 0})
+
+    items_list = products if isinstance(products, list) else list(products.values())
+
+    low = []
+    for p in items_list:
+        st = p.get('stock', p.get('qty', None))
+        if st is not None and isinstance(st, (int, float)) and st < threshold:
+            low.append({
+                'name':   p.get('name', ''),
+                'stock':  st,
+                'unit':   p.get('unit', 'ชิ้น'),
+                'price':  p.get('price', 0),
+                'status': 'หมด' if st == 0 else 'ใกล้หมด',
+            })
+    low.sort(key=lambda x: x['stock'])
+
+    return jsonify({
+        'ok': True,
+        'threshold': threshold,
+        'low_stock': low,
+        'total': len(low),
+        'checked_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    })
+
+
+@app.route('/api/shop/member-insights')
+def shop_member_insights():
+    """
+    Member Insight: สรุปพฤติกรรมสมาชิก สิทธิ์แลกฟรี ยอดสะสม
+    AI ใช้วางแผนโปรโมชั่นและดูแลลูกค้าประจำ
+    """
+    if 'shop_id' not in session:
+        return jsonify({'ok': False, 'msg': 'ไม่ได้ login'}), 401
+    shop_id = session['shop_id']
+
+    bfiles = sorted(shop_dir(shop_id).glob('backup_*.json'), reverse=True)
+    if not bfiles:
+        return jsonify({'ok': True, 'total_members': 0, 'insights': {}, 'top_members': []})
+
+    try:
+        raw     = json.loads(bfiles[0].read_text(encoding='utf-8'))
+        members = raw.get('data', {}).get('members',
+                  raw.get('data', {}).get('crm', []))
+    except Exception:
+        return jsonify({'ok': True, 'total_members': 0, 'insights': {}, 'top_members': []})
+
+    items_list = members if isinstance(members, list) else list(members.values())
+
+    total        = len(items_list)
+    total_points = sum(m.get('points', m.get('point', 0)) for m in items_list)
+    total_spent  = sum(m.get('totalSpend', m.get('totalSpent', m.get('total_spent', 0))) for m in items_list)
+    total_visits = sum(m.get('totalBills', m.get('visitCount', m.get('visit_count', 0))) for m in items_list)
+    loyalty_n    = raw.get('data', {}).get('loyaltyN', 10)
+    redeemable   = sum(1 for m in items_list
+                       if (m.get('points', m.get('point', 0)) // loyalty_n) > 0)
+
+    top_list = sorted(items_list,
+                      key=lambda x: x.get('totalSpend', x.get('totalSpent', x.get('total_spent', 0))),
+                      reverse=True)[:5]
+    top_out = [{
+        'name':  m.get('name', ''),
+        'phone': m.get('phone', ''),
+        'total_spend': m.get('totalSpend', m.get('totalSpent', m.get('total_spent', 0))),
+        'points': m.get('points', m.get('point', 0)),
+        'bills': m.get('totalBills', m.get('visitCount', 0)),
+        'redeemable': m.get('points', 0) // loyalty_n,
+    } for m in top_list]
+
+    return jsonify({
+        'ok': True,
+        'total_members': total,
+        'loyalty_n': loyalty_n,
+        'insights': {
+            'total_points_outstanding': total_points,
+            'total_member_spend': total_spent,
+            'total_visits': total_visits,
+            'members_with_redeemable_points': redeemable,
+            'avg_spend_per_member': round(total_spent / total, 2) if total > 0 else 0,
+            'avg_bills_per_member': round(total_visits / total, 2) if total > 0 else 0,
+        },
+        'top_members': top_out,
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    })
+
+
+@app.route('/api/shop/payment-breakdown')
+def shop_payment_breakdown():
+    """
+    Payment Breakdown: แยกประเภทการชำระ เงินสด/โอน/แลกฟรี
+    JSON พร้อมใช้ ไม่ต้องแปลงเพิ่ม
+    """
+    if 'shop_id' not in session:
+        return jsonify({'ok': False, 'msg': 'ไม่ได้ login'}), 401
+    shop_id = session['shop_id']
+
+    bfiles = sorted(shop_dir(shop_id).glob('backup_*.json'), reverse=True)[:7]
+    all_history = []
+    for bf in bfiles:
+        try:
+            raw = json.loads(bf.read_text(encoding='utf-8'))
+            h   = raw.get('data', {}).get('history', [])
+            if isinstance(h, list):
+                all_history.extend(h)
+        except Exception:
+            pass
+
+    breakdown = {
+        'cash':     {'label': 'เงินสด',       'count': 0, 'total': 0},
+        'transfer': {'label': 'โอนเงิน/QR',    'count': 0, 'total': 0},
+        'free':     {'label': 'แลกฟรี/สิทธิ์', 'count': 0, 'total': 0},
+        'other':    {'label': 'อื่นๆ',          'count': 0, 'total': 0},
+    }
+    CASH_KW     = {'cash', 'เงินสด', 'สด'}
+    TRANSFER_KW = {'transfer', 'โอน', 'qr', 'promptpay', 'พร้อมเพย์', 'โอนเงิน'}
+    FREE_KW     = {'free', 'ฟรี', 'แลกฟรี', 'redeem'}
+
+    for sale in all_history:
+        pay   = str(sale.get('payMethod', sale.get('pay', ''))).lower().strip()
+        total = sale.get('total', 0)
+        if pay in FREE_KW or any(k in pay for k in FREE_KW):
+            breakdown['free']['count'] += 1
+            # ไม่นับ revenue จากบิลฟรี
+        elif pay in CASH_KW or any(k in pay for k in CASH_KW):
+            breakdown['cash']['count'] += 1
+            breakdown['cash']['total'] += total
+        elif pay in TRANSFER_KW or any(k in pay for k in TRANSFER_KW):
+            breakdown['transfer']['count'] += 1
+            breakdown['transfer']['total'] += total
+        else:
+            breakdown['other']['count'] += 1
+            breakdown['other']['total'] += total
+
+    grand_total = sum(v['total'] for v in breakdown.values())
+    for key in breakdown:
+        t = breakdown[key]['total']
+        breakdown[key]['percentage'] = round(t / grand_total * 100, 1) if grand_total > 0 else 0
+
+    return jsonify({
+        'ok': True,
+        'breakdown': breakdown,
+        'grand_total': grand_total,
+        'total_transactions': len(all_history),
+        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+    })
+
+
 # ── health ─────────────────────────────────────────────────
 
 @app.route('/api/health')

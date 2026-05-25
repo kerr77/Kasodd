@@ -2338,9 +2338,13 @@ ${prodLines}
 
 === สิ่งที่คุณทำได้ ===
 1. ตอบคำถามเรื่องสินค้า ราคา สต็อก
-2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก
+2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก (ทั้งวันนี้และ 7 วันล่าสุด)
 3. รับคำสั่งลงของผ่านแชท (ดูรูปแบบด้านล่าง)
 4. แนะนำการบริหารร้าน สต็อก การสั่งของ
+5. วิเคราะห์สินค้าขายดี product_name, quantity_sold, total_amount จากประวัติหลายวัน
+6. แจ้งเตือนสต็อกต่ำกว่าเกณฑ์พร้อมแนะนำการสั่งซื้อ
+7. วิเคราะห์พฤติกรรมสมาชิก ยอดสะสม สิทธิ์แลกฟรี วางแผนโปรโมชั่น
+8. แสดง payment breakdown เงินสด/โอน/แลกฟรี พร้อม % ชัดเจน
 
 === รับคำสั่งลงของผ่านแชท ===
 เมื่อผู้ใช้บอกว่ามีของมาลง หรือสั่งให้เติมสต็อก ให้ทำตามนี้เสมอ:
@@ -3543,6 +3547,90 @@ let popupChatHist = [];
 let popupSessionId = null;
 const SESSIONS_KEY = 'pos_chat_sessions';
 
+// ── Analytics cache (refreshed each time popup opens) ────
+let _analyticsCache = null;
+let _analyticsFetching = false;
+
+async function fetchShopAnalytics() {
+  if (_analyticsFetching) return;
+  _analyticsFetching = true;
+  try {
+    const [salesRes, stockRes, memberRes, payRes] = await Promise.all([
+      fetch('/api/shop/sales-report'),
+      fetch('/api/shop/low-stock?threshold=' + (LOW_THRESHOLD || 10)),
+      fetch('/api/shop/member-insights'),
+      fetch('/api/shop/payment-breakdown'),
+    ]);
+    const [sales, stockAlert, members, payment] = await Promise.all([
+      salesRes.ok ? salesRes.json() : null,
+      stockRes.ok ? stockRes.json() : null,
+      memberRes.ok ? memberRes.json() : null,
+      payRes.ok ? payRes.json() : null,
+    ]);
+    _analyticsCache = { sales, stockAlert, members, payment, fetchedAt: new Date().toLocaleTimeString('th-TH') };
+  } catch(e) {
+    // ถ้า fetch ไม่ได้ก็ใช้ context จาก localStorage ต่อ
+    _analyticsCache = null;
+  } finally {
+    _analyticsFetching = false;
+  }
+}
+
+function buildAnalyticsContext() {
+  if (!_analyticsCache) return '';
+  const { sales, stockAlert, members, payment } = _analyticsCache;
+  let ctx = '\n\n=== ข้อมูลเชิงลึกจากระบบ (Multi-day Analytics) ===';
+
+  // 1. Sales Report
+  if (sales && sales.ok) {
+    const s = sales.summary;
+    ctx += `\n\n📊 สรุปยอดขาย (7 วันล่าสุด):`;
+    ctx += `\n- รวม ${s.total_bills} บิล | ยอดรวม ฿${(s.total_revenue||0).toLocaleString()} | เฉลี่ย ฿${s.avg_bill_amount}/บิล`;
+    if (sales.products && sales.products.length > 0) {
+      ctx += `\n- สินค้าขายดี: ` + sales.products.slice(0, 5).map(p =>
+        `${p.product_name} (${p.quantity_sold} ชิ้น, ฿${(p.total_amount||0).toLocaleString()})`
+      ).join(' | ');
+    }
+  }
+
+  // 2. Low Stock Alert
+  if (stockAlert && stockAlert.ok) {
+    if (stockAlert.total > 0) {
+      ctx += `\n\n⚠️ สต็อกใกล้หมด (ต่ำกว่า ${stockAlert.threshold}):`;
+      stockAlert.low_stock.forEach(p => {
+        ctx += `\n- ${p.name}: เหลือ ${p.stock} ${p.unit} [${p.status}]`;
+      });
+    } else {
+      ctx += `\n\n✅ สต็อกทุกรายการปกติ (ไม่มีใกล้หมด)`;
+    }
+  }
+
+  // 3. Member Insights
+  if (members && members.ok && members.total_members > 0) {
+    const ins = members.insights;
+    ctx += `\n\n👥 ข้อมูลสมาชิก (${members.total_members} คน):`;
+    ctx += `\n- แต้มสะสมรวม: ${ins.total_points_outstanding} | ยอดซื้อรวม: ฿${(ins.total_member_spend||0).toLocaleString()}`;
+    ctx += `\n- สมาชิกที่แลกฟรีได้แล้ว: ${ins.members_with_redeemable_points} คน`;
+    ctx += `\n- เฉลี่ยซื้อ ${ins.avg_bills_per_member} ครั้ง/คน | ใช้จ่าย ฿${ins.avg_spend_per_member}/คน`;
+    if (members.top_members && members.top_members.length > 0) {
+      ctx += `\n- Top สมาชิก: ` + members.top_members.slice(0, 3).map(m =>
+        `${m.name}(฿${(m.total_spend||0).toLocaleString()},${m.points}แต้ม${m.redeemable > 0 ? ',แลกได้'+m.redeemable : ''})`
+      ).join(' | ');
+    }
+  }
+
+  // 4. Payment Breakdown
+  if (payment && payment.ok) {
+    const b = payment.breakdown;
+    ctx += `\n\n💳 วิธีชำระเงิน (${payment.total_transactions} บิล, ฿${(payment.grand_total||0).toLocaleString()}):`;
+    ctx += `\n- เงินสด: ${b.cash.count} บิล ฿${(b.cash.total||0).toLocaleString()} (${b.cash.percentage}%)`;
+    ctx += `\n- โอน/QR: ${b.transfer.count} บิล ฿${(b.transfer.total||0).toLocaleString()} (${b.transfer.percentage}%)`;
+    ctx += `\n- แลกฟรี: ${b.free.count} บิล`;
+  }
+
+  return ctx;
+}
+
 // --- Session Storage Helpers ---
 function loadSessions() {
   try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
@@ -3571,6 +3659,9 @@ function openAiPopup() {
   document.getElementById('ai-popup-overlay').classList.add('open');
   document.getElementById('popup-assistant-name').textContent =
     localStorage.getItem('pos_assistant_name') || 'ผู้ช่วย AI ประจำร้าน';
+
+  // Refresh analytics in background every time popup opens
+  fetchShopAnalytics();
 
   if (document.getElementById('popup-chat-history').children.length === 0) {
     popupInitChat();
@@ -3681,7 +3772,7 @@ async function popupSendChat() {
   const freeCnt = history.filter(h => h.pay === 'free').length;
   const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
   const lowStr = lowItems.length > 0 ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
-  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===\nสต็อกปัจจุบัน: ${stockSummary}\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)`;
+  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===\nสต็อกปัจจุบัน: ${stockSummary}\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)` + buildAnalyticsContext();
 
   const thinking = popupAppendThinking();
   popupChatHist.push({ role: 'user', content: msg });
