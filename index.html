@@ -1045,6 +1045,45 @@
   .redeem-log-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 4px 0; border-bottom: 1px solid rgba(155,89,182,0.2); }
   .redeem-log-item:last-child { border-bottom: none; }
   .redeem-log-member { font-weight: 700; color: #c39bd3; } .redeem-log-time { color: var(--muted); font-size: 10px; } .redeem-log-items { color: var(--muted); font-size: 11px; }
+
+  /* ===== PROMOTION STYLES ===== */
+  .promo-item {
+    display: flex; align-items: center; gap: 8px; padding: 10px 0;
+    border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .promo-item:last-child { border-bottom: none; }
+  .promo-item-info { flex: 1; min-width: 0; }
+  .promo-item-name { font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .promo-item-desc { font-size: 11px; color: var(--accent2); margin-top: 2px; }
+  .promo-item-del { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; flex-shrink: 0; }
+  .promo-item-del:active { color: var(--red); }
+  .promo-toggle { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .promo-toggle-btn {
+    width: 36px; height: 20px; border-radius: 10px; border: none; cursor: pointer;
+    background: var(--border2); position: relative; transition: background .2s; flex-shrink: 0;
+  }
+  .promo-toggle-btn.on { background: var(--green); }
+  .promo-toggle-btn::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
+    transition: left .2s;
+  }
+  .promo-toggle-btn.on::after { left: 18px; }
+
+  /* cart promo discount row */
+  .cart-promo-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: rgba(224,123,58,0.08);
+    border-top: 1px dashed rgba(224,123,58,0.3);
+    font-size: 13px; color: var(--accent2);
+  }
+  .cart-promo-label { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .cart-promo-savings { font-weight: 800; font-family: 'Prompt', sans-serif; }
+  .total-original-row {
+    display: flex; justify-content: space-between;
+    padding: 4px 14px 0; font-size: 12px; color: var(--muted);
+  }
+  .total-original-price { text-decoration: line-through; }
 </style>
 </head>
 <body>
@@ -1296,6 +1335,18 @@
       <button class="admin-btn" onclick="saveLowThreshold()" style="margin-top:8px;border-color:rgba(192,84,74,0.5);color:var(--red);">💾 บันทึกค่าแจ้งเตือน</button>
     </div>
   </div>
+  <!-- ===== PROMOTIONS SECTION ===== -->
+  <div class="admin-section">
+    <div class="admin-section-head" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🎉 จัดการโปรโมชั่น</span>
+      <button onclick="openAddPromoModal()" style="padding:4px 12px;border-radius:7px;background:var(--accent2);border:none;color:#fff;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+ เพิ่มโปร</button>
+    </div>
+    <div class="admin-section-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">เมื่อลูกค้าซื้อสินค้าครบตามเงื่อนไขโปร จะได้ราคาพิเศษอัตโนมัติ</p>
+      <div id="promo-list"><div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0;">ยังไม่มีโปรโมชั่น</div></div>
+    </div>
+  </div>
+
   <div class="admin-section">
     <div class="admin-section-head" style="color:var(--red);">⚠️ จัดการข้อมูล</div>
     <div class="admin-section-body">
@@ -1432,6 +1483,32 @@
     <div class="modal-btns">
       <button class="modal-cancel" onclick="document.getElementById('add-product-modal').classList.remove('open')">ยกเลิก</button>
       <button class="modal-ok" onclick="saveNewProduct()">บันทึก ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADD PROMO MODAL ===== -->
+<div class="modal-overlay" id="add-promo-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;">
+    <h3 id="add-promo-title">🎉 สร้างโปรโมชั่น</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">ตั้งราคาพิเศษเมื่อซื้อสินค้าหลายชิ้นพร้อมกัน เช่น น้ำส้ม+สตรอเบอรี่ 2 ขวด 90 บาท</p>
+    <input type="text" id="promo-name" placeholder="ชื่อโปรโมชั่น เช่น คู่น้ำส้ม+สตรอเบอรี่"
+      style="width:100%;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:'Sarabun',sans-serif;margin-bottom:10px;">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:6px;">สินค้าที่ต้องซื้อในชุดนี้ (กดเลือก + ระบุจำนวน)</p>
+    <div id="promo-products-select" style="background:var(--card2);border:1px solid var(--border2);border-radius:8px;max-height:180px;overflow-y:auto;padding:6px 10px;margin-bottom:10px;"></div>
+    <div style="background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">ราคาพิเศษทั้งชุด (แทนราคาปกติรวม)</p>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;color:var(--text2);white-space:nowrap;">ราคาโปร</span>
+        <input type="number" id="promo-price" placeholder="เช่น 90" inputmode="numeric" min="0" oninput="updatePromoPreview()"
+          style="flex:1;padding:8px 10px;border-radius:8px;background:var(--card);border:1.5px solid var(--border2);color:var(--accent2);font-size:16px;font-family:'Sarabun',sans-serif;text-align:center;">
+        <span style="font-size:13px;color:var(--muted);">บาท</span>
+      </div>
+      <div id="promo-saving-preview" style="font-size:12px;color:var(--accent2);margin-top:8px;text-align:center;min-height:18px;"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="document.getElementById('add-promo-modal').classList.remove('open')">ยกเลิก</button>
+      <button class="modal-ok" style="background:linear-gradient(135deg,#e07b3a,#c96a28);" onclick="saveNewPromo()">บันทึกโปร 🎉</button>
     </div>
   </div>
 </div>
@@ -2379,8 +2456,23 @@ function buildShopSystem() {
   const todaySales = history.reduce((s, h) => s + h.total, 0);
   const billCount = history.length;
 
+  // โปรโมชั่นที่มีอยู่
+  const promos = loadPromos();
+  const promoLines = promos.length > 0 ? promos.map(pr => {
+    const isOn = pr.active !== false;
+    const itemsDesc = pr.items.map(pi => {
+      const p = effProds.find(x => x.key === pi.key);
+      return `${p ? p.name : pi.key}×${pi.qty}`;
+    }).join('+');
+    const normalPrice = pr.items.reduce((s, pi) => {
+      const p = effProds.find(x => x.key === pi.key);
+      return s + (p ? p.price * (pi.qty||1) : 0);
+    }, 0);
+    return `- ${pr.name}: [${itemsDesc}] ราคาโปร ฿${pr.promoPrice} (ปกติ ฿${normalPrice}) ${isOn ? '✅ เปิดอยู่' : '⏸️ ปิดอยู่'}`;
+  }).join('\n') : '- ยังไม่มีโปรโมชั่น';
+
   return `คุณคือ "${assistantName}" — ผู้ช่วย AI ประจำ${shopName}
-คุณรู้จักสินค้า ราคา สต็อก และยอดขายทุกอย่าง
+คุณรู้จักสินค้า ราคา สต็อก โปรโมชั่น และยอดขายทุกอย่าง
 พูดภาษาไทยแบบสบายๆ เป็นกันเอง ใช้ emoji บ้าง ตอบตรงประเด็น ไม่วนเวียน
 
 === สินค้าในร้าน (ข้อมูลปัจจุบัน) ===
@@ -2389,12 +2481,18 @@ ${prodLines}
 === ยอดขายวันนี้ ===
 - รวม ${billCount} บิล ยอด ฿${todaySales.toLocaleString()}
 
+=== โปรโมชั่นที่มีอยู่ ===
+${promoLines}
+(โปรโมชั่นจะถูกคิดราคาอัตโนมัติเมื่อลูกค้าเลือกสินค้าครบตามเงื่อนไข)
+
 === สิ่งที่คุณทำได้ ===
 
 1. ตอบคำถามเรื่องสินค้า ราคา สต็อก
 2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก
 3. รับคำสั่งจัดการสต็อกผ่านแชท (เพิ่ม ลด ตั้งค่า)
 4. แนะนำการบริหารร้าน สต็อก การสั่งของ
+5. สร้างโปรโมชั่นใหม่ผ่านแชท
+6. อธิบายและแนะนำโปรโมชั่นที่มีอยู่ให้ลูกค้า
 
 === รับคำสั่งจัดการสต็อกผ่านแชท ===
 เมื่อผู้ใช้สั่งให้จัดการสต็อก ให้ทำตามนี้เสมอ:
@@ -2430,6 +2528,12 @@ ${prodLines}
 ตัวอย่าง: "ซื้อน้ำแข็งไป 50 บาท" → <ACTION>{"type":"add_petty","desc":"ซื้อน้ำแข็ง","amount":50}</ACTION>
 ตัวอย่าง: "จ่ายค่าแก๊ส 200 บาท" → <ACTION>{"type":"add_petty","desc":"ค่าแก๊ส","amount":200}</ACTION>
 หมายเหตุ: ใช้เมื่อผู้ใช้บอกว่าซื้อ/จ่าย/ค่า[อะไรก็ตาม]ไป[จำนวน]บาท ต้องส่ง ACTION ทันทีเสมอ
+
+▶ สร้างโปรโมชั่นใหม่ (เมื่อผู้ใช้ต้องการจัดโปร เช่น ซื้อคู่ได้ราคาพิเศษ):
+<ACTION>{"type":"create_promo","name":"[ชื่อโปร]","items":[{"key":"[product_key]","qty":[จำนวน]},...],"promoPrice":[ราคาโปรทั้งชุด]}</ACTION>
+ตัวอย่าง: "จับคู่น้ำส้มกับสตรอเบอรี่ ราคาปกติขวดละ 50 ซื้อคู่กัน 2 ขวด 90 บาท"
+<ACTION>{"type":"create_promo","name":"คู่น้ำส้ม+สตรอเบอรี่","items":[{"key":"orange_juice","qty":1},{"key":"strawberry_juice","qty":1}],"promoPrice":90}</ACTION>
+หมายเหตุ: items ต้องใช้ key จากรายการสินค้าข้างบน, promoPrice คือราคารวมทั้งชุด (ต้องน้อยกว่าราคาปกติรวม)
 
 
 
@@ -3549,6 +3653,373 @@ document.getElementById('main-tab-bar').style.display = 'none';
 // order-total-bar hidden via CSS by default, no inline style needed
 renderProducts();
 renderCart();
+
+// ===================================================================
+// 🎉 PROMOTION SYSTEM
+// ===================================================================
+const LS_PROMOS = 'pos_promos_v1';
+
+function loadPromos() {
+  try { return JSON.parse(localStorage.getItem(LS_PROMOS)) || []; } catch { return []; }
+}
+function savePromos(p) { localStorage.setItem(LS_PROMOS, JSON.stringify(p)); }
+
+// Calculate applied promotions for current cart
+// Returns: { discount: number, appliedPromos: [{promo, timesApplied}] }
+function calcPromoDiscount(cartObj) {
+  const promos = loadPromos().filter(p => p.active !== false);
+  let totalDiscount = 0;
+  const appliedPromos = [];
+
+  const effProds = getEffectiveProducts();
+  // Work on a mutable copy of cart quantities
+  const remaining = {};
+  Object.keys(cartObj).forEach(k => { remaining[k] = cartObj[k]; });
+
+  promos.forEach(promo => {
+    if (!promo.items || promo.items.length === 0) return;
+    // Calculate normal price of promo bundle
+    let normalTotal = 0;
+    promo.items.forEach(pi => {
+      const p = effProds.find(x => x.key === pi.key);
+      if (p) normalTotal += p.price * (pi.qty || 1);
+    });
+    const promoPrice = promo.promoPrice;
+    if (promoPrice >= normalTotal) return; // no savings
+
+    // How many full sets can we apply?
+    let maxSets = Infinity;
+    promo.items.forEach(pi => {
+      const avail = remaining[pi.key] || 0;
+      const needed = pi.qty || 1;
+      maxSets = Math.min(maxSets, Math.floor(avail / needed));
+    });
+    if (maxSets === Infinity || maxSets <= 0) return;
+
+    // Deduct from remaining
+    promo.items.forEach(pi => {
+      remaining[pi.key] = (remaining[pi.key] || 0) - maxSets * (pi.qty || 1);
+    });
+
+    const saving = (normalTotal - promoPrice) * maxSets;
+    totalDiscount += saving;
+    appliedPromos.push({ promo, timesApplied: maxSets, saving, normalTotal, promoPrice });
+  });
+
+  return { discount: totalDiscount, appliedPromos };
+}
+
+// Render promo list in admin
+function renderPromoList() {
+  const container = document.getElementById('promo-list');
+  if (!container) return;
+  const promos = loadPromos();
+  const effProds = getEffectiveProducts();
+  if (promos.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0;">ยังไม่มีโปรโมชั่น</div>';
+    return;
+  }
+  container.innerHTML = promos.map((promo, i) => {
+    const itemsDesc = promo.items.map(pi => {
+      const p = effProds.find(x => x.key === pi.key);
+      return `${p ? p.name : pi.key}×${pi.qty}`;
+    }).join(' + ');
+    const normalPrice = promo.items.reduce((s, pi) => {
+      const p = effProds.find(x => x.key === pi.key);
+      return s + (p ? p.price * (pi.qty || 1) : 0);
+    }, 0);
+    const saving = normalPrice - promo.promoPrice;
+    const isOn = promo.active !== false;
+    return `<div class="promo-item">
+      <div class="promo-item-info">
+        <div class="promo-item-name">🎉 ${promo.name}</div>
+        <div class="promo-item-desc">${itemsDesc} → ฿${promo.promoPrice} (ประหยัด ฿${saving})</div>
+      </div>
+      <button class="promo-toggle-btn ${isOn ? 'on' : ''}" onclick="togglePromo(${i})" title="${isOn ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}"></button>
+      <button class="promo-item-del" onclick="deletePromo(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function togglePromo(idx) {
+  const promos = loadPromos();
+  if (!promos[idx]) return;
+  promos[idx].active = promos[idx].active === false ? true : false;
+  savePromos(promos);
+  renderPromoList();
+}
+
+function deletePromo(idx) {
+  const promos = loadPromos();
+  promos.splice(idx, 1);
+  savePromos(promos);
+  renderPromoList();
+  renderCart(); // re-render to update discounts
+}
+
+// Open add promo modal
+function openAddPromoModal() {
+  document.getElementById('promo-name').value = '';
+  document.getElementById('promo-price').value = '';
+  document.getElementById('promo-saving-preview').textContent = '';
+  // Build product checkboxes
+  const effProds = getEffectiveProducts().filter(p => !p.promoBase);
+  const container = document.getElementById('promo-products-select');
+  container.innerHTML = effProds.map(p => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+      <input type="checkbox" id="promo-chk-${p.key}" value="${p.key}"
+        onchange="updatePromoPreview()"
+        style="width:16px;height:16px;accent-color:var(--accent2);flex-shrink:0;">
+      <label for="promo-chk-${p.key}" style="flex:1;font-size:13px;font-weight:600;">${p.name}</label>
+      <span style="font-size:12px;color:var(--muted);">฿${p.price}</span>
+      <input type="number" id="promo-qty-${p.key}" value="1" min="1" max="20" inputmode="numeric"
+        oninput="updatePromoPreview()"
+        style="width:44px;padding:4px;border-radius:6px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:13px;text-align:center;font-family:'Sarabun',sans-serif;">
+      <span style="font-size:11px;color:var(--muted);">ชิ้น</span>
+    </div>
+  `).join('');
+  document.getElementById('add-promo-modal').classList.add('open');
+  setTimeout(() => document.getElementById('promo-name').focus(), 100);
+}
+
+function updatePromoPreview() {
+  const effProds = getEffectiveProducts().filter(p => !p.promoBase);
+  let normalTotal = 0;
+  effProds.forEach(p => {
+    const chk = document.getElementById(`promo-chk-${p.key}`);
+    const qtyEl = document.getElementById(`promo-qty-${p.key}`);
+    if (chk && chk.checked) {
+      const qty = parseInt(qtyEl?.value) || 1;
+      normalTotal += p.price * qty;
+    }
+  });
+  const promoPrice = parseFloat(document.getElementById('promo-price').value) || 0;
+  const preview = document.getElementById('promo-saving-preview');
+  if (normalTotal > 0 && promoPrice > 0) {
+    const saving = normalTotal - promoPrice;
+    if (saving > 0) {
+      preview.innerHTML = `ราคาปกติรวม <s style="color:var(--muted);">฿${normalTotal}</s> → ประหยัด <strong style="color:var(--green);">฿${saving}</strong> (${Math.round(saving/normalTotal*100)}%)`;
+    } else if (saving === 0) {
+      preview.innerHTML = `<span style="color:var(--muted);">ราคาเท่ากับปกติ — ไม่มีส่วนลด</span>`;
+    } else {
+      preview.innerHTML = `<span style="color:var(--red);">⚠️ ราคาโปรสูงกว่าราคาปกติ!</span>`;
+    }
+  } else {
+    preview.textContent = '';
+  }
+}
+
+function saveNewPromo() {
+  const name = document.getElementById('promo-name').value.trim();
+  const promoPrice = parseFloat(document.getElementById('promo-price').value) || 0;
+  if (!name) { showToast('กรุณาใส่ชื่อโปรโมชั่น', true); return; }
+  if (promoPrice <= 0) { showToast('กรุณาใส่ราคาโปร', true); return; }
+
+  const effProds = getEffectiveProducts().filter(p => !p.promoBase);
+  const items = [];
+  effProds.forEach(p => {
+    const chk = document.getElementById(`promo-chk-${p.key}`);
+    const qtyEl = document.getElementById(`promo-qty-${p.key}`);
+    if (chk && chk.checked) {
+      items.push({ key: p.key, name: p.name, qty: parseInt(qtyEl?.value) || 1 });
+    }
+  });
+  if (items.length < 1) { showToast('เลือกสินค้าอย่างน้อย 1 รายการ', true); return; }
+
+  const promos = loadPromos();
+  promos.push({ name, items, promoPrice, active: true, createdAt: new Date().toLocaleString('th-TH') });
+  savePromos(promos);
+  document.getElementById('add-promo-modal').classList.remove('open');
+  renderPromoList();
+  renderCart();
+  showToast(`✅ เพิ่มโปร: ${name}`);
+}
+
+// ===== OVERRIDE renderCart to show promo discounts =====
+const _origRenderCart = renderCart;
+function renderCart() {
+  const list = document.getElementById('cart-list');
+  const keys = Object.keys(cart);
+  if (keys.length === 0) {
+    list.innerHTML = '<div class="cart-empty">ยังไม่มีสินค้า</div>';
+    document.getElementById('total-amount').textContent = '฿0';
+    document.getElementById('confirm-btn').disabled = true;
+    updateOrderBar(0, []);
+    return;
+  }
+  let total = 0;
+  const effProds = getEffectiveProducts();
+  const meta = window._splitCartMeta || {};
+  let cartHtml = keys.map(key => {
+    const qty = cart[key];
+    let name, price;
+    if (meta[key]) {
+      const m = meta[key];
+      const parent = effProds.find(x => x.key === m.parentKey);
+      const label = parent ? `${parent.name} (✂️${m.tier.qty}${parent.splitUnitLabel||''})` : key;
+      name = label; price = m.tier.price;
+    } else {
+      const p = effProds.find(x => x.key === key);
+      if (!p) return '';
+      name = p.name; price = p.price;
+    }
+    const sub = price * qty;
+    total += sub;
+    return `<div class="cart-item">
+      <span class="cart-item-name">${name}</span>
+      <div class="qty-ctrl">
+        <div class="qty-btn" onclick="changeQty('${key}',-1,this)">−</div>
+        <span class="qty-num">${qty}</span>
+        <div class="qty-btn" onclick="changeQty('${key}',1,this)">+</div>
+      </div>
+      <span class="cart-item-price">฿${sub}</span>
+      <button class="cart-del" onclick="removeFromCart('${key}')">✕</button>
+    </div>`;
+  }).join('');
+
+  // Calculate promo discount
+  const { discount, appliedPromos } = calcPromoDiscount(cart);
+  const finalTotal = total - discount;
+
+  list.innerHTML = cartHtml;
+
+  // Append promo rows
+  if (discount > 0) {
+    appliedPromos.forEach(ap => {
+      const times = ap.timesApplied > 1 ? ` ×${ap.timesApplied}` : '';
+      list.innerHTML += `<div class="cart-promo-row">
+        <span class="cart-promo-label">🎉 ${ap.promo.name}${times}</span>
+        <span class="cart-promo-savings" style="color:var(--green);">-฿${ap.saving}</span>
+      </div>`;
+    });
+  }
+
+  const totalEl = document.getElementById('total-amount');
+  if (discount > 0) {
+    totalEl.innerHTML = `<span style="font-size:14px;text-decoration:line-through;color:var(--muted);margin-right:6px;">฿${total.toLocaleString()}</span>฿${finalTotal.toLocaleString()}`;
+  } else {
+    totalEl.textContent = '฿' + total.toLocaleString();
+  }
+  document.getElementById('confirm-btn').disabled = false;
+  updateOrderBar(finalTotal, keys);
+  // Store discount for goToPayModal
+  window._currentPromoDiscount = discount;
+  window._currentPromoApplied = appliedPromos;
+}
+
+// ===== OVERRIDE goToPayModal to include promo discount =====
+const _origGoToPayModal = goToPayModal;
+function goToPayModal() {
+  memberInput = document.getElementById('member-input').value.trim() || 'ทั่วไป';
+  closeMemberModal();
+  let total = 0;
+  const effProds = getEffectiveProducts();
+  const meta = window._splitCartMeta || {};
+  Object.keys(cart).forEach(k => {
+    const qty = cart[k];
+    if (meta[k]) { total += meta[k].tier.price * qty; }
+    else { const p = effProds.find(x => x.key === k); if (p) total += p.price * qty; }
+  });
+  const discount = window._currentPromoDiscount || 0;
+  const finalTotal = total - discount;
+  const discountNote = discount > 0 ? ` (ส่วนลดโปร -฿${discount})` : '';
+  document.getElementById('pay-modal-title').textContent = `฿${finalTotal.toLocaleString()}${discountNote} — ชำระด้วยอะไร?`;
+  document.getElementById('pay-modal').classList.add('open');
+}
+
+// ===== OVERRIDE confirmSale to apply promo discount in total =====
+const _origConfirmSalePromo = confirmSale;
+function confirmSale(method) {
+  const keys = Object.keys(cart);
+  if (keys.length === 0) return;
+  document.getElementById('pay-modal').classList.remove('open');
+  const effProds = getEffectiveProducts();
+  const splitMeta = window._splitCartMeta || {};
+  const items = [];
+  let rawTotal = 0;
+
+  keys.forEach(key => {
+    const qty = cart[key];
+    if (splitMeta[key]) {
+      const m = splitMeta[key];
+      const parent = effProds.find(x => x.key === m.parentKey);
+      if (!parent) return;
+      const unitsToDeduct = m.tier.qty * qty;
+      stock[m.parentKey] = Math.max(0, (stock[m.parentKey] || 0) - unitsToDeduct);
+      rawTotal += m.tier.price * qty;
+      const label = `${parent.name}(✂️${m.tier.qty}${parent.splitUnitLabel||''})`;
+      items.push({ key, name: label, qty, price: m.tier.price, splitParent: m.parentKey, splitQty: m.tier.qty, splitDeductUnits: unitsToDeduct });
+    } else {
+      const p = effProds.find(x => x.key === key);
+      if (!p) return;
+      if (p.promoBase) {
+        const baseP = effProds.find(x => x.key === p.promoBase);
+        const deductPerSale = baseP && baseP.splitUnitQty ? (p.promoQty||1) * baseP.splitUnitQty : (p.promoQty||1);
+        stock[p.promoBase] = Math.max(0, (stock[p.promoBase]||0) - deductPerSale * qty);
+      } else if (p.splitUnitQty) {
+        stock[p.key] = Math.max(0, (stock[p.key]||0) - p.splitUnitQty * qty);
+      } else {
+        stock[p.key] = Math.max(0, (stock[p.key]||0) - qty);
+      }
+      rawTotal += p.price * qty;
+      items.push({ key, name: p.name, qty, price: p.price });
+    }
+  });
+
+  saveStock();
+
+  // Apply promo discount
+  const discount = window._currentPromoDiscount || 0;
+  const appliedPromos = window._currentPromoApplied || [];
+  const realTotal = rawTotal - discount;
+
+  // Add promo info to history items
+  if (discount > 0) {
+    appliedPromos.forEach(ap => {
+      items.push({ key: '_promo_', name: `🎉 ${ap.promo.name}`, qty: ap.timesApplied, price: -(ap.saving / ap.timesApplied) });
+    });
+  }
+
+  const history = loadHistory();
+  history.unshift({ time: new Date().toLocaleString('th-TH'), items, total: realTotal, pay: method, member: memberInput, redeem: redeemFlag, promoDiscount: discount });
+  saveHistory(history);
+
+  // CRM แต้ม
+  if (method !== 'free' && memberInput && memberInput !== 'ทั่วไป') {
+    addPointToMember(memberInput, realTotal);
+    const m = getMemberByPhone(memberInput);
+    const N = getLoyaltyN();
+    const pts = m ? m.points : 0;
+    if (pts > 0 && pts % N === 0) {
+      setTimeout(() => showToast(`🎉 ${memberInput} ครบ ${N} แต้ม แลกฟรีได้แล้ว! 🎁`), 800);
+    }
+  }
+
+  const isFree = method === 'free';
+  const label = isFree ? '🎁 แลกฟรี' : method === 'cash' ? 'เงินสด' : 'โอน';
+  const memberLabel = memberInput !== 'ทั่วไป' ? ` | ${memberInput}` : '';
+  const promoLabel = discount > 0 ? ` 🎉-฿${discount}` : '';
+  showToast(`✅ ${isFree ? 'แลกฟรี' : '฿' + realTotal.toLocaleString()}${promoLabel} (${label}${memberLabel})`);
+
+  cart = {};
+  window._splitCartMeta = {};
+  window._currentPromoDiscount = 0;
+  window._currentPromoApplied = [];
+  renderCart();
+  renderProducts();
+  renderShiftBar();
+  checkLowStockAlert();
+  autoSyncToServer();
+}
+
+// Override switchTab to render promo list in admin
+const _origSwitchTabPromo = switchTab;
+function switchTab(tab) {
+  _origSwitchTabPromo.call(this, tab);
+  if (tab === 'admin') {
+    renderPromoList();
+  }
+}
 </script>
 <script>
 if ('serviceWorker' in navigator) {
@@ -3603,6 +4074,7 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('สต็อกใกล้หมดมีอะไรบ้าง?')">⚠️ ใกล้หมด</span>
         <span class="tip-chip" onclick="popupSetTip('มีสินค้ามาใหม่ [ชื่อสินค้า] ราคา [ราคา] บาท จำนวน [จำนวน] ชิ้น')">✨ เพิ่มสินค้าใหม่</span>
         <span class="tip-chip" onclick="popupSetTip('ซื้อ[รายการ]ไป [จำนวน] บาท')">💸 บันทึกค่าใช้จ่าย</span>
+        <span class="tip-chip" onclick="popupSetTip('สร้างโปรโมชั่น ซื้อ [สินค้า A] + [สินค้า B] ราคาพิเศษ [ราคา] บาท')">🎉 สร้างโปร</span>
       </div>
     </div>
 
@@ -3872,6 +4344,18 @@ async function popupSendChat() {
     : '  ไม่มีสมาชิกมาในกะนี้';
 
   // ── รวม contextNote ──
+  const promoList = loadPromos();
+  const promoContextStr = promoList.length > 0
+    ? promoList.map(pr => {
+        const isOn = pr.active !== false;
+        const itemsDesc = pr.items.map(pi => {
+          const p = effProdsChat.find(x => x.key === pi.key);
+          return `${p ? p.name : pi.key}×${pi.qty}`;
+        }).join('+');
+        return `  • ${pr.name}: [${itemsDesc}] ฿${pr.promoPrice} ${isOn ? '✅' : '⏸️'}`;
+      }).join('\n')
+    : '  ยังไม่มีโปรโมชั่น';
+
   const contextNote =
     `\n\n=== สถานะร้าน ณ ปัจจุบัน ===` +
     `\nวันเวลา: ${nowStr}` +
@@ -3880,6 +4364,7 @@ async function popupSendChat() {
     `\n\n--- ลงของกะนี้ (${deliveries.length} รายการ รวม ${deliveryTotalQty} ชิ้น) ---\n${deliveryStr}` +
     `\n\n--- สต็อกปัจจุบัน ---\n  ${stockSummary}` +
     `\n\n--- สต็อกใกล้หมด (≤${LOW_THRESHOLD}) ---\n  ${lowStr}` +
+    `\n\n--- โปรโมชั่นที่มีอยู่ ---\n${promoContextStr}` +
     `\n\n--- ยอดขายกะนี้ ---` +
     `\n  เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer} | บิล ${history.length} ใบ (ฟรี ${freeCnt} ใบ)` +
     `\n\n--- ยอดขายรายสินค้า (กะนี้) ---\n${prodSalesStr}` +
@@ -4048,6 +4533,27 @@ async function popupSendChat() {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
               chip.textContent = `💸 บันทึกรายจ่าย: ${action.desc} -฿${action.amount.toLocaleString()}`;
+              box.appendChild(chip);
+              box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- 6. สร้างโปรโมชั่น ---
+          else if (action.type === 'create_promo' && action.name && action.items && action.items.length > 0 && action.promoPrice > 0) {
+            const promos = loadPromos();
+            promos.push({ name: action.name, items: action.items, promoPrice: action.promoPrice, active: true, createdAt: new Date().toLocaleString('th-TH') });
+            savePromos(promos);
+            renderPromoList();
+            renderCart();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              const effProds = getEffectiveProducts();
+              const itemsDesc = action.items.map(pi => {
+                const p = effProds.find(x => x.key === pi.key);
+                return `${p ? p.name : pi.key}×${pi.qty}`;
+              }).join('+');
+              chip.textContent = `🎉 สร้างโปรโมชั่น: ${action.name} [${itemsDesc}] ราคา ฿${action.promoPrice}`;
               box.appendChild(chip);
               box.scrollTop = box.scrollHeight;
             }, 300);
