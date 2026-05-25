@@ -2,54 +2,270 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ค้าสด — ระบบ POS สำหรับร้านค้าไทย</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Prompt:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:      #0f0e0c;
-  --card:    #1a1815;
-  --gold:    #c9a84c;
-  --gold2:   #e8c56a;
-  --orange:  #e07b3a;
-  --green:   #5aaa6a;
-  --text:    #f0e8dc;
-  --text2:   #a89880;
-  --border:  #2e2820;
-  --red:     #c0544a;
+  --bg: #0f0e0c; --card: #1a1815; --gold: #c9a84c; --gold2: #e8c56a;
+  --orange: #e07b3a; --green: #5aaa6a; --text: #f0e8dc; --text2: #a89880;
+  --border: #2e2820; --red: #c0544a; --purple: #9b6fd4;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-body {
-  font-family: 'Sarabun', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-/* ── HERO ── */
-.hero {
-  text-align: center;
-  padding: 60px 24px 40px;
-  background: radial-gradient(ellipse at top, #1e1a12 0%, var(--bg) 70%);
-  border-bottom: 1px solid var(--border);
-}
-
-.logo {
-  font-family: 'Prompt', sans-serif;
-  font-size: 48px;
-  font-weight: 900;
-  color: var(--gold);
-  letter-spacing: -2px;
-  line-height: 1;
-  text-shadow: 0 0 40px rgba(201,168,76,0.3);
-}
-
+.hero { text-align: center; padding: 50px 24px 32px; background: radial-gradient(ellipse at top, #1e1a12 0%, var(--bg) 70%); border-bottom: 1px solid var(--border); }
+.logo { font-family: 'Prompt', sans-serif; font-size: 52px; font-weight: 900; color: var(--gold); letter-spacing: -2px; text-shadow: 0 0 40px rgba(201,168,76,0.3); }
 .logo span { color: var(--orange); }
+.tagline { margin-top: 10px; font-size: 15px; color: var(--text2); }
 
-.tagline {
-  margin-top: 12px;
+/* PACKAGES */
+.pkg-wrap { padding: 28px 16px 8px; max-width: 480px; margin: 0 auto; }
+.pkg-title { text-align: center; font-family: 'Prompt', sans-serif; font-size: 18px; color: var(--gold); margin-bottom: 14px; }
+
+.pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.pkg-card {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 18px; padding: 18px 14px; cursor: pointer;
+  transition: all .2s; position: relative; text-align: center;
+}
+.pkg-card.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.pkg-card.pro-card { border-color: var(--purple); }
+.pkg-card.pro-card.selected { border-color: var(--purple); background: rgba(155,111,212,0.1); }
+
+.pkg-badge {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--purple); color: white; font-size: 11px; font-weight: 800;
+  padding: 3px 12px; border-radius: 999px; white-space: nowrap;
+}
+
+.pkg-name { font-family: 'Prompt', sans-serif; font-size: 16px; font-weight: 800; margin-top: 8px; }
+.pkg-price { font-family: 'Prompt', sans-serif; font-size: 28px; font-weight: 900; color: var(--gold); line-height: 1; margin: 6px 0 4px; }
+.pkg-price span { font-size: 13px; color: var(--text2); font-family: 'Sarabun', sans-serif; font-weight: 400; }
+.pkg-features { font-size: 12px; color: var(--text2); line-height: 1.9; margin-top: 8px; text-align: left; }
+.pkg-features li { list-style: none; }
+.pkg-features li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+.pro-card .pkg-features li.ai::before { content: '🤖 '; }
+
+/* TABS */
+.tab-wrap { max-width: 480px; margin: 0 auto; padding: 16px 16px 40px; }
+.tabs { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 5px; margin-bottom: 16px; }
+.tab-btn { flex: 1; padding: 11px; border: none; border-radius: 10px; background: none; color: var(--text2); font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s; }
+.tab-btn.active { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #0f0e0c; }
+
+/* FORM */
+.form-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 22px 18px; }
+.form-title { font-family: 'Prompt', sans-serif; font-size: 19px; font-weight: 800; color: var(--gold); margin-bottom: 16px; text-align: center; }
+.field { margin-bottom: 13px; }
+.field label { display: block; font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 5px; }
+.field input { width: 100%; padding: 13px 14px; background: #0f0e0c; border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Sarabun', sans-serif; font-size: 15px; outline: none; transition: border-color .2s; }
+.field input:focus { border-color: var(--gold); }
+
+.selected-plan-info { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--text2); }
+.selected-plan-info strong { color: var(--gold); font-size: 15px; }
+
+.btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--gold), var(--orange)); border: none; border-radius: 12px; color: #0f0e0c; font-family: 'Prompt', sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 4px; transition: opacity .2s; }
+.btn-submit:active { opacity: 0.85; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.alert { display: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 13px; text-align: center; }
+.alert.success { background: rgba(90,170,106,0.15); color: var(--green); border: 1px solid rgba(90,170,106,0.3); }
+.alert.error   { background: rgba(192,84,74,0.15);  color: var(--red);   border: 1px solid rgba(192,84,74,0.3); }
+.alert.show    { display: block; }
+
+.payment-box { display: none; margin-top: 16px; background: rgba(201,168,76,0.08); border: 1.5px solid rgba(201,168,76,0.3); border-radius: 14px; padding: 20px; text-align: center; }
+.payment-box.show { display: block; }
+.payment-box h3 { font-family: 'Prompt', sans-serif; font-size: 16px; color: var(--gold); margin-bottom: 8px; }
+.payment-amount { font-family: 'Prompt', sans-serif; font-size: 40px; font-weight: 900; color: var(--gold2); line-height: 1; }
+.payment-amount span { font-size: 16px; color: var(--text2); }
+.payment-detail { margin-top: 12px; font-size: 14px; color: var(--text2); line-height: 1.9; }
+.payment-detail strong { color: var(--text); }
+.payment-note { margin-top: 12px; font-size: 13px; color: var(--text2); background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; line-height: 1.7; }
+
+.footer { text-align: center; padding: 24px 20px; color: var(--text2); font-size: 13px; border-top: 1px solid var(--border); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo">ค้า<span>สด</span></div>
+  <div class="tagline">ระบบ POS สำหรับร้านค้าไทย ใช้มือถือเครื่องเดิม ไม่ต้องซื้ออุปกรณ์ใหม่</div>
+</div>
+
+<!-- PACKAGES -->
+<div class="pkg-wrap">
+  <div class="pkg-title">เลือกแพ็กเกจของคุณ</div>
+  <div class="pkg-grid">
+
+    <!-- STARTER -->
+    <div class="pkg-card selected" id="pkg-starter" onclick="selectPlan('starter')">
+      <div class="pkg-name">Starter</div>
+      <div class="pkg-price">199 <span>฿/เดือน</span></div>
+      <ul class="pkg-features">
+        <li>POS ขายของ</li>
+        <li>จัดการสต็อก</li>
+        <li>Export CSV</li>
+        <li>สรุปรายอาทิตย์</li>
+      </ul>
+    </div>
+
+    <!-- PRO -->
+    <div class="pkg-card pro-card" id="pkg-pro" onclick="selectPlan('pro')">
+      <div class="pkg-badge">แนะนำ 🔥</div>
+      <div class="pkg-name" style="color:#9b6fd4">Pro</div>
+      <div class="pkg-price" style="color:#9b6fd4">399 <span>฿/เดือน</span></div>
+      <ul class="pkg-features">
+        <li>ทุกอย่างใน Starter</li>
+        <li class="ai">AI ประจำร้าน</li>
+        <li class="ai">สั่งลงของด้วยเสียง</li>
+        <li class="ai">วิเคราะห์ยอดขาย</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- TABS + FORM -->
+<div class="tab-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('register')">สมัครสมาชิก</button>
+    <button class="tab-btn" onclick="showTab('login')">เข้าสู่ระบบ</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="tab-register" class="form-card">
+    <div class="form-title">🌿 สมัครใช้งาน</div>
+    <div id="reg-alert" class="alert"></div>
+
+    <div id="reg-form">
+      <div id="plan-info" class="selected-plan-info">
+        แพ็กเกจที่เลือก: <strong id="plan-display">Starter — 199฿/เดือน</strong>
+      </div>
+      <div class="field"><label>ชื่อร้านของคุณ</label><input type="text" id="reg-shop" placeholder="เช่น ร้านข้าวต้มป้าแดง"></div>
+      <div class="field"><label>ชื่อผู้ใช้ (ภาษาอังกฤษ)</label><input type="text" id="reg-user" placeholder="เช่น paadaeng99" autocapitalize="none"></div>
+      <div class="field"><label>รหัสผ่าน</label><input type="password" id="reg-pass" placeholder="อย่างน้อย 6 ตัว"></div>
+      <div class="field"><label>เบอร์โทรศัพท์</label><input type="tel" id="reg-phone" placeholder="08X-XXX-XXXX"></div>
+      <button class="btn-submit" id="reg-btn" onclick="doRegister()">สมัครเลย</button>
+    </div>
+
+    <div id="payment-box" class="payment-box">
+      <h3>✅ สมัครสำเร็จแล้ว!</h3>
+      <div>โอนเงินเพื่อเปิดใช้งาน</div>
+      <div class="payment-amount" id="pay-amount">199 <span>฿/เดือน</span></div>
+      <div class="payment-detail">
+        <strong>PromptPay:</strong> [เบอร์ของคุณ]<br>
+        <strong>ชื่อบัญชี:</strong> [ชื่อของคุณ]
+      </div>
+      <div class="payment-note">
+        หลังโอนแล้ว แคปหน้าจอส่งมาที่<br>
+        <strong>Line: @kaasod</strong><br>
+        ทีมงานจะเปิดใช้งานให้ภายใน 30 นาที
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="tab-login" class="form-card hidden">
+    <div class="form-title">🔑 เข้าสู่ระบบ</div>
+    <div id="login-alert" class="alert"></div>
+    <div class="field"><label>ชื่อผู้ใช้</label><input type="text" id="login-user" placeholder="username" autocapitalize="none"></div>
+    <div class="field"><label>รหัสผ่าน</label><input type="password" id="login-pass" placeholder="รหัสผ่าน"></div>
+    <button class="btn-submit" onclick="doLogin()">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<div class="footer">ค้าสด (KAASOD) © 2026 · ระบบ POS สำหรับร้านค้าไทย</div>
+
+<script>
+let selectedPlan = 'starter';
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('pkg-starter').classList.toggle('selected', plan === 'starter');
+  document.getElementById('pkg-pro').classList.toggle('selected', plan === 'pro');
+  const price = plan === 'pro' ? 399 : 199;
+  const label = plan === 'pro' ? 'Pro — 399฿/เดือน 🤖' : 'Starter — 199฿/เดือน';
+  document.getElementById('plan-display').textContent = label;
+  document.getElementById('reg-btn').textContent = `สมัครเลย — ${price}฿/เดือน`;
+}
+
+function showTab(tab) {
+  document.getElementById('tab-register').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('tab-login').classList.toggle('hidden', tab !== 'login');
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0) === (tab === 'register'));
+  });
+}
+
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `alert ${type} show`;
+}
+
+async function doRegister() {
+  const shop  = document.getElementById('reg-shop').value.trim();
+  const user  = document.getElementById('reg-user').value.trim();
+  const pass  = document.getElementById('reg-pass').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+
+  if (!shop || !user || !pass || !phone) { showAlert('reg-alert', 'กรอกข้อมูลให้ครบทุกช่องก่อนนะครับ', 'error'); return; }
+  if (pass.length < 6) { showAlert('reg-alert', 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว', 'error'); return; }
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
+
+  try {
+    const res  = await fetch('/api/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({shop_name:shop, username:user, password:pass, phone, plan:selectedPlan}) });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('reg-form').style.display = 'none';
+      document.getElementById('payment-box').classList.add('show');
+      document.getElementById('pay-amount').innerHTML = `${data.price} <span>฿/เดือน</span>`;
+    } else {
+      showAlert('reg-alert', data.msg, 'error');
+      btn.disabled = false; btn.textContent = `สมัครเลย — ${selectedPlan === 'pro' ? 399 : 199}฿/เดือน`;
+    }
+  } catch(e) {
+    showAlert('reg-alert', 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
+    btn.disabled = false;
+  }
+}
+
+async function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  if (!user || !pass) { showAlert('login-alert', 'กรอกชื่อผู้ใช้และรหัสผ่านครับ', 'error'); return; }
+
+  const btn = document.querySelector('#tab-login .btn-submit');
+  btn.disabled = true; btn.textContent = 'กำลังเข้าสู่ระบบ...';
+
+  try {
+    const res  = await fetch('/api/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username:user, password:pass}) });
+    const data = await res.json();
+    if (data.ok) {
+      showAlert('login-alert', `ยินดีต้อนรับ ${data.shop_name} 🎉`, 'success');
+      setTimeout(() => { window.location.href = '/pos'; }, 1000);
+    } else {
+      showAlert('login-alert', data.msg, 'error');
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    }
+  } catch(e) {
+    showAlert('login-alert', 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
+    btn.disabled = false;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const regVisible = !document.getElementById('tab-register').classList.contains('hidden');
+  if (regVisible) doRegister(); else doLogin();
+});
+</script>
+</body>
+</html>
   font-size: 16px;
   color: var(--text2);
   font-weight: 500;
