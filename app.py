@@ -223,16 +223,22 @@ def list_users():
 #  HEALTH
 # ════════════════════════════════════════════════════════════
 
-@app.route('/api/health')
-def health():
-    users = load_users()
-    return jsonify({
-        'status':      'ok',
-        'server_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'total_shops': len(users),
-        'active':      sum(1 for u in users.values() if u['status'] == 'active'),
-        'pending':     sum(1 for u in users.values() if u['status'] == 'pending'),
-    })
+@app.route('/')
+def index():
+    """Serve หน้า POS หลัก"""
+    if INDEX_HTML.exists():
+        html_content = INDEX_HTML.read_text(encoding='utf-8')
+        
+        # 1. ดึง API Key จาก Railway Environment Variable
+        gemini_key = os.environ.get('GEMINI_API_KEY', '')
+        
+        # 2. ค้นหาบรรทัดรับค่าคีย์เดิม แล้วแทนที่ด้วยคีย์จาก Railway ทันที
+        old_code = "let chatApiKey = localStorage.getItem('pos_chat_apikey') || '';"
+        new_code = f"let chatApiKey = '{gemini_key}';"
+        html_content = html_content.replace(old_code, new_code)
+        
+        return html_content
+    return "<h1>❌ ไม่พบ index.html — วางไฟล์ไว้ที่รูทโปรเจกต์</h1>", 404
 
 # ════════════════════════════════════════════════════════════
 #  RUN
