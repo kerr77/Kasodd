@@ -1,7 +1,8 @@
 """
-app_v4.py — ค้าสด (KAASOD) SaaS v4
+app_v5.py — ค้าสด (KAASOD) SaaS v5
 - Starter 199฿: AI 20 ข้อความ/วัน
 - Pro 399฿: AI ไม่จำกัด + วิเคราะห์ยอดขาย + ประวัติไม่จำกัด
+- Admin Panel: session-based, full CRUD
 """
 
 from flask import Flask, request, jsonify, session, redirect, Response
@@ -20,7 +21,7 @@ for d in [DATA_DIR, SHOPS_DIR]:
 
 ADMIN_KEY    = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
 GEMINI_KEY   = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL = 'gemini-3.1-flash-lite'
+GEMINI_MODEL = 'gemini-2.0-flash-lite'
 
 STARTER_DAILY_LIMIT = 20  # ข้อความ/วัน สำหรับ starter
 
@@ -66,6 +67,9 @@ def increment_usage(shop_id):
     f.write_text(json.dumps(data), encoding='utf-8')
     return data[today]
 
+def is_admin():
+    return session.get('is_admin') is True
+
 # ── pages ──────────────────────────────────────────────────
 
 @app.route('/')
@@ -80,12 +84,17 @@ def pos():
     f = Path('index.html')
     return f.read_text(encoding='utf-8') if f.exists() else ('<h1>ไม่พบ index.html</h1>', 404)
 
+@app.route('/admin')
+def admin_page():
+    f = Path('admin.html')
+    return f.read_text(encoding='utf-8') if f.exists() else ('<h1>ไม่พบ admin.html</h1>', 404)
+
 @app.route('/sw.js')
 def sw():
     f = Path('sw.js')
     return Response(f.read_text(), mimetype='application/javascript') if f.exists() else ('', 404)
 
-# ── auth ───────────────────────────────────────────────────
+# ── auth (user) ─────────────────────────────────────────────
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -167,7 +176,6 @@ def chat():
     shop_id = session['shop_id']
     plan    = session.get('plan', 'starter')
 
-    # ตรวจ quota สำหรับ starter
     if plan == 'starter':
         usage = get_today_usage(shop_id)
         if usage >= STARTER_DAILY_LIMIT:
@@ -192,17 +200,15 @@ def chat():
         with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
 
-        # นับ usage หลัง call สำเร็จ
         new_count = increment_usage(shop_id)
 
-        # แนบ quota info ไปด้วย (สำหรับ starter แสดง popup เตือน)
         if plan == 'starter':
             remaining = max(0, STARTER_DAILY_LIMIT - new_count)
             resp['_quota'] = {
                 'used': new_count,
                 'remaining': remaining,
                 'limit': STARTER_DAILY_LIMIT,
-                'warn': remaining <= 5  # เตือนเมื่อเหลือ 5 ข้อความ
+                'warn': remaining <= 5
             }
 
         return jsonify(resp)
@@ -252,7 +258,143 @@ def get_sync():
         return jsonify({'status': 'empty', 'data': {}})
     return jsonify({'status': 'ok', **json.loads(files[0].read_text(encoding='utf-8'))})
 
-# ── admin ──────────────────────────────────────────────────
+# ── admin auth ─────────────────────────────────────────────
+
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    d   = request.get_json(silent=True) or {}
+    key = d.get('key', '').strip()
+    if key != ADMIN_KEY:
+        return jsonify({'ok': False, 'msg': 'รหัส Admin ไม่ถูกต้อง'}), 403
+    session['is_admin'] = True
+    return jsonify({'ok': True})
+
+@app.route('/api/admin/logout', methods=['POST'])
+def admin_logout():
+    session.pop('is_admin', None)
+    return jsonify({'ok': True})
+
+@app.route('/api/admin/me')
+def admin_me():
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    return jsonify({'ok': True})
+
+# ── admin users ────────────────────────────────────────────
+
+@app.route('/api/admin/users')
+def admin_users():
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    users = load_users()
+    user_list = []
+    for username, u in users.items():
+        shop_id = u.get('shop_id', '')
+        user_list.append({
+            'username':   username,
+            'shop_id':    shop_id,
+            'shop_name':  u.get('shop_name', ''),
+            'phone':      u.get('phone', ''),
+            'plan':       u.get('plan', 'starter'),
+            'price':      u.get('price', 199),
+            'status':     u.get('status', 'pending'),
+            'created_at': u.get('created_at', ''),
+            'ai_today':   get_today_usage(shop_id) if shop_id else 0,
+        })
+    # pending ขึ้นก่อน แล้วเรียงตาม created_at
+    user_list.sort(key=lambda x: (x['status'] != 'pending', x['created_at']), reverse=False)
+    active  = sum(1 for u in users.values() if u['status'] == 'active')
+    pending = sum(1 for u in users.values() if u['status'] == 'pending')
+    revenue = sum(u['price'] for u in users.values() if u['status'] == 'active')
+    return jsonify({
+        'ok': True,
+        'users': user_list,
+        'summary': {
+            'total':   len(users),
+            'active':  active,
+            'pending': pending,
+            'revenue': revenue,
+        }
+    })
+
+@app.route('/api/admin/approve/<username>', methods=['POST'])
+def admin_approve(username):
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    users = load_users()
+    if username not in users:
+        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    users[username]['status'] = 'active'
+    save_users(users)
+    u = users[username]
+    return jsonify({'ok': True, 'msg': f"อนุมัติ {username} ({u['shop_name']}) แล้ว"})
+
+@app.route('/api/admin/suspend/<username>', methods=['POST'])
+def admin_suspend(username):
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    users = load_users()
+    if username not in users:
+        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    users[username]['status'] = 'pending'
+    save_users(users)
+    u = users[username]
+    return jsonify({'ok': True, 'msg': f"ระงับ {username} ({u['shop_name']}) แล้ว"})
+
+@app.route('/api/admin/edit/<username>', methods=['POST'])
+def admin_edit(username):
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    users = load_users()
+    if username not in users:
+        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    d         = request.get_json(silent=True) or {}
+    shop_name = d.get('shop_name', '').strip()
+    phone     = d.get('phone', '').strip()
+    plan      = d.get('plan', '')
+    status    = d.get('status', '')
+    if not shop_name or not phone:
+        return jsonify({'ok': False, 'msg': 'กรอกข้อมูลให้ครบ'}), 400
+    if plan not in ('starter', 'pro'):
+        return jsonify({'ok': False, 'msg': 'แพ็กเกจไม่ถูกต้อง'}), 400
+    if status not in ('active', 'pending'):
+        return jsonify({'ok': False, 'msg': 'สถานะไม่ถูกต้อง'}), 400
+    users[username]['shop_name'] = shop_name
+    users[username]['phone']     = phone
+    users[username]['plan']      = plan
+    users[username]['price']     = 199 if plan == 'starter' else 399
+    users[username]['status']    = status
+    save_users(users)
+    return jsonify({'ok': True, 'msg': f'อัปเดต {username} แล้ว'})
+
+@app.route('/api/admin/reset_password/<username>', methods=['POST'])
+def admin_reset_password(username):
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    users = load_users()
+    if username not in users:
+        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    d        = request.get_json(silent=True) or {}
+    password = d.get('password', '').strip()
+    if len(password) < 4:
+        return jsonify({'ok': False, 'msg': 'รหัสผ่านต้องมีอย่างน้อย 4 ตัว'}), 400
+    users[username]['password'] = hash_pw(password)
+    save_users(users)
+    return jsonify({'ok': True, 'msg': f'รีเซ็ตรหัสผ่านของ {username} แล้ว'})
+
+@app.route('/api/admin/delete/<username>', methods=['POST'])
+def admin_delete(username):
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+    users = load_users()
+    if username not in users:
+        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    shop_name = users[username].get('shop_name', username)
+    del users[username]
+    save_users(users)
+    return jsonify({'ok': True, 'msg': f'ลบร้าน {shop_name} แล้ว'})
+
+# ── legacy admin routes (backward compat) ──────────────────
 
 @app.route('/admin/approve/<username>')
 def approve(username):
@@ -266,45 +408,6 @@ def approve(username):
     u = users[username]
     return f"✅ อนุมัติ {username} ({u['shop_name']}) {u['plan'].upper()} {u['price']}฿ สำเร็จ"
 
-@app.route('/admin/list')
-def admin_list():
-    if request.args.get('key') != ADMIN_KEY:
-        return 'ไม่มีสิทธิ์', 403
-    users   = load_users()
-    active  = sum(1 for u in users.values() if u['status'] == 'active')
-    pending = sum(1 for u in users.values() if u['status'] == 'pending')
-    revenue = sum(u['price'] for u in users.values() if u['status'] == 'active')
-    rows = ''
-    for u, d in users.items():
-        plan_label   = '🤖 Pro 399฿' if d['plan'] == 'pro' else '📋 Starter 199฿'
-        status_color = '#5aaa6a' if d['status'] == 'active' else '#e07b3a'
-        shop_id      = d.get('shop_id', '')
-        usage        = get_today_usage(shop_id) if shop_id else 0
-        rows += f"""<tr>
-          <td>{u}</td><td>{d['shop_name']}</td><td>{d['phone']}</td>
-          <td>{plan_label}</td>
-          <td style="color:{status_color};font-weight:bold">{d['status']}</td>
-          <td>{usage} msg วันนี้</td>
-          <td>{d['created_at']}</td>
-          <td><a href="/admin/approve/{u}?key={request.args.get('key')}">✅ อนุมัติ</a></td>
-        </tr>"""
-    return f"""<!DOCTYPE html><html><head><meta charset="utf-8">
-    <style>body{{font-family:sans-serif;padding:20px;background:#0f0e0c;color:#f0e8dc}}
-    table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #2e2820;padding:8px}}
-    th{{background:#1a1815;color:#c9a84c}}.s{{display:inline-block;background:#1a1815;
-    border:1px solid #2e2820;border-radius:10px;padding:12px 20px;margin:8px;text-align:center}}
-    .s b{{display:block;font-size:24px;color:#c9a84c}}a{{color:#e07b3a}}</style></head>
-    <body><h2 style="color:#c9a84c">ค้าสด — Admin v4</h2>
-    <div>
-      <div class="s"><b>{len(users)}</b>ร้านทั้งหมด</div>
-      <div class="s"><b style="color:#5aaa6a">{active}</b>Active</div>
-      <div class="s"><b style="color:#e07b3a">{pending}</b>รอยืนยัน</div>
-      <div class="s"><b>{revenue:,}฿</b>รายได้/เดือน</div>
-    </div><br>
-    <table><tr><th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th>
-    <th>แพ็กเกจ</th><th>สถานะ</th><th>AI วันนี้</th><th>สมัครเมื่อ</th><th>Action</th></tr>
-    {rows}</table></body></html>"""
-
 # ── health ─────────────────────────────────────────────────
 
 @app.route('/api/health')
@@ -312,7 +415,7 @@ def health():
     users = load_users()
     return jsonify({
         'status':        'ok',
-        'version':       'v4',
+        'version':       'v5',
         'model':         GEMINI_MODEL,
         'starter_limit': STARTER_DAILY_LIMIT,
         'time':          datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -324,5 +427,5 @@ def health():
     })
 
 if __name__ == '__main__':
-    print(f"🌿 ค้าสด v4 | {GEMINI_MODEL} | starter limit: {STARTER_DAILY_LIMIT}/day")
+    print(f"🌿 ค้าสด v5 | {GEMINI_MODEL} | starter limit: {STARTER_DAILY_LIMIT}/day")
     app.run(debug=True, host='0.0.0.0', port=5000)
