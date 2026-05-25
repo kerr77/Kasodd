@@ -399,6 +399,39 @@
     color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
   }
 
+  /* Edit Member Modal */
+  .edit-member-field-label {
+    font-size: 11px; color: var(--muted); font-weight: 700;
+    letter-spacing: 0.5px; margin-bottom: 4px; margin-top: 8px;
+    text-transform: uppercase;
+  }
+  .edit-member-field {
+    width: 100%; padding: 9px 12px; border-radius: 8px; margin-bottom: 4px;
+    background: var(--card2); border: 1.5px solid var(--border2);
+    color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
+  }
+  .edit-member-field:focus { border-color: var(--accent); }
+  .edit-member-tier-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .edit-tier-opt {
+    flex: 1; min-width: 60px; padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 800;
+    cursor: pointer; font-family: 'Sarabun', sans-serif; text-align: center;
+    border: 1.5px solid var(--border2); background: var(--card2); color: var(--text2);
+    transition: all .15s;
+  }
+  .edit-tier-opt.sel-regular { border-color: var(--muted); background: rgba(138,122,104,0.15); color: var(--muted); }
+  .edit-tier-opt.sel-vip { border-color: #9b72b0; background: rgba(155,114,176,0.15); color: #c39bd3; }
+  .edit-tier-opt.sel-gold { border-color: var(--accent); background: rgba(201,168,76,0.15); color: var(--accent); }
+  .edit-tier-opt.sel-platinum { border-color: #8fd4c0; background: rgba(143,212,192,0.15); color: #8fd4c0; }
+
+  /* Edit button in member card */
+  .crm-edit-btn {
+    background: none; border: 1px solid rgba(201,168,76,0.35);
+    color: var(--accent); font-size: 13px; cursor: pointer;
+    padding: 2px 8px; border-radius: 7px; font-family: 'Sarabun', sans-serif;
+    font-weight: 700; transition: all .15s;
+  }
+  .crm-edit-btn:active { background: rgba(201,168,76,0.12); }
+
   .summary-box {
     background: var(--card); border-radius: var(--radius-md);
     border: 1px solid var(--border2); padding: 14px; margin-bottom: 12px;
@@ -1444,6 +1477,36 @@
     <div class="modal-btns">
       <button class="modal-cancel" onclick="document.getElementById('add-member-modal').classList.remove('open')">ยกเลิก</button>
       <button class="modal-ok" onclick="addNewMember()">เพิ่มสมาชิก ✅</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDIT MEMBER MODAL ===== -->
+<div class="modal-overlay" id="edit-member-modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;">
+    <h3>✏️ แก้ไขข้อมูลสมาชิก</h3>
+    <div class="edit-member-field-label">ชื่อ</div>
+    <input class="edit-member-field" type="text" id="em-name" placeholder="ชื่อสมาชิก">
+    <div class="edit-member-field-label">เบอร์โทร / รหัส</div>
+    <input class="edit-member-field" type="text" id="em-phone" placeholder="เบอร์โทร" inputmode="tel">
+    <div class="edit-member-field-label">แต้มสะสม</div>
+    <input class="edit-member-field" type="number" id="em-points" placeholder="0" min="0" inputmode="numeric">
+    <div class="edit-member-field-label">จำนวนครั้งที่ซื้อ</div>
+    <input class="edit-member-field" type="number" id="em-bills" placeholder="0" min="0" inputmode="numeric">
+    <div class="edit-member-field-label">ยอดรวมสะสม (฿)</div>
+    <input class="edit-member-field" type="number" id="em-spend" placeholder="0" min="0" inputmode="numeric">
+    <div class="edit-member-field-label">วันที่สมัคร</div>
+    <input class="edit-member-field" type="text" id="em-join" placeholder="เช่น 1/1/2568">
+    <div class="edit-member-field-label">ระดับสมาชิก</div>
+    <div class="edit-member-tier-row">
+      <button class="edit-tier-opt sel-regular" data-tier="regular" onclick="editSelectTier('regular',this)">ปกติ</button>
+      <button class="edit-tier-opt" data-tier="vip" onclick="editSelectTier('vip',this)">VIP</button>
+      <button class="edit-tier-opt" data-tier="gold" onclick="editSelectTier('gold',this)">🥇 Gold</button>
+      <button class="edit-tier-opt" data-tier="platinum" onclick="editSelectTier('platinum',this)">💎 Platinum</button>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="modal-cancel" onclick="closeEditMemberModal()">ยกเลิก</button>
+      <button class="modal-ok" onclick="saveEditMemberModal()">บันทึก ✅</button>
     </div>
   </div>
 </div>
@@ -2565,6 +2628,12 @@ ${promoLines}
 <ACTION>{"type":"update_member","phone":"[เบอร์เดิม]","newName":"[ชื่อใหม่]","newPhone":"[เบอร์ใหม่]"}</ACTION>
 ตัวอย่าง: "เปลี่ยนชื่อเบอร์ 0812345678 เป็นสมหญิง" → <ACTION>{"type":"update_member","phone":"0812345678","newName":"สมหญิง"}</ACTION>
 
+▶ แก้ข้อมูลสมาชิกแบบครบถ้วน (แก้ชื่อ เบอร์ แต้ม ยอดรวม จำนวนครั้ง วันสมัคร ระดับ ได้ในคราวเดียว):
+<ACTION>{"type":"edit_member_full","phone":"[เบอร์หรือชื่อเดิม]","newName":"[ชื่อใหม่]","newPhone":"[เบอร์ใหม่]","points":[แต้ม],"totalBills":[จำนวนครั้งซื้อ],"totalSpend":[ยอดรวม],"joinDate":"[วันสมัคร]","tier":"regular|vip|gold|platinum"}</ACTION>
+ตัวอย่าง: "แก้ยอดรวมของเบอร์ 0812345678 เป็น 2500 บาท ซื้อ 5 ครั้ง แต้ม 5" → <ACTION>{"type":"edit_member_full","phone":"0812345678","points":5,"totalBills":5,"totalSpend":2500}</ACTION>
+ตัวอย่าง: "แก้ชื่อสมชาย เบอร์ใหม่ 0899999999 อัปเกรดเป็น VIP" → <ACTION>{"type":"edit_member_full","phone":"สมชาย","newPhone":"0899999999","tier":"vip"}</ACTION>
+หมายเหตุ: ใส่เฉพาะ field ที่ต้องการแก้ ไม่ต้องส่งครบทุก field — phone ใส่เบอร์หรือชื่อเดิมเพื่อค้นหาสมาชิก
+
 ▶ ลบสมาชิก (ลบออกจากระบบถาวร):
 <ACTION>{"type":"delete_member","phone":"[เบอร์โทร]"}</ACTION>
 ตัวอย่าง: "ลบสมาชิกเบอร์ 0812345678 ออก" → <ACTION>{"type":"delete_member","phone":"0812345678"}</ACTION>
@@ -3278,6 +3347,7 @@ function renderCRM(query = '') {
           <div class="crm-phone">📱 ${m.phone}</div>
         </div>
         ${freeCount > 0 ? `<span style="background:#2a1a3a;color:#c39bd3;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;">🎁 แลกฟรี ${freeCount}</span>` : ''}
+        <button class="crm-edit-btn" onclick="openEditMemberModal(${i})">✏️</button>
         <button onclick="deleteMember(${i})" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">✕</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
@@ -3300,6 +3370,85 @@ function deleteMember(idx) {
   members.splice(idx, 1);
   saveMembers(members);
   renderCRM();
+}
+
+// ===== EDIT MEMBER MODAL =====
+let _editMemberIdx = -1;
+
+function openEditMemberModal(idx) {
+  const members = getMembers();
+  const m = members[idx];
+  if (!m) return;
+  _editMemberIdx = idx;
+  document.getElementById('em-name').value = m.name || '';
+  document.getElementById('em-phone').value = m.phone || '';
+  document.getElementById('em-points').value = m.points || 0;
+  document.getElementById('em-bills').value = m.totalBills || 0;
+  document.getElementById('em-spend').value = m.totalSpend || 0;
+  document.getElementById('em-join').value = m.joinDate || '';
+  // Tier
+  const tier = m.tier || 'regular';
+  document.querySelectorAll('.edit-tier-opt').forEach(b => {
+    b.className = 'edit-tier-opt';
+    if (b.dataset.tier === tier) b.classList.add('sel-' + tier);
+  });
+  document.getElementById('edit-member-modal').classList.add('open');
+  setTimeout(() => document.getElementById('em-name').focus(), 100);
+}
+
+function editSelectTier(tier, el) {
+  document.querySelectorAll('.edit-tier-opt').forEach(b => {
+    b.className = 'edit-tier-opt';
+  });
+  el.classList.add('sel-' + tier);
+  el.dataset.selectedTier = tier;
+}
+
+function getSelectedTier() {
+  const sel = document.querySelector('.edit-tier-opt[class*="sel-"]:not(.edit-tier-opt:only-child)');
+  // find whichever has a sel- class beyond the base
+  const all = document.querySelectorAll('.edit-tier-opt');
+  for (const b of all) {
+    for (const cls of b.classList) {
+      if (cls.startsWith('sel-')) return cls.replace('sel-', '');
+    }
+  }
+  return 'regular';
+}
+
+function saveEditMemberModal() {
+  const members = getMembers();
+  const m = members[_editMemberIdx];
+  if (!m) { document.getElementById('edit-member-modal').classList.remove('open'); return; }
+  const newPhone = document.getElementById('em-phone').value.trim();
+  const newName  = document.getElementById('em-name').value.trim();
+  const newPts   = parseInt(document.getElementById('em-points').value) || 0;
+  const newBills = parseInt(document.getElementById('em-bills').value) || 0;
+  const newSpend = parseFloat(document.getElementById('em-spend').value) || 0;
+  const newJoin  = document.getElementById('em-join').value.trim();
+  const newTier  = getSelectedTier();
+
+  if (!newPhone) { showToast('กรุณาใส่เบอร์โทร', true); return; }
+  // Check duplicate phone (excluding self)
+  const dup = members.findIndex((x, i) => x.phone === newPhone && i !== _editMemberIdx);
+  if (dup >= 0) { showToast('เบอร์นี้ซ้ำกับสมาชิกอื่น', true); return; }
+
+  m.name       = newName || newPhone;
+  m.phone      = newPhone;
+  m.points     = newPts;
+  m.totalBills = newBills;
+  m.totalSpend = newSpend;
+  m.joinDate   = newJoin;
+  m.tier       = newTier;
+  members[_editMemberIdx] = m;
+  saveMembers(members);
+  document.getElementById('edit-member-modal').classList.remove('open');
+  renderCRM();
+  showToast(`✅ แก้ไขข้อมูล ${m.name} แล้ว`);
+}
+
+function closeEditMemberModal() {
+  document.getElementById('edit-member-modal').classList.remove('open');
 }
 
 function lookupMemberInfo() {
@@ -4199,6 +4348,7 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('ปิดโปรโมชั่น [ชื่อโปร]')">⏸️ ปิด/เปิดโปร</span>
         <span class="tip-chip" onclick="popupSetTip('เพิ่มสมาชิกใหม่ เบอร์ [เบอร์โทร] ชื่อ [ชื่อ]')">👤 เพิ่มสมาชิก</span>
         <span class="tip-chip" onclick="popupSetTip('เพิ่มแต้มให้เบอร์ [เบอร์โทร] อีก [จำนวน] แต้ม')">⭐ เพิ่มแต้ม</span>
+        <span class="tip-chip" onclick="popupSetTip('แก้ข้อมูลสมาชิกเบอร์ [เบอร์โทร] ชื่อ [ชื่อ] ยอดรวม [ยอด] บาท ครั้งซื้อ [จำนวน] แต้ม [จำนวน]')">✏️ แก้ข้อมูลสมาชิก</span>
         <span class="tip-chip" onclick="popupSetTip('เปิดกะ เงินในลิ้นชัก [จำนวน] บาท')">🌅 เปิดกะ</span>
         <span class="tip-chip" onclick="popupSetTip('เปลี่ยนราคา [ชื่อสินค้า] เป็น [ราคา] บาท')">💱 แก้ราคา</span>
       </div>
@@ -4842,12 +4992,52 @@ async function popupSendChat() {
               if (action.newName) members[idx].name = action.newName;
               if (action.newPhone) members[idx].phone = action.newPhone;
               saveMembers(members);
+              if (typeof renderCRM === 'function') renderCRM();
               setTimeout(() => {
                 const chip = document.createElement('div');
                 chip.className = 'chat-msg system';
                 chip.textContent = `✏️ แก้ข้อมูลสมาชิก: ${oldName} → ${members[idx].name}${action.newPhone ? ' เบอร์ใหม่: ' + action.newPhone : ''}`;
-                box.appendChild(chip);
-                box.scrollTop = box.scrollHeight;
+                box.appendChild(chip); box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ ไม่พบสมาชิกเบอร์ ${action.phone}`;
+                box.appendChild(chip); box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 11b. แก้ข้อมูลสมาชิกแบบครบถ้วน (edit_member_full) ---
+          else if (action.type === 'edit_member_full' && action.phone) {
+            const members = getMembers();
+            const idx = members.findIndex(m => m.phone === action.phone || m.name === action.phone);
+            if (idx >= 0) {
+              const m = members[idx];
+              const oldSnap = `${m.name}(${m.phone}) แต้ม${m.points||0} ครั้ง${m.totalBills||0} ยอด฿${m.totalSpend||0}`;
+              if (action.newName   !== undefined) m.name       = action.newName;
+              if (action.newPhone  !== undefined) m.phone      = action.newPhone;
+              if (action.points    !== undefined) m.points     = action.points;
+              if (action.totalBills!== undefined) m.totalBills = action.totalBills;
+              if (action.totalSpend!== undefined) m.totalSpend = action.totalSpend;
+              if (action.joinDate  !== undefined) m.joinDate   = action.joinDate;
+              if (action.tier      !== undefined) m.tier       = action.tier;
+              members[idx] = m;
+              saveMembers(members);
+              if (typeof renderCRM === 'function') renderCRM();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `✏️ แก้ข้อมูลสมาชิกครบ: ${oldSnap} → ${m.name}(${m.phone}) แต้ม${m.points||0} ครั้ง${m.totalBills||0} ยอด฿${m.totalSpend||0}${m.tier && m.tier !== 'regular' ? ' ['+m.tier+']' : ''}`;
+                box.appendChild(chip); box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ ไม่พบสมาชิก "${action.phone}"`;
+                box.appendChild(chip); box.scrollTop = box.scrollHeight;
               }, 300);
             }
           }
