@@ -12,97 +12,236 @@
   --border: #2e2820; --red: #c0544a; --purple: #9b6fd4;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-.hero { text-align: center; padding: 60px 24px 40px; background: radial-gradient(ellipse at top, #1e1a12 0%, var(--bg) 70%); border-bottom: 1px solid var(--border); }
-.logo { font-family: 'Prompt', sans-serif; font-size: 48px; font-weight: 900; color: var(--gold); letter-spacing: -2px; line-height: 1; text-shadow: 0 0 40px rgba(201,168,76,0.3); }
+/* ── PARTICLES BG ── */
+.particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+.particle {
+  position: absolute; border-radius: 50%; opacity: 0;
+  animation: float-up linear infinite;
+}
+@keyframes float-up {
+  0%   { opacity: 0; transform: translateY(100vh) scale(0); }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.2; }
+  100% { opacity: 0; transform: translateY(-20px) scale(1); }
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative; z-index: 1;
+  text-align: center; padding: 56px 24px 36px;
+  background: radial-gradient(ellipse at top, #221e10 0%, var(--bg) 70%);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+  50%       { transform: translateX(-50%) scale(1.15); opacity: 1; }
+}
+
+.logo {
+  font-family: 'Prompt', sans-serif; font-size: 52px; font-weight: 900;
+  color: var(--gold); letter-spacing: -2px; line-height: 1;
+  text-shadow: 0 0 40px rgba(201,168,76,0.4);
+  animation: logo-in .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes logo-in {
+  from { opacity: 0; transform: scale(.7) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 .logo span { color: var(--orange); }
-.tagline { margin-top: 12px; font-size: 16px; color: var(--text2); font-weight: 500; }
 
-/* PACKAGES */
-.pkg-wrap { padding: 32px 20px 8px; max-width: 480px; margin: 0 auto; }
-.pkg-title { text-align: center; font-family: 'Prompt', sans-serif; font-size: 18px; color: var(--gold); margin-bottom: 16px; }
+.tagline {
+  margin-top: 10px; font-size: 15px; color: var(--text2); font-weight: 500;
+  animation: fade-up .6s .15s both;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 16px; background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.3); border-radius: 999px;
+  padding: 7px 18px; font-size: 13px; font-weight: 700; color: var(--gold);
+  animation: fade-up .6s .25s both;
+}
+.badge-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+@keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── PACKAGES ── */
+.pkg-wrap { position: relative; z-index: 1; padding: 28px 16px 8px; max-width: 480px; margin: 0 auto; }
+.pkg-title {
+  text-align: center; font-family: 'Prompt', sans-serif; font-size: 17px;
+  color: var(--text2); margin-bottom: 16px; letter-spacing: .5px;
+}
 .pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .pkg-card {
   background: var(--card); border: 2px solid var(--border);
-  border-radius: 18px; padding: 18px 14px 16px; cursor: pointer;
-  transition: all .2s; position: relative; text-align: center;
+  border-radius: 20px; padding: 20px 14px 16px; cursor: pointer;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1); position: relative;
+  text-align: center; overflow: hidden;
 }
-.pkg-card.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); }
-.pkg-card.pro-card { border-color: rgba(155,111,212,0.4); }
-.pkg-card.pro-card.selected { border-color: var(--purple); background: rgba(155,111,212,0.1); }
+.pkg-card::after {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .3s;
+  background: radial-gradient(circle at 50% 0%, rgba(201,168,76,0.08), transparent 70%);
+}
+.pkg-card.selected::after { opacity: 1; }
+.pkg-card.selected { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(201,168,76,0.15); }
+.pkg-card.pro-card { border-color: rgba(155,111,212,0.35); }
+.pkg-card.pro-card::after { background: radial-gradient(circle at 50% 0%, rgba(155,111,212,0.1), transparent 70%); }
+.pkg-card.pro-card.selected { border-color: var(--purple); box-shadow: 0 8px 30px rgba(155,111,212,0.2); }
 
 .pkg-badge {
-  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
-  background: var(--purple); color: white; font-size: 11px; font-weight: 800;
-  padding: 3px 12px; border-radius: 999px; white-space: nowrap;
+  position: absolute; top: -1px; right: -1px;
+  background: linear-gradient(135deg, var(--purple), #7c4fc4);
+  color: white; font-size: 10px; font-weight: 800;
+  padding: 4px 10px; border-radius: 0 18px 0 12px;
 }
-.pkg-name { font-family: 'Prompt', sans-serif; font-size: 16px; font-weight: 800; margin-top: 6px; }
-.pkg-price { font-family: 'Prompt', sans-serif; font-size: 28px; font-weight: 900; color: var(--gold); line-height: 1; margin: 6px 0 4px; }
+.pkg-name { font-family: 'Prompt', sans-serif; font-size: 17px; font-weight: 800; margin-top: 4px; }
+.pkg-price {
+  font-family: 'Prompt', sans-serif; font-size: 30px; font-weight: 900;
+  color: var(--gold); line-height: 1; margin: 8px 0 4px;
+}
 .pkg-price span { font-size: 12px; color: var(--text2); font-family: 'Sarabun', sans-serif; font-weight: 400; }
 .pro-card .pkg-price { color: var(--purple); }
-.pkg-features { font-size: 12px; color: var(--text2); line-height: 2; margin-top: 10px; text-align: left; list-style: none; }
-.pkg-features li::before { content: '✓ '; color: var(--green); font-weight: 700; }
+.pkg-features { font-size: 12px; color: var(--text2); line-height: 2.1; margin-top: 10px; text-align: left; list-style: none; }
+.pkg-features li::before { content: '✓ '; color: var(--green); font-weight: 800; }
 .pkg-features li.ai::before { content: '🤖 '; }
+.pkg-features li.limit { color: rgba(201,168,76,0.7); font-size: 11px; }
+.pkg-features li.limit::before { content: '⚡ '; }
 
-/* FEATURES */
-.features { padding: 28px 20px 8px; display: grid; gap: 12px; max-width: 480px; margin: 0 auto; }
-.feat { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; }
-.feat-icon { font-size: 28px; flex-shrink: 0; }
-.feat-text { font-size: 14px; line-height: 1.5; }
-.feat-text strong { display: block; font-size: 15px; color: var(--gold); margin-bottom: 2px; }
+/* ── COMPARISON ── */
+.compare-wrap { max-width: 480px; margin: 16px auto 0; padding: 0 16px; position: relative; z-index: 1; }
+.compare-box {
+  background: rgba(155,111,212,0.06); border: 1px solid rgba(155,111,212,0.2);
+  border-radius: 14px; padding: 14px 16px; text-align: center;
+}
+.compare-box p { font-size: 13px; color: var(--text2); line-height: 1.8; }
+.compare-box strong { color: var(--purple); }
+.compare-box .upgrade-hint {
+  margin-top: 8px; font-size: 12px; color: rgba(155,111,212,0.7);
+  font-style: italic;
+}
 
-/* TABS */
-.tab-wrap { max-width: 480px; margin: 0 auto; padding: 20px 20px 40px; }
-.tabs { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 5px; margin-bottom: 20px; }
-.tab-btn { flex: 1; padding: 11px; border: none; border-radius: 10px; background: none; color: var(--text2); font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s; }
+/* ── FEATURES ── */
+.features { position: relative; z-index: 1; padding: 24px 16px 8px; display: grid; gap: 10px; max-width: 480px; margin: 0 auto; }
+.feat {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+  transition: transform .2s, border-color .2s;
+  animation: fade-up .5s both;
+}
+.feat:active { transform: scale(.98); }
+.feat-icon { font-size: 26px; flex-shrink: 0; }
+.feat-text { font-size: 13px; line-height: 1.5; }
+.feat-text strong { display: block; font-size: 14px; color: var(--gold); margin-bottom: 2px; }
+
+/* ── TABS ── */
+.tab-wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+.tabs { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 5px; margin-bottom: 16px; }
+.tab-btn {
+  flex: 1; padding: 11px; border: none; border-radius: 10px;
+  background: none; color: var(--text2); font-family: 'Sarabun', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s;
+}
 .tab-btn.active { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #0f0e0c; }
 
-/* FORM */
-.form-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 24px 20px; }
-.form-title { font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 800; color: var(--gold); margin-bottom: 18px; text-align: center; }
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
-.field input { width: 100%; padding: 13px 16px; background: #0f0e0c; border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Sarabun', sans-serif; font-size: 15px; outline: none; transition: border-color .2s; }
-.field input:focus { border-color: var(--gold); }
+/* ── FORM ── */
+.form-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 22px 18px; }
+.form-title { font-family: 'Prompt', sans-serif; font-size: 19px; font-weight: 800; color: var(--gold); margin-bottom: 16px; text-align: center; }
+.field { margin-bottom: 13px; }
+.field label { display: block; font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 5px; }
+.field input {
+  width: 100%; padding: 13px 14px; background: #0f0e0c;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  color: var(--text); font-family: 'Sarabun', sans-serif; font-size: 15px;
+  outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
 
-.plan-info { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--text2); }
-.plan-info strong { color: var(--gold); font-size: 15px; }
+.plan-info {
+  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
+  font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 8px;
+}
+.plan-info strong { color: var(--gold); font-size: 14px; }
 
-.btn-submit { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--gold), var(--orange)); border: none; border-radius: 12px; color: #0f0e0c; font-family: 'Prompt', sans-serif; font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 6px; transition: opacity .2s; }
-.btn-submit:active { opacity: 0.85; }
-.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  border: none; border-radius: 12px; color: #0f0e0c;
+  font-family: 'Prompt', sans-serif; font-size: 17px; font-weight: 800;
+  cursor: pointer; margin-top: 4px;
+  transition: transform .15s, opacity .15s, box-shadow .15s;
+  box-shadow: 0 4px 20px rgba(201,168,76,0.25);
+}
+.btn-submit:active { transform: scale(.97); opacity: .9; }
+.btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-.alert { display: none; padding: 13px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 14px; text-align: center; }
+.alert { display: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 13px; text-align: center; }
 .alert.success { background: rgba(90,170,106,0.15); color: var(--green); border: 1px solid rgba(90,170,106,0.3); }
 .alert.error   { background: rgba(192,84,74,0.15);  color: var(--red);   border: 1px solid rgba(192,84,74,0.3); }
-.alert.show    { display: block; }
+.alert.show    { display: block; animation: shake .3s both; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 
-.payment-box { display: none; margin-top: 18px; background: rgba(201,168,76,0.08); border: 1.5px solid rgba(201,168,76,0.3); border-radius: 14px; padding: 20px; text-align: center; }
-.payment-box.show { display: block; }
-.payment-box h3 { font-family: 'Prompt', sans-serif; font-size: 16px; color: var(--gold); margin-bottom: 10px; }
-.payment-amount { font-family: 'Prompt', sans-serif; font-size: 40px; font-weight: 900; color: var(--gold2); line-height: 1; }
+.payment-box {
+  display: none; margin-top: 16px;
+  background: rgba(201,168,76,0.07); border: 1.5px solid rgba(201,168,76,0.3);
+  border-radius: 16px; padding: 22px; text-align: center;
+}
+.payment-box.show { display: block; animation: pop-in .4s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes pop-in { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
+.payment-box h3 { font-family: 'Prompt', sans-serif; font-size: 18px; color: var(--gold); margin-bottom: 6px; }
+.payment-amount { font-family: 'Prompt', sans-serif; font-size: 44px; font-weight: 900; color: var(--gold2); line-height: 1; margin: 10px 0; }
 .payment-amount span { font-size: 16px; color: var(--text2); }
-.payment-detail { margin-top: 12px; font-size: 14px; color: var(--text2); line-height: 1.8; }
+.payment-detail { font-size: 14px; color: var(--text2); line-height: 2; }
 .payment-detail strong { color: var(--text); }
-.payment-note { margin-top: 14px; font-size: 13px; color: var(--text2); background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; line-height: 1.6; }
+.payment-note {
+  margin-top: 14px; font-size: 13px; color: var(--text2);
+  background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; line-height: 1.8;
+}
+.payment-note strong { color: var(--gold); }
 
-.footer { text-align: center; padding: 30px 20px; color: var(--text2); font-size: 13px; border-top: 1px solid var(--border); }
+.footer { position: relative; z-index: 1; text-align: center; padding: 28px 20px; color: var(--text2); font-size: 12px; border-top: 1px solid var(--border); }
 .hidden { display: none !important; }
+
+/* shimmer on pkg-badge */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.pkg-badge-shine {
+  background: linear-gradient(90deg, var(--purple) 25%, #c084fc 50%, var(--purple) 75%);
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
+}
 </style>
 </head>
 <body>
+
+<!-- PARTICLES -->
+<div class="particles" id="particles"></div>
 
 <!-- HERO -->
 <div class="hero">
   <div class="logo">💰 ค้า<span>สด 💰</span></div>
   <div class="tagline">ระบบ POS สำหรับร้านค้าไทย ใช้ง่าย ไม่ต้องซื้ออุปกรณ์ใหม่</div>
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    ให้บริการอยู่ตอนนี้
+  </div>
 </div>
 
 <!-- PACKAGES -->
 <div class="pkg-wrap">
-  <div class="pkg-title">เลือกแพ็กเกจของคุณ</div>
+  <div class="pkg-title">เลือกแพ็กเกจที่ใช่สำหรับคุณ</div>
   <div class="pkg-grid">
 
     <div class="pkg-card selected" id="pkg-starter" onclick="selectPlan('starter')">
@@ -113,52 +252,71 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
         <li>จัดการสต็อก</li>
         <li>Export CSV</li>
         <li>สรุปรายอาทิตย์</li>
+        <li class="ai">AI ประจำร้าน</li>
+        <li class="limit">20 ข้อความ/วัน</li>
       </ul>
     </div>
 
     <div class="pkg-card pro-card" id="pkg-pro" onclick="selectPlan('pro')">
-      <div class="pkg-badge">แนะนำ 🔥</div>
+      <div class="pkg-badge pkg-badge-shine">แนะนำ 🔥</div>
       <div class="pkg-name" style="color:var(--purple)">Pro</div>
       <div class="pkg-price">399 <span>฿/เดือน</span></div>
       <ul class="pkg-features">
         <li>ทุกอย่างใน Starter</li>
-        <li class="ai">AI ประจำร้าน</li>
-        <li class="ai">สั่งลงของด้วยแชท</li>
+        <li class="ai">AI ไม่จำกัด</li>
+        <li class="ai">สั่งลงของผ่านแชท</li>
         <li class="ai">วิเคราะห์ยอดขาย</li>
+        <li class="ai">ประวัติแชทไม่จำกัด</li>
       </ul>
     </div>
 
   </div>
 </div>
 
+<!-- COMPARE BOX -->
+<div class="compare-wrap">
+  <div class="compare-box">
+    <p>Starter ได้ใช้ <strong>AI 20 ข้อความต่อวัน</strong> ฟรี<br>
+    เมื่อใช้ครบแล้วอัปเกรดเป็น Pro ใช้ได้ <strong>ไม่จำกัด</strong></p>
+    <p class="upgrade-hint">เพิ่มแค่วันละ 6.67 บาท ได้ AI ประจำร้านเต็มรูปแบบ</p>
+  </div>
+</div>
+
 <!-- FEATURES -->
 <div class="features">
-  <div class="feat">
+  <div class="feat" style="animation-delay:.05s">
     <div class="feat-icon">📱</div>
     <div class="feat-text">
       <strong>ใช้มือถือเครื่องเดิมได้เลย</strong>
       ไม่ต้องซื้อเครื่องใหม่ ไม่ต้องติดตั้งอะไรเพิ่ม
     </div>
   </div>
-  <div class="feat">
+  <div class="feat" style="animation-delay:.1s">
     <div class="feat-icon">⚡</div>
     <div class="feat-text">
       <strong>เริ่มใช้งานได้ใน 3 นาที</strong>
       ทีมงานช่วย onboard ถึงที่ สะดวกสบาย
     </div>
   </div>
-  <div class="feat">
+  <div class="feat" style="animation-delay:.15s">
     <div class="feat-icon">🤖</div>
     <div class="feat-text">
-      <strong>AI ประจำร้าน (Pro)</strong>
-      พิมพ์ "น้ำส้ม 50 ขวดมาลง" สต็อกขึ้นเองทันที
+      <strong>AI ประจำร้าน — ใช้ภาษาบ้านๆ ได้เลย</strong>
+      พิมพ์ "น้ำส้ม 50 ขวดมาลงนะ" สต็อกขึ้นเองทันที
     </div>
   </div>
-  <div class="feat">
+  <div class="feat" style="animation-delay:.2s">
+    <div class="feat-icon">📊</div>
+    <div class="feat-text">
+      <strong>ดูยอดขาย real-time</strong>
+      รายงานรายวัน Export CSV ได้ทันที
+    </div>
+  </div>
+  <div class="feat" style="animation-delay:.25s">
     <div class="feat-icon">📦</div>
     <div class="feat-text">
       <strong>จัดการสต็อกแม่นยำ</strong>
-      แจ้งเตือนเมื่อสินค้าใกล้หมด
+      แจ้งเตือนเมื่อสินค้าใกล้หมด ไม่พลาดของขาด
     </div>
   </div>
 </div>
@@ -174,10 +332,10 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
   <div id="tab-register" class="form-card">
     <div class="form-title">🌿 สมัครใช้งาน</div>
     <div id="reg-alert" class="alert"></div>
-
     <div id="reg-form">
       <div class="plan-info">
-        แพ็กเกจที่เลือก: <strong id="plan-display">Starter — 199฿/เดือน</strong>
+        <span>📦</span>
+        <div>แพ็กเกจที่เลือก: <strong id="plan-display">Starter — 199฿/เดือน</strong></div>
       </div>
       <div class="field">
         <label>ชื่อร้านของคุณ</label>
@@ -200,7 +358,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 
     <div id="payment-box" class="payment-box">
       <h3>✅ สมัครสำเร็จแล้ว!</h3>
-      <div>โอนเงินเพื่อเปิดใช้งาน</div>
+      <div style="font-size:13px;color:var(--text2)">โอนเงินเพื่อเปิดใช้งาน</div>
       <div class="payment-amount" id="pay-amount">199 <span>฿/เดือน</span></div>
       <div class="payment-detail">
         <strong>PromptPay:</strong> [เบอร์ของคุณ]<br>
@@ -209,7 +367,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
       <div class="payment-note">
         หลังโอนแล้ว แคปหน้าจอส่งมาที่<br>
         <strong>Line: @kaasod</strong><br>
-        ทีมงานจะเปิดใช้งานให้ภายใน 30 นาที
+        ทีมงานจะเปิดใช้งานให้ภายใน 30 นาที 🚀
       </div>
     </div>
   </div>
@@ -233,6 +391,28 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 <div class="footer">ค้าสด (KAASOD) © 2026 · ระบบ POS สำหรับร้านค้าไทย</div>
 
 <script>
+// ── PARTICLES ──────────────────────────────────────────
+(function() {
+  const wrap  = document.getElementById('particles');
+  const colors = ['#c9a84c','#e07b3a','#9b6fd4','#5aaa6a','#e8c56a'];
+  for (let i = 0; i < 18; i++) {
+    const el  = document.createElement('div');
+    const sz  = Math.random() * 5 + 2;
+    const dur = Math.random() * 12 + 8;
+    const del = Math.random() * 10;
+    const col = colors[Math.floor(Math.random() * colors.length)];
+    el.className = 'particle';
+    el.style.cssText = `
+      width:${sz}px; height:${sz}px; background:${col};
+      left:${Math.random()*100}%;
+      animation-duration:${dur}s; animation-delay:-${del}s;
+      filter: blur(${Math.random()>.5?1:0}px);
+    `;
+    wrap.appendChild(el);
+  }
+})();
+
+// ── PLAN SELECT ─────────────────────────────────────────
 let selectedPlan = 'starter';
 
 function selectPlan(plan) {
@@ -240,24 +420,37 @@ function selectPlan(plan) {
   document.getElementById('pkg-starter').classList.toggle('selected', plan === 'starter');
   document.getElementById('pkg-pro').classList.toggle('selected', plan === 'pro');
   const price = plan === 'pro' ? 399 : 199;
-  document.getElementById('plan-display').textContent = plan === 'pro' ? 'Pro — 399฿/เดือน 🤖' : 'Starter — 199฿/เดือน';
+  const icon  = plan === 'pro' ? '🤖' : '📦';
+  const label = plan === 'pro' ? 'Pro — 399฿/เดือน 🤖' : 'Starter — 199฿/เดือน';
+  document.getElementById('plan-display').textContent = label;
+  document.querySelector('.plan-info span').textContent = icon;
   document.getElementById('reg-btn').textContent = `สมัครเลย — ${price}฿/เดือน`;
+  if (plan === 'pro') {
+    document.getElementById('reg-btn').style.background = 'linear-gradient(135deg, #9b6fd4, #7c4fc4)';
+    document.getElementById('reg-btn').style.boxShadow  = '0 4px 20px rgba(155,111,212,0.3)';
+  } else {
+    document.getElementById('reg-btn').style.background = 'linear-gradient(135deg, var(--gold), var(--orange))';
+    document.getElementById('reg-btn').style.boxShadow  = '0 4px 20px rgba(201,168,76,0.25)';
+  }
 }
 
+// ── TABS ────────────────────────────────────────────────
 function showTab(tab) {
   document.getElementById('tab-register').classList.toggle('hidden', tab !== 'register');
   document.getElementById('tab-login').classList.toggle('hidden', tab !== 'login');
-  document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', (i === 0) === (tab === 'register'));
-  });
+  document.querySelectorAll('.tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0) === (tab === 'register'))
+  );
 }
 
+// ── ALERTS ──────────────────────────────────────────────
 function showAlert(id, msg, type) {
   const el = document.getElementById(id);
   el.textContent = msg;
   el.className = `alert ${type} show`;
 }
 
+// ── REGISTER ────────────────────────────────────────────
 async function doRegister() {
   const shop  = document.getElementById('reg-shop').value.trim();
   const user  = document.getElementById('reg-user').value.trim();
@@ -265,26 +458,21 @@ async function doRegister() {
   const phone = document.getElementById('reg-phone').value.trim();
 
   if (!shop || !user || !pass || !phone) {
-    showAlert('reg-alert', 'กรอกข้อมูลให้ครบทุกช่องก่อนนะครับ', 'error');
-    return;
+    showAlert('reg-alert', 'กรอกข้อมูลให้ครบทุกช่องก่อนนะครับ', 'error'); return;
   }
   if (pass.length < 6) {
-    showAlert('reg-alert', 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว', 'error');
-    return;
+    showAlert('reg-alert', 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว', 'error'); return;
   }
 
   const btn = document.getElementById('reg-btn');
-  btn.disabled = true;
-  btn.textContent = 'กำลังสมัคร...';
+  btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
 
   try {
     const res  = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ shop_name: shop, username: user, password: pass, phone, plan: selectedPlan })
     });
     const data = await res.json();
-
     if (data.ok) {
       document.getElementById('reg-form').style.display = 'none';
       document.getElementById('payment-box').classList.add('show');
@@ -301,39 +489,31 @@ async function doRegister() {
   }
 }
 
+// ── LOGIN ───────────────────────────────────────────────
 async function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
-
-  if (!user || !pass) {
-    showAlert('login-alert', 'กรอกชื่อผู้ใช้และรหัสผ่านครับ', 'error');
-    return;
-  }
+  if (!user || !pass) { showAlert('login-alert', 'กรอกชื่อผู้ใช้และรหัสผ่านครับ', 'error'); return; }
 
   const btn = document.querySelector('#tab-login .btn-submit');
-  btn.disabled = true;
-  btn.textContent = 'กำลังเข้าสู่ระบบ...';
+  btn.disabled = true; btn.textContent = 'กำลังเข้าสู่ระบบ...';
 
   try {
     const res  = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: user, password: pass })
     });
     const data = await res.json();
-
     if (data.ok) {
       showAlert('login-alert', `ยินดีต้อนรับ ${data.shop_name} 🎉`, 'success');
-      setTimeout(() => { window.location.href = '/pos'; }, 1000);
+      setTimeout(() => { window.location.href = '/pos'; }, 900);
     } else {
       showAlert('login-alert', data.msg, 'error');
-      btn.disabled = false;
-      btn.textContent = 'เข้าสู่ระบบ';
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
     }
   } catch (e) {
     showAlert('login-alert', 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
-    btn.disabled = false;
-    btn.textContent = 'เข้าสู่ระบบ';
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
   }
 }
 
