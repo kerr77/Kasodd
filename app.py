@@ -58,6 +58,36 @@ def increment_usage(shop_id):
 def is_admin():
     return session.get('is_admin') is True
 
+def is_admin_request():
+    """ยอมรับทั้ง session และ X-Admin-Key header หรือ ?key= query param"""
+    if session.get('is_admin') is True:
+        return True
+    key = request.headers.get('X-Admin-Key', '') or request.args.get('key', '')
+    return key == ADMIN_KEY
+
+def log_chat(shop_id, username, contents, resp):
+    """บันทึก chat log ไว้ใน shop dir สำหรับ admin ดู"""
+    f = shop_dir(shop_id) / 'chat_log.json'
+    logs = json.loads(f.read_text(encoding='utf-8')) if f.exists() else []
+    ai_text = ''
+    try:
+        ai_text = resp['candidates'][0]['content']['parts'][0]['text'][:500]
+    except Exception:
+        pass
+    user_msg = ''
+    try:
+        user_msg = contents[-1]['parts'][0]['text'][:300] if contents else ''
+    except Exception:
+        pass
+    logs.append({
+        'ts':       datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'user_msg': user_msg,
+        'ai_reply': ai_text,
+        'username': username,
+    })
+    logs = logs[-50:]  # เก็บ 50 รายการล่าสุด
+    f.write_text(json.dumps(logs, ensure_ascii=False), encoding='utf-8')
+
 def esc(t):
     return str(t).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;').replace("'","&#39;")
 
@@ -177,6 +207,7 @@ def chat():
         with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
         new_count = increment_usage(shop_id)
+        log_chat(shop_id, session.get('username', ''), contents, resp)
         if plan == 'starter':
             remaining = max(0, STARTER_DAILY_LIMIT - new_count)
             resp['_quota'] = {'used':new_count,'remaining':remaining,
@@ -245,7 +276,7 @@ def admin_me():
 
 @app.route('/api/admin/users')
 def admin_users():
-    if not is_admin():
+    if not is_admin_request():
         return jsonify({'ok':False}), 401
     users = load_users()
     user_list = []
@@ -508,6 +539,83 @@ def admin_action():
 
     return redirect(f'/admin/list?key={key}')
 
+# ── admin/backup — list backup files ─────────────────────
+
+@app.route('/admin/backup/<username>/')
+@app.route('/admin/backup/<username>')
+def admin_backup_list(username):
+    key = request.args.get('key', '')
+    if key != ADMIN_KEY:
+        return 'ไม่มีสิทธิ์', 403
+    users = load_users()
+    if username not in users:
+        return 'ไม่พบ user', 404
+    sid = users[username].get('shop_id', '')
+    if not sid:
+        return 'ไม่มี shop_id', 404
+
+    bfiles = sorted((SHOPS_DIR / sid).glob('backup_*.json'), reverse=True)
+    chat_log = SHOPS_DIR / sid / 'chat_log.json'
+
+    rows = ''
+    for bf in bfiles:
+        size = bf.stat().st_size
+        size_str = f'{size:,} bytes' if size < 1024 else f'{size//1024} KB'
+        rows += f'''<tr>
+          <td><a href="/admin/backup/{esc(username)}/{esc(bf.name)}?key={esc(key)}"
+                 style="color:#5b8db8">📄 {esc(bf.name)}</a></td>
+          <td style="color:#7a6a58">{size_str}</td>
+          <td style="white-space:nowrap">
+            <a href="/admin/export/{esc(username)}?key={esc(key)}&mode=sales"
+               style="color:#5b8db8;font-size:11px;">⬇️ ยอดขาย</a>
+            <a href="/admin/export/{esc(username)}?key={esc(key)}&mode=members"
+               style="color:#5b8db8;font-size:11px;margin-left:6px;">⬇️ สมาชิก</a>
+            <a href="/admin/export/{esc(username)}?key={esc(key)}&mode=products"
+               style="color:#5b8db8;font-size:11px;margin-left:6px;">⬇️ สินค้า</a>
+          </td>
+        </tr>'''
+
+    chat_row = ''
+    if chat_log.exists():
+        chat_row = f'''<tr>
+          <td><a href="/admin/backup/{esc(username)}/chat_log.json?key={esc(key)}"
+                 style="color:#4aaa6a">💬 chat_log.json</a></td>
+          <td style="color:#7a6a58">{chat_log.stat().st_size:,} bytes</td>
+          <td style="color:#7a6a58;font-size:11px;">ประวัติ AI Chat</td>
+        </tr>'''
+
+    u = users[username]
+    html = f"""<!DOCTYPE html>
+<html lang="th"><head><meta charset="UTF-8">
+<title>Backup — {esc(username)}</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:'Sarabun',sans-serif;background:#0f0e0c;color:#f0e8dc;padding:20px;font-size:14px}}
+h2{{color:#c9a84c;margin-bottom:4px}}
+.meta{{color:#7a6a58;font-size:12px;margin-bottom:16px}}
+a.back{{color:#e07b3a;text-decoration:none}}
+table{{border-collapse:collapse;width:100%;margin-top:12px}}
+th{{background:#1a1815;color:#c9a84c;padding:8px 12px;text-align:left;border:1px solid #2e2820}}
+td{{border:1px solid #2e2820;padding:8px 12px;vertical-align:middle}}
+tr:hover td{{background:#1a1815}}
+.analyze{{display:inline-block;margin-top:14px;background:rgba(201,168,76,.15);
+  color:#c9a84c;border:1px solid rgba(201,168,76,.4);padding:8px 16px;
+  border-radius:8px;text-decoration:none;font-weight:700;}}
+</style></head><body>
+<a class="back" href="/admin/list?key={esc(key)}">← กลับหน้า Admin</a>
+<br><br>
+<h2>📂 Backup ร้าน {esc(u.get('shop_name', username))}</h2>
+<div class="meta">@{esc(username)} · {u.get('plan','').upper()} · {u.get('status','')}</div>
+<table>
+  <tr><th>ไฟล์</th><th>ขนาด</th><th>Actions</th></tr>
+  {chat_row}
+  {rows if rows else '<tr><td colspan="3" style="color:#6a5e50;text-align:center;padding:20px;">ยังไม่มีข้อมูล Backup</td></tr>'}
+</table>
+<a class="analyze" href="/admin/analyze/{esc(username)}?key={esc(key)}">🤖 AI วิเคราะห์ยอดขาย</a>
+</body></html>"""
+    return html
+
+
 # ── admin/backup — view JSON file ─────────────────────────
 
 @app.route('/admin/backup/<username>/<filename>')
@@ -521,9 +629,11 @@ def admin_backup(username, filename):
     sid = users[username].get('shop_id','')
     if not sid:
         return 'ไม่มี shop_id', 404
-    # sanitize filename
+    # sanitize filename — allow backup_*.json and chat_log.json
     if '..' in filename or '/' in filename:
         return 'invalid', 400
+    if not (filename.startswith('backup_') or filename == 'chat_log.json'):
+        return 'ไม่อนุญาตไฟล์นี้', 400
     f = SHOPS_DIR / sid / filename
     if not f.exists():
         return 'ไม่พบไฟล์', 404
@@ -1014,6 +1124,38 @@ def shop_payment_breakdown():
         'total_transactions': len(all_history),
         'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
     })
+
+
+# ── admin chat-logs API ────────────────────────────────────
+
+@app.route('/api/admin/chat-logs')
+def admin_chat_logs():
+    """
+    ดึง Chat Log ทุกร้าน — admin.html ใช้แสดงประวัติ AI Chat
+    รองรับทั้ง session และ X-Admin-Key header หรือ ?key=
+    """
+    if not is_admin_request():
+        return jsonify({'ok': False}), 403
+
+    users  = load_users()
+    result = {}
+    for uname, u in users.items():
+        sid = u.get('shop_id', '')
+        if not sid:
+            continue
+        f = shop_dir(sid) / 'chat_log.json'
+        if f.exists():
+            try:
+                logs = json.loads(f.read_text(encoding='utf-8'))
+                result[uname] = {
+                    'shop_name': u.get('shop_name', uname),
+                    'plan':      u.get('plan', 'starter'),
+                    'status':    u.get('status', 'pending'),
+                    'logs':      logs,
+                }
+            except Exception:
+                pass
+    return jsonify({'ok': True, 'data': result})
 
 
 # ── health ─────────────────────────────────────────────────
