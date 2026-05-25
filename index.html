@@ -1618,14 +1618,17 @@ function renderDeliveryLog() {
     list.innerHTML = '<div style="padding:12px 0;color:var(--muted);font-size:13px;text-align:center;">ยังไม่มีการลงของวันนี้</div>';
     return;
   }
-  list.innerHTML = deliveries.map((d, i) => `
+  list.innerHTML = deliveries.map((d, i) => {
+    const isNeg = d.qty < 0;
+    const qtyLabel = isNeg ? `<span style="color:var(--red)">${d.qty}</span>` : `<span style="color:var(--green)">+${d.qty}</span>`;
+    return `
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
       <span style="font-size:11px;background:rgba(245,200,66,0.15);color:var(--accent);border-radius:5px;padding:2px 7px;font-weight:800;flex-shrink:0;">รอบ ${d.round}</span>
-      <span style="font-size:13px;font-weight:700;flex:1;">${d.name} <span style="color:var(--green)">+${d.qty}</span></span>
+      <span style="font-size:13px;font-weight:700;flex:1;">${d.name} ${qtyLabel}</span>
       ${d.note ? `<span style="font-size:11px;color:var(--muted);">${d.note}</span>` : ''}
       <span style="font-size:10px;color:var(--muted);flex-shrink:0;">${d.time.split(' ')[1]||''}</span>
       <button onclick="deleteDelivery(${i})" style="background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;flex-shrink:0;">✕</button>
-    </div>`).join('');
+    </div>`}).join('');
 }
 
 function deleteDelivery(idx) {
@@ -2392,7 +2395,13 @@ ${prodLines}
 ▶ ตั้งค่าสต็อกตรงๆ (set ให้เป็นจำนวนที่ระบุ):
 <ACTION>{"type":"set_stock","key":"[product_key]","qty":[number],"name":"[product_name]"}</ACTION>
 ตัวอย่าง: "ตั้งสต็อกน้ำส้มเป็น 80 ขวด"
-<ACTION>{"type":"set_stock","key":"orange_juice","qty":80,"name":"น้ำส้ม"}</ACTION>'''
+<ACTION>{"type":"set_stock","key":"orange_juice","qty":80,"name":"น้ำส้ม"}</ACTION>
+
+▶ สร้างสินค้าใหม่ (มีสินค้าใหม่เข้ามา ยังไม่เคยมีในระบบ):
+<ACTION>{"type":"create_product","key":"[unique_key_no_spaces]","name":"[product_name]","price":[price_number],"qty":[initial_stock_qty]}</ACTION>
+ตัวอย่าง: "มีน้ำผลไม้รวมมาใหม่ ราคา 70 บาท จำนวน 100 ขวด"
+<ACTION>{"type":"create_product","key":"mixed_fruit_juice","name":"น้ำผลไม้รวม","price":70,"qty":100}</ACTION>
+หมายเหตุ: key ต้องเป็นภาษาอังกฤษ ไม่มีช่องว่าง ไม่ซ้ำกับสินค้าที่มีอยู่แล้ว
 
 
 
@@ -3543,7 +3552,7 @@ if ('serviceWorker' in navigator) {
       <div class="chat-avatar">🌿</div>
       <div class="ai-popup-header-info">
         <div class="ai-popup-title" id="popup-assistant-name">ผู้ช่วย AI ประจำร้าน</div>
-        <div class="ai-popup-sub">ถามสต็อก ยอดขาย สั่งลงของ</div>
+        <div class="ai-popup-sub">ถามสต็อก ยอดขาย สั่งลงของ สร้างสินค้าใหม่</div>
       </div>
       <button class="ai-popup-close" onclick="closeAiPopup()">✕</button>
     </div>
@@ -3564,6 +3573,7 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('ยอดขายวันนี้เท่าไหร่?')">💰 ยอดขาย</span>
         <span class="tip-chip" onclick="popupSetTip('ช่วยสรุปของที่ขายดีให้หน่อย')">📊 ขายดี</span>
         <span class="tip-chip" onclick="popupSetTip('สต็อกใกล้หมดมีอะไรบ้าง?')">⚠️ ใกล้หมด</span>
+        <span class="tip-chip" onclick="popupSetTip('มีสินค้ามาใหม่ [ชื่อสินค้า] ราคา [ราคา] บาท จำนวน [จำนวน] ชิ้น')">✨ เพิ่มสินค้าใหม่</span>
       </div>
     </div>
 
@@ -3891,11 +3901,25 @@ async function popupSendChat() {
         try {
           const action = JSON.parse(actionMatch[1]);
           
+          // --- helper: บันทึก delivery log ---
+          function aiAddDeliveryLog(key, name, qty, note) {
+            const deliveries = loadDelivery();
+            const round = deliveries.filter(d => sameShift(d.time)).length + 1;
+            deliveries.unshift({
+              time: new Date().toLocaleString('th-TH'),
+              key, name, qty, note: note || '🤖AI', round
+            });
+            saveDelivery(deliveries);
+            renderDeliveryLog();
+          }
+
           // --- 1. สำหรับเพิ่มสต๊อก (ของเดิม) ---
           if (action.type === 'add_stock' && action.key && action.qty > 0) {
             stock[action.key] = (stock[action.key] || 0) + action.qty;
             saveStock();
+            aiAddDeliveryLog(action.key, action.name || action.key, action.qty, '🤖AI เพิ่มสต็อก');
             renderProducts();
+            renderStock();
             setTimeout(() => {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
@@ -3905,11 +3929,17 @@ async function popupSendChat() {
             }, 300);
           }
           
-          // --- 2. แทรกเพิ่ม: สำหรับลดสต๊อก (ของใหม่) ---
+          // --- 2. สำหรับลดสต๊อก ---
           else if (action.type === 'reduce_stock' && action.key && action.qty > 0) {
-            stock[action.key] = Math.max(0, (stock[action.key] || 0) - action.qty);
+            const oldQty = stock[action.key] || 0;
+            const deducted = Math.min(oldQty, action.qty);
+            stock[action.key] = Math.max(0, oldQty - action.qty);
             saveStock();
+            if (deducted > 0) {
+              aiAddDeliveryLog(action.key, action.name || action.key, -deducted, '🤖AI ตัดสต็อก');
+            }
             renderProducts();
+            renderStock();
             setTimeout(() => {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
@@ -3919,15 +3949,56 @@ async function popupSendChat() {
             }, 300);
           }
           
-          // --- 3. แทรกเพิ่ม: สำหรับตั้งค่าสต๊อกแบบเจาะจงตัวเลข (ของใหม่) ---
+          // --- 3. สำหรับตั้งค่าสต๊อกแบบเจาะจงตัวเลข ---
           else if (action.type === 'set_stock' && action.key && action.qty >= 0) {
+            const oldQty = stock[action.key] || 0;
+            const diff = action.qty - oldQty;
             stock[action.key] = action.qty;
             saveStock();
+            if (diff !== 0) {
+              aiAddDeliveryLog(action.key, action.name || action.key, diff, `🤖AI ตั้งสต็อก→${action.qty}`);
+            }
             renderProducts();
+            renderStock();
             setTimeout(() => {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
               chip.textContent = `✅ ระบบตั้งค่าสต็อก: ${action.name || action.key} เป็น ${action.qty}`;
+              box.appendChild(chip);
+              box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- 4. สร้างสินค้าใหม่ ---
+          else if (action.type === 'create_product' && action.key && action.name && action.price >= 0) {
+            const prods = getEffectiveProducts();
+            const existingIdx = prods.findIndex(p => p.key === action.key);
+            if (existingIdx >= 0) {
+              // มีอยู่แล้ว — แค่เพิ่มสต็อก
+              if (action.qty > 0) {
+                stock[action.key] = (stock[action.key] || 0) + action.qty;
+                saveStock();
+                aiAddDeliveryLog(action.key, action.name, action.qty, '🤖AI เพิ่มสินค้าที่มีอยู่แล้ว');
+              }
+            } else {
+              // สร้างใหม่
+              const newProd = { key: action.key, name: action.name, price: action.price };
+              prods.push(newProd);
+              saveCustomProducts(prods);
+              stock[action.key] = action.qty || 0;
+              saveStock();
+              if (action.qty > 0) {
+                aiAddDeliveryLog(action.key, action.name, action.qty, '🤖AI สร้างสินค้าใหม่');
+              }
+              renderAdminProducts();
+              initDeliverySelect();
+            }
+            renderProducts();
+            renderStock();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `✨ สร้างสินค้าใหม่: ${action.name} ราคา ฿${action.price} จำนวน ${action.qty || 0} ชิ้น`;
               box.appendChild(chip);
               box.scrollTop = box.scrollHeight;
             }, 300);
