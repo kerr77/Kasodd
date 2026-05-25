@@ -1025,8 +1025,8 @@ async function loadShopBackups(users) {
 
   // Build chat shop filter buttons
   buildChatFilters(users);
-  // Build chat entries from AI usage
-  buildChatEntries(users);
+  // Build chat entries from real /api/admin/chat-logs
+  await buildChatEntries(users);
 }
 
 // ──────────────────────────────────────
@@ -1055,25 +1055,59 @@ function filterChats(shop) {
   renderChatEntries();
 }
 
-function buildChatEntries(users) {
-  // Build synthetic chat data from AI usage info
-  // Real chat history would need a server-side endpoint that logs it
-  const entries = [];
-  users.forEach(u => {
-    const used = u.ai_today || 0;
-    if (used > 0) {
-      entries.push({
-        shop: u.username,
-        shop_name: u.shop_name,
-        ts: new Date().toLocaleTimeString('th-TH'),
-        used,
-        plan: u.plan,
-      });
-      addLog('chat', u.shop_name, `ใช้ AI ${used} ข้อความวันนี้`);
+async function buildChatEntries(users) {
+  // Fetch real chat logs from /api/admin/chat-logs
+  const wrap = document.getElementById('chat-entries-wrap');
+  wrap.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>กำลังโหลด Chat Log...</div>';
+
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/chat-logs`, {
+      headers: { 'X-Admin-Key': ADMIN_KEY },
+      credentials: 'include'
+    });
+    const d = await r.json();
+
+    if (!d.ok) {
+      wrap.innerHTML = '<div class="empty-state"><div class="icon">❌</div>ไม่มีสิทธิ์เข้าถึง Chat Log</div>';
+      return;
     }
-  });
-  chatData._all = entries;
-  renderChatEntries();
+
+    // d.data = { username: { shop_name, plan, status, logs: [...] } }
+    const allEntries = [];
+    for (const [uname, info] of Object.entries(d.data || {})) {
+      const logs = info.logs || [];
+      logs.forEach(log => {
+        allEntries.push({
+          shop:      uname,
+          shop_name: info.shop_name || uname,
+          plan:      info.plan || 'starter',
+          status:    info.status || 'active',
+          ts:        log.ts || '',
+          username:  log.username || uname,
+          user_msg:  log.user_msg || '',
+          ai_reply:  log.ai_reply || '',
+        });
+      });
+    }
+
+    // Sort newest first
+    allEntries.sort((a, b) => b.ts.localeCompare(a.ts));
+
+    // Update filter buttons to match real data
+    buildChatFilters(users);
+
+    chatData._all = allEntries;
+
+    const total = allEntries.length;
+    if (total > 0) {
+      addLog('chat', '', `โหลด Chat Log สำเร็จ: ${total} รายการ`);
+    }
+
+    renderChatEntries();
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">❌</div>โหลด Chat Log ไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    addLog('error', '', `Chat Log error: ${e.message}`);
+  }
 }
 
 function renderChatEntries() {
@@ -1084,26 +1118,30 @@ function renderChatEntries() {
 
   const wrap = document.getElementById('chat-entries-wrap');
   if (!filtered.length) {
-    wrap.innerHTML = '<div class="empty-state"><div class="icon">💬</div>ไม่พบประวัติ AI Chat — ยังไม่มีการใช้งาน AI วันนี้<br><br><small style="color:var(--text3)">💡 ต้องการดูประวัติ Chat ทั้งหมด ให้เพิ่ม endpoint /api/admin/chat-logs ใน app.py</small></div>';
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">💬</div>ไม่พบประวัติ AI Chat<br><small style="color:var(--text3)">ยังไม่มีการใช้งาน AI หรือยังไม่มีข้อมูล</small></div>';
     return;
   }
 
-  wrap.innerHTML = filtered.map(e => `
+  wrap.innerHTML = '<div class="chat-entries">' + filtered.map(e => `
     <div class="chat-entry">
       <div class="chat-entry-hdr">
         <span class="chat-entry-shop">🏪 ${esc(e.shop_name)} <span style="color:var(--text3);font-weight:400;font-size:12px">@${esc(e.shop)}</span></span>
         <div style="display:flex;gap:8px;align-items:center;">
           <span class="pill ${e.plan==='pro'?'pill-purple':'pill-blue'}">${e.plan}</span>
-          <span class="chat-entry-ts">${e.ts}</span>
+          <span class="chat-entry-ts">${esc(e.ts)}</span>
         </div>
       </div>
-      <div style="background:var(--bg);border-radius:8px;padding:12px;font-size:13px;color:var(--text3);">
-        📊 ใช้ AI ไปแล้ว <strong style="color:var(--gold2)">${e.used} ข้อความ</strong> วันนี้
-        ${e.plan==='starter'?`<br>เหลือ <strong style="color:${Math.max(0,20-e.used)<=5?'var(--red)':'var(--green2)'}">${Math.max(0,20-e.used)}</strong> ข้อความ`:'<br><span style="color:var(--purple)">Pro: ไม่จำกัด</span>'}
-        <br><br>
-        <span style="color:var(--text3);font-size:12px;">⚠️ ดู Chat Log แบบ real-time ต้องเพิ่ม endpoint ใน app.py — ดูวิธีด้านล่าง</span>
-      </div>
-    </div>`).join('');
+      ${e.user_msg ? `
+      <div class="chat-bubble-user">
+        <div class="role-lbl">👤 USER</div>
+        ${esc(e.user_msg)}
+      </div>` : ''}
+      ${e.ai_reply ? `
+      <div class="chat-bubble-ai">
+        <div class="role-lbl">🤖 AI</div>
+        ${esc(e.ai_reply)}
+      </div>` : ''}
+    </div>`).join('') + '</div>';
 }
 
 // ──────────────────────────────────────
@@ -1210,55 +1248,9 @@ function showToast(msg, duration=3000) {
 // TIP: CHAT LOG ENDPOINT (shown in UI)
 // ──────────────────────────────────────
 window.addEventListener('load', () => {
-  // Show chat log tip after 2s
-  setTimeout(() => {
-    if (document.getElementById('tab-chats').classList.contains('active')) return;
-    addLog('system', '', '💡 เพิ่ม /api/admin/chat-logs ใน app.py เพื่อดู chat history แบบ real-time');
-  }, 2000);
+  // Monitor is ready
 });
 </script>
-
-<!-- TIP BOX: HOW TO ADD CHAT LOGS -->
-<div style="display:none" id="chat-log-tip">
-  <!-- 
-  เพิ่ม endpoint นี้ใน app.py เพื่อเก็บและดู Chat Log แบบ real-time:
-
-  # ในฟังก์ชัน chat() หลัง increment_usage() เพิ่ม:
-  log_chat(shop_id, session.get('username',''), contents, resp)
-
-  def log_chat(shop_id, username, contents, resp):
-      f = shop_dir(shop_id) / 'chat_log.json'
-      logs = json.loads(f.read_text(encoding='utf-8')) if f.exists() else []
-      ai_text = ''
-      try: ai_text = resp['candidates'][0]['content']['parts'][0]['text'][:500]
-      except: pass
-      logs.append({
-          'ts': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-          'user_msg': contents[-1]['parts'][0]['text'][:300] if contents else '',
-          'ai_reply': ai_text,
-          'username': username,
-      })
-      logs = logs[-50:]  # เก็บ 50 ล่าสุด
-      f.write_text(json.dumps(logs, ensure_ascii=False), encoding='utf-8')
-
-  @app.route('/api/admin/chat-logs')
-  def admin_chat_logs():
-      key = request.args.get('key','')
-      if key != ADMIN_KEY: return jsonify({'ok':False}), 403
-      users = load_users()
-      result = {}
-      for uname, u in users.items():
-          sid = u.get('shop_id','')
-          if not sid: continue
-          f = shop_dir(sid) / 'chat_log.json'
-          if f.exists():
-              result[uname] = {
-                  'shop_name': u['shop_name'],
-                  'logs': json.loads(f.read_text(encoding='utf-8'))
-              }
-      return jsonify({'ok':True,'data':result})
-  -->
-</div>
 
 </body>
 </html>
