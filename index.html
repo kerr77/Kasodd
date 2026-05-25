@@ -1052,7 +1052,7 @@
 <!-- ===== PIN LOGIN SCREEN ===== -->
 <div id="pin-screen">
   <div class="pin-logo">🌿</div>
-  <div class="pin-shop-name">ร้านกระท่อม</div>
+  <div class="pin-shop-name">💰 ค้าสด 💰</div>
   <div class="pin-subtitle">กรุณาใส่ PIN เพื่อเข้าใช้งาน</div>
   <div class="pin-role-tabs">
     <button class="pin-role-btn active" id="pin-role-staff" onclick="selectPinRole('staff')">👤 พนักงาน</button>
@@ -3526,7 +3526,7 @@ if ('serviceWorker' in navigator) {
     <!-- Input -->
     <div class="chat-input-area">
       <div class="chat-input-row">
-        <textarea class="chat-textarea" id="popup-chat-input" placeholder="ถามน้ำหวาน..." rows="1"
+        <textarea class="chat-textarea" id="popup-chat-input" placeholder="ถามAI..." rows="1"
           onkeydown="popupChatKeyDown(event)" oninput="autoResize(this)"></textarea>
         <button class="chat-send-btn" onclick="popupSendChat()">➤</button>
       </div>
@@ -3596,7 +3596,7 @@ function popupInitChat(keepHistory) {
     popupChatHist = [];
     document.getElementById('popup-chat-history').innerHTML = '';
   }
-  popupAppendMsg('bot', '🌿 สวัสดีค่ะ! ฉันชื่อน้ำหวาน\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊');
+  popupAppendMsg('bot', '🌿 สวัสดีค่ะ! ฉันคือ AI ประจำร้าน\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊');
 }
 
 function popupNewChat() {
