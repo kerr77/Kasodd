@@ -638,13 +638,18 @@ let currentChatShop = 'all';
 function doLogin() {
   const k = document.getElementById('key-input').value.trim();
   if (!k) return;
-  ADMIN_KEY = k;
-  BASE_URL  = window.location.origin;
-  // Test with health endpoint
-  fetch(`${BASE_URL}/api/health`)
+  BASE_URL = window.location.origin;
+  // ตรวจสอบ key จริงๆ กับ server — ไม่ใช่แค่เช็ค health
+  fetch(`${BASE_URL}/api/admin/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: k }),
+    credentials: 'include'
+  })
     .then(r => r.json())
     .then(d => {
-      if (d.status === 'ok') {
+      if (d.ok) {
+        ADMIN_KEY = k;
         document.getElementById('lock-screen').style.display = 'none';
         init();
       } else {
