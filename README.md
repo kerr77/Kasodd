@@ -90,9 +90,7 @@ Pull request ยินดีต้อนรับทุกอันครับ
 
 ---
 
-## 📄 License
-
-Copyright (c) 2026 kerr77 (KAASOD). All rights reserved.
+​⚠️ License Note: This project is Source-Available. It is free for educational and personal review, but strictly prohibited for commercial use or production deployment. See the LICENSE file for full details..
 
 ---
 
