@@ -2613,7 +2613,32 @@ ${promoLines}
 ตัวอย่าง: "แก้เงินตั้งต้นกะเป็น 1000 บาท" → <ACTION>{"type":"update_shift_float","float":1000}</ACTION>
 หมายเหตุ: ใช้ได้เฉพาะเมื่อมีกะเปิดอยู่
 
+▶ ตั้งค่าแจ้งเตือนสต็อกต่ำ (เปลี่ยนเกณฑ์แจ้งเตือน):
+<ACTION>{"type":"low_stock_alert","limit":[จำนวนขั้นต่ำ]}</ACTION>
+ตัวอย่าง: "ตั้งให้แจ้งเตือนเมื่อสต็อกเหลือ 5" → <ACTION>{"type":"low_stock_alert","limit":5}</ACTION>
+หมายเหตุ: ระบบจะแจ้งเตือนเมื่อสต็อกสินค้าใดๆ น้อยกว่าหรือเท่ากับค่า limit
 
+▶ สรุปยอดขายเจาะลึก (รายงานยอดขายรายวันหรือรายสัปดาห์):
+<ACTION>{"type":"generate_report","period":"daily"}</ACTION>
+ตัวอย่าง: "สรุปยอดขายวันนี้หน่อย" → <ACTION>{"type":"generate_report","period":"daily"}</ACTION>
+ตัวอย่าง: "รายงานยอดขาย 7 วัน" → <ACTION>{"type":"generate_report","period":"weekly"}</ACTION>
+หมายเหตุ: period ใช้ "daily"=วันนี้, "weekly"=7 วัน — ระบบจะแสดงยอดแยกสด/โอน และสินค้าขายดีสูงสุด 5 อันดับ
+
+▶ ส่วนลดพิเศษเฉพาะหน้า (ลดราคาตะกร้าปัจจุบันทันที):
+<ACTION>{"type":"set_discount","discount_type":"percent","value":10}</ACTION>
+ตัวอย่าง: "ลด 10% ให้ลูกค้า" → <ACTION>{"type":"set_discount","discount_type":"percent","value":10}</ACTION>
+ตัวอย่าง: "ลดให้ 50 บาท" → <ACTION>{"type":"set_discount","discount_type":"amount","value":50}</ACTION>
+หมายเหตุ: discount_type ใช้ "percent"=ลดเป็น%, "amount"=ลดเป็นบาท — ระบบจะอัปเดตราคาในตะกร้าทันที
+
+▶ ตรวจสอบสต็อก (เช็กความถูกต้องของสต็อก):
+<ACTION>{"type":"inventory_audit"}</ACTION>
+ตัวอย่าง: "ช่วยตรวจสต็อกให้หน่อย" → <ACTION>{"type":"inventory_audit"}</ACTION>
+หมายเหตุ: ระบบจะเปรียบเทียบสต็อกจริงกับยอดนำเข้า-ยอดขาย แล้วรายงานรายการที่อาจผิดพลาด
+
+▶ จัดระดับสมาชิก (อัปเกรด/ดาวน์เกรด tier สมาชิก):
+<ACTION>{"type":"set_member_tier","phone":"[เบอร์โทร]","tier":"[ระดับ]"}</ACTION>
+ตัวอย่าง: "อัปเกรดเบอร์ 0812345678 เป็น Gold" → <ACTION>{"type":"set_member_tier","phone":"0812345678","tier":"gold"}</ACTION>
+หมายเหตุ: tier ใช้ "regular", "vip", "gold", "platinum"
 
 Product keys ที่ใช้ได้: ${effProds.filter(p=>!p.promoBase).map(p=>`${p.name}=${p.key}`).join(', ')}
 
@@ -3240,11 +3265,16 @@ function renderCRM(query = '') {
     const pts = m.points || 0;
     const pct = Math.min(100, Math.round((pts % N) / N * 100));
     const freeCount = Math.floor(pts / N);
+    const tierColors = { vip: '#9b72b0', gold: '#c9a84c', platinum: '#8fd4c0' };
+    const tierLabels = { regular: '', vip: 'VIP', gold: '🥇 Gold', platinum: '💎 Platinum' };
+    const tierBadge = (m.tier && m.tier !== 'regular' && tierLabels[m.tier])
+      ? `<span style="background:${tierColors[m.tier]||'#666'};color:#fff;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:800;margin-left:4px;">${tierLabels[m.tier]}</span>`
+      : '';
     return `<div class="crm-member-card">
       <div class="crm-member-top">
         <div class="crm-avatar">👤</div>
         <div style="flex:1;">
-          <div class="crm-name">${m.name}</div>
+          <div class="crm-name">${m.name}${tierBadge}</div>
           <div class="crm-phone">📱 ${m.phone}</div>
         </div>
         ${freeCount > 0 ? `<span style="background:#2a1a3a;color:#c39bd3;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;">🎁 แลกฟรี ${freeCount}</span>` : ''}
@@ -3677,7 +3707,7 @@ function addSplitSmartToCart(key) {
 function renderLowStockAlert() {
   const effProds = getEffectiveProducts();
   const mainProds = effProds.filter(p => !p.group && !p.promoBase);
-  const lows = mainProds.filter(p => (stock[p.key] || 0) < LOW_THRESHOLD);
+  const lows = mainProds.filter(p => (stock[p.key] || 0) <= LOW_THRESHOLD);
   const alertEl = document.getElementById('low-stock-alert');
   const chipsEl = document.getElementById('low-stock-chips');
   if (!alertEl) return;
@@ -3955,32 +3985,37 @@ function renderCart() {
     </div>`;
   }).join('');
 
-  // Calculate promo discount
-  const { discount, appliedPromos } = calcPromoDiscount(cart);
-  const finalTotal = total - discount;
+  // Calculate promo discount (bundle promos)
+  const { discount: promoDiscount, appliedPromos } = calcPromoDiscount(cart);
+  // AI manual discount on top
+  const aiDisc = window._aiManualDiscount || 0;
+  const discount = promoDiscount + aiDisc;
+  const finalTotal = Math.max(0, total - discount);
 
   list.innerHTML = cartHtml;
 
   // Append promo rows
-  if (discount > 0) {
+  if (promoDiscount > 0) {
     appliedPromos.forEach(ap => {
-      const times = ap.timesApplied > 1 ? ` ×${ap.timesApplied}` : '';
-      list.innerHTML += `<div class="cart-promo-row">
-        <span class="cart-promo-label">🎉 ${ap.promo.name}${times}</span>
-        <span class="cart-promo-savings" style="color:var(--green);">-฿${ap.saving}</span>
-      </div>`;
+      const times = ap.timesApplied > 1 ? ' \u00d7' + ap.timesApplied : '';
+      list.innerHTML += '<div class="cart-promo-row"><span class="cart-promo-label">\ud83c\udf89 ' + ap.promo.name + times + '</span><span class="cart-promo-savings" style="color:var(--green);">-\u0e3f' + ap.saving + '</span></div>';
     });
+  }
+  // AI manual discount row
+  if (aiDisc > 0) {
+    const aiLabel = window._aiManualDiscountLabel || 'AI ลด';
+    list.innerHTML += '<div class="cart-promo-row"><span class="cart-promo-label">\ud83c\udff7\ufe0f ' + aiLabel + '</span><span class="cart-promo-savings" style="color:var(--accent);">-\u0e3f' + aiDisc.toLocaleString() + '</span></div>';
   }
 
   const totalEl = document.getElementById('total-amount');
   if (discount > 0) {
-    totalEl.innerHTML = `<span style="font-size:14px;text-decoration:line-through;color:var(--muted);margin-right:6px;">฿${total.toLocaleString()}</span>฿${finalTotal.toLocaleString()}`;
+    totalEl.innerHTML = '<span style="font-size:14px;text-decoration:line-through;color:var(--muted);margin-right:6px;">\u0e3f' + total.toLocaleString() + '</span>\u0e3f' + finalTotal.toLocaleString();
   } else {
-    totalEl.textContent = '฿' + total.toLocaleString();
+    totalEl.textContent = '\u0e3f' + total.toLocaleString();
   }
   document.getElementById('confirm-btn').disabled = false;
   updateOrderBar(finalTotal, keys);
-  // Store discount for goToPayModal
+  // Store combined discount for goToPayModal & confirmSale
   window._currentPromoDiscount = discount;
   window._currentPromoApplied = appliedPromos;
 }
@@ -4083,6 +4118,8 @@ function confirmSale(method) {
   window._splitCartMeta = {};
   window._currentPromoDiscount = 0;
   window._currentPromoApplied = [];
+  window._aiManualDiscount = 0;
+  window._aiManualDiscountLabel = '';
   renderCart();
   renderProducts();
   renderShiftBar();
@@ -5066,6 +5103,187 @@ async function popupSendChat() {
                 box.appendChild(chip);
                 box.scrollTop = box.scrollHeight;
               }, 300);
+            }
+          }
+
+          // ─────────────────────────────────────────────
+          // NEW ACTIONS (หอมละมุน Roadmap)
+          // ─────────────────────────────────────────────
+
+          // --- N1. ตั้งค่าแจ้งเตือนสต็อกต่ำ ---
+          else if (action.type === 'low_stock_alert' && action.limit >= 0) {
+            LOW_THRESHOLD = action.limit;
+            localStorage.setItem(LS_LOW_THRESH, action.limit);
+            // sync UI inputs
+            const lti = document.getElementById('low-thresh-input');
+            if (lti) lti.value = action.limit;
+            const lts = document.getElementById('low-thresh-show');
+            if (lts) lts.textContent = action.limit;
+            const qi = document.getElementById('low-thresh-quick');
+            if (qi) qi.value = action.limit;
+            checkLowStockAlert();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `🔔 ตั้งค่าแจ้งเตือนสต็อกต่ำที่ ≤ ${action.limit} แล้ว`;
+              box.appendChild(chip); box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- N2. สรุปยอดขายเจาะลึก ---
+          else if (action.type === 'generate_report') {
+            const period = action.period || 'daily';
+            const allHist = loadHistory();
+            const now = new Date();
+            let filtered = allHist;
+            if (period === 'daily') {
+              const todayStr = now.toLocaleDateString('th-TH');
+              filtered = allHist.filter(h => h.time && h.time.startsWith(todayStr));
+            } else if (period === 'weekly') {
+              const msWeek = 7 * 24 * 60 * 60 * 1000;
+              filtered = allHist.filter(h => {
+                if (!h.time) return false;
+                const parts = h.time.split(' ')[0].split('/');
+                if (parts.length < 3) return false;
+                const d = new Date(+parts[2] - 543, +parts[1] - 1, +parts[0]);
+                return (now - d) <= msWeek;
+              });
+            }
+            // คำนวณสต็อก top-seller
+            const qtyMap = {};
+            const cashTotal = filtered.filter(h => h.pay === 'cash').reduce((s, h) => s + h.total, 0);
+            const transferTotal = filtered.filter(h => h.pay === 'transfer').reduce((s, h) => s + h.total, 0);
+            filtered.forEach(h => (h.items || []).forEach(it => { qtyMap[it.name] = (qtyMap[it.name] || 0) + (it.qty || 1); }));
+            const sorted = Object.entries(qtyMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const periodLabel = period === 'daily' ? 'วันนี้' : '7 วัน';
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg bot';
+              let html = `<strong>📊 รายงานยอดขาย (${periodLabel})</strong><br>`;
+              html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;">`;
+              html += `<tr style="color:var(--muted);"><td>💵 เงินสด</td><td style="text-align:right;color:var(--green);">฿${cashTotal.toLocaleString()}</td></tr>`;
+              html += `<tr style="color:var(--muted);"><td>📱 โอน</td><td style="text-align:right;color:var(--blue);">฿${transferTotal.toLocaleString()}</td></tr>`;
+              html += `<tr><td><strong>รวม</strong></td><td style="text-align:right;color:var(--accent);font-weight:800;">฿${(cashTotal+transferTotal).toLocaleString()}</td></tr>`;
+              html += `<tr><td colspan="2" style="padding-top:8px;color:var(--muted);font-size:11px;">📦 สินค้าขายดี</td></tr>`;
+              if (sorted.length === 0) {
+                html += `<tr><td colspan="2" style="color:var(--muted);">ยังไม่มียอดขาย</td></tr>`;
+              } else {
+                sorted.forEach(([name, qty], i) => {
+                  html += `<tr><td>${i+1}. ${name}</td><td style="text-align:right;color:var(--text2);">${qty} ชิ้น</td></tr>`;
+                });
+              }
+              html += `</table>`;
+              chip.innerHTML = html;
+              box.appendChild(chip); box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- N3. ส่วนลดพิเศษเฉพาะหน้า (AI manual discount) ---
+          else if (action.type === 'set_discount' && action.discount_type && action.value >= 0) {
+            const effProdsDisc = getEffectiveProducts();
+            let rawTotal = 0;
+            Object.keys(cart).forEach(k => {
+              const p = effProdsDisc.find(x => x.key === k);
+              if (p) rawTotal += p.price * cart[k];
+            });
+            let discAmt = 0;
+            if (action.discount_type === 'percent') {
+              discAmt = Math.round(rawTotal * (action.value / 100));
+            } else {
+              discAmt = Math.min(action.value, rawTotal);
+            }
+            window._aiManualDiscount = discAmt;
+            window._aiManualDiscountLabel = action.discount_type === 'percent'
+              ? 'AI ลด ' + action.value + '%'
+              : 'AI ลด';
+            renderCart();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              const label = action.discount_type === 'percent'
+                ? action.value + '% (ลด \u0e3f' + discAmt.toLocaleString() + ')'
+                : '\u0e3f' + discAmt.toLocaleString();
+              chip.textContent = '\ud83c\udff7\ufe0f ตั้งส่วนลด ' + label + ' — ยอดก่อนลด \u0e3f' + rawTotal.toLocaleString();
+              box.appendChild(chip); box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- N4. ตรวจสอบสต็อก (Inventory Audit) ---
+          else if (action.type === 'inventory_audit') {
+            const auditProds = getEffectiveProducts().filter(p => !p.promoBase);
+            const auditHist = loadHistory();
+            // นับยอดขายสะสมต่อ key
+            const soldMap = {};
+            auditHist.forEach(h => (h.items || []).forEach(it => {
+              const key = it.splitParent || it.key;
+              soldMap[key] = (soldMap[key] || 0) + (it.splitDeductUnits || it.qty || 1);
+            }));
+            // หา delivery รวมต่อ key
+            const deliveryData = loadDelivery();
+            const inMap = {};
+            deliveryData.forEach(d => { if (d.qty > 0) inMap[d.key] = (inMap[d.key] || 0) + d.qty; });
+
+            const issues = [];
+            auditProds.forEach(p => {
+              const actual = stock[p.key] || 0;
+              const sold = soldMap[p.key] || 0;
+              const received = inMap[p.key] || 0;
+              // ถ้ามีของขายแต่ไม่มี delivery log ให้ skip การตรวจสูตร
+              if (received > 0) {
+                const expected = received - sold;
+                if (expected !== actual) {
+                  issues.push({ name: p.name, actual, expected, diff: actual - expected });
+                }
+              }
+              if (actual < 0) issues.push({ name: p.name, actual, expected: 0, diff: actual, negative: true });
+            });
+
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg bot';
+              if (issues.length === 0) {
+                chip.innerHTML = `<strong>🔍 ผลตรวจสต็อก</strong><br>✅ ไม่พบความผิดปกติ สต็อกตรงทุกรายการ`;
+              } else {
+                let html = `<strong>🔍 ผลตรวจสต็อก — พบปัญหา ${issues.length} รายการ</strong><br>`;
+                html += `<table style="width:100%;font-size:12px;margin-top:6px;border-collapse:collapse;">`;
+                html += `<tr style="color:var(--muted);font-size:11px;"><td>สินค้า</td><td style="text-align:right;">จริง</td><td style="text-align:right;">ควรเป็น</td><td style="text-align:right;">ต่าง</td></tr>`;
+                issues.forEach(it => {
+                  const col = it.diff < 0 ? 'var(--red)' : 'var(--accent)';
+                  html += `<tr><td>${it.name}</td><td style="text-align:right;">${it.actual}</td><td style="text-align:right;">${it.expected}</td><td style="text-align:right;color:${col};">${it.diff > 0 ? '+' : ''}${it.diff}</td></tr>`;
+                });
+                html += `</table>`;
+                chip.innerHTML = html;
+              }
+              box.appendChild(chip); box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
+          // --- N5. จัดระดับสมาชิก (Member Tier) ---
+          else if (action.type === 'set_member_tier' && action.phone && action.tier) {
+            const validTiers = ['regular', 'vip', 'gold', 'platinum'];
+            const tierTh = { regular: 'ปกติ', vip: 'VIP', gold: '🥇 Gold', platinum: '💎 Platinum' };
+            if (validTiers.includes(action.tier)) {
+              const members = getMembers();
+              const idx = members.findIndex(m => m.phone === action.phone);
+              if (idx >= 0) {
+                const oldTier = members[idx].tier || 'regular';
+                members[idx].tier = action.tier;
+                saveMembers(members);
+                if (typeof renderCRM === 'function') renderCRM();
+                setTimeout(() => {
+                  const chip = document.createElement('div');
+                  chip.className = 'chat-msg system';
+                  chip.textContent = `🏅 อัปเกรด ${members[idx].name} (${action.phone}): ${tierTh[oldTier]||oldTier} → ${tierTh[action.tier]}`;
+                  box.appendChild(chip); box.scrollTop = box.scrollHeight;
+                }, 300);
+              } else {
+                setTimeout(() => {
+                  const chip = document.createElement('div');
+                  chip.className = 'chat-msg system';
+                  chip.textContent = `⚠️ ไม่พบสมาชิกเบอร์ ${action.phone}`;
+                  box.appendChild(chip); box.scrollTop = box.scrollHeight;
+                }, 300);
+              }
             }
           }
 
