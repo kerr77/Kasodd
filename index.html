@@ -2329,7 +2329,6 @@ function showToast(msg, isError = false) {
 //  🌿 CHAT — ใช้งานผ่าน Popup เท่านั้น (FAB ปุ่มล่างขวา)
 //  Gemini API Key อยู่ฝั่ง server — เรียกผ่าน /api/chat
 // ===================================================================
-
 function buildShopSystem() {
   const effProds = getEffectiveProducts();
   const shopName = localStorage.getItem('pos_shop_name') || 'ร้านนี้';
@@ -2365,34 +2364,35 @@ ${prodLines}
 - รวม ${billCount} บิล ยอด ฿${todaySales.toLocaleString()}
 
 === สิ่งที่คุณทำได้ ===
-
 1. ตอบคำถามเรื่องสินค้า ราคา สต็อก
 2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก
-3. รับคำสั่งจัดการสต็อกผ่านแชท (เพิ่ม ลด ตั้งค่า)
+3. รับคำสั่งจัดการสต็อกผ่านแชท (เพิ่ม ลด ตั้งค่า สร้างสินค้าใหม่)
 4. แนะนำการบริหารร้าน สต็อก การสั่งของ
 
-=== รับคำสั่งจัดการสต็อกผ่านแชท ===
-เมื่อผู้ใช้สั่งให้จัดการสต็อก ให้ทำตามนี้เสมอ:
-1. ต้องส่ง <ACTION> tag ทุกครั้ง ห้ามละเว้น
-2. ต้องส่งทันทีในคำตอบเดียวกัน ไม่ต้องถามซ้ำ
-3. ห้ามตอบแค่ข้อความโดยไม่มี <ACTION> tag เด็ดขาด
+=== การส่งคำสั่งดักจับด้วย <ACTION> tag ===
+เมื่อผู้ใช้สั่งให้จัดการสต็อก ให้ส่งแท็ก <ACTION> ทุกครั้ง ห้ามละเว้นเด็ดขาด รูปแบบที่ใช้ได้มีดังนี้:
 
-รูปแบบที่ใช้ได้:
+▶ เพิ่มสต็อก (สินค้าเดิมที่มีอยู่แล้ว):
+<ACTION>{"type":"add_stock","key":"[product_key]","qty":[number],"round":1,"name":"[product_name]"}</ACTION>
 
-▶ เพิ่มสต็อก (ของมาลง / เติมสต็อก):
-<ACTION>{"type":"add_stock","key":"[product_key]","qty":[number],"round":[round_number],"name":"[product_name]"}</ACTION>
-ตัวอย่าง: "น้ำส้ม 50 ขวดมาลงนะ"
-<ACTION>{"type":"add_stock","key":"orange_juice","qty":50,"round":1,"name":"น้ำส้ม"}</ACTION>
-
-▶ ลบ/ตัดสต็อก (ของหาย เสีย ทิ้ง ปรับลด หรือสั่งให้ลบออก):
+▶ ลบ/ตัดสต็อก (สินค้าเดิมหักออก):
 <ACTION>{"type":"reduce_stock","key":"[product_key]","qty":[number],"name":"[product_name]"}</ACTION>
-ตัวอย่าง: "ลบสต็อกน้ำส้มออก 100 ขวด"
-<ACTION>{"type":"reduce_stock","key":"orange_juice","qty":100,"name":"น้ำส้ม"}</ACTION>
 
-▶ ตั้งค่าสต็อกตรงๆ (set ให้เป็นจำนวนที่ระบุ):
+▶ ตั้งค่าสต็อกตรงๆ (เจาะจงตัวเลขตัวแปรเดิม):
 <ACTION>{"type":"set_stock","key":"[product_key]","qty":[number],"name":"[product_name]"}</ACTION>
-ตัวอย่าง: "ตั้งสต็อกน้ำส้มเป็น 80 ขวด"
-<ACTION>{"type":"set_stock","key":"orange_juice","qty":80,"name":"น้ำส้ม"}</ACTION>'''
+
+▶ [สำคัญมาก] สร้างสินค้าใหม่ที่ร้านไม่เคยขายมาก่อน (เช่น เพิ่มน้ำสับปะรด มาลง 50 ราคา 60 บาท):
+- ให้คิดคำภาษาอังกฤษสั้นๆ เพื่อใช้เป็น key เสมอ ห้ามเว้นวรรค เช่น "pineapple_juice"
+- ตอบกลับด้วยโครงสร้างนี้ทันที:
+<ACTION>{"type":"create_product","key":"[รหัสภาษาอังกฤษที่คิดขึ้นมา]","name":"[ชื่อไทย]","qty":[จำนวนสต็อก],"price":[ราคาขายต่อหน่วย]}</ACTION>
+ตัวอย่าง: "เพิ่มน้ำสับปะรด มาลง 50 ราคา 60 บาท"
+<ACTION>{"type":"create_product","key":"pineapple_juice","name":"น้ำสับปะรด","qty":50,"price":60}</ACTION>
+
+Product keys ปัจจุบัน: ${effProds.filter(p=>!p.promoBase).map(p=>`${p.name}=${p.key}`).join(', ')}
+
+=== บุคลิก ===
+เป็นกันเอง ช่วยงานได้รอบด้าน พูดตรง ไม่วนเวียน ตอบสั้นแต่ครบ`;
+}
 
 
 
@@ -3700,255 +3700,7 @@ function deleteSession(e, id) {
   saveSessions(sessions);
   renderSessionsList();
 }
-
-// --- Send message ---
-async function popupSendChat() {
-  const inp = document.getElementById('popup-chat-input');
-  const msg = inp.value.trim();
-  if (!msg) return;
-
-  inp.value = '';
-  inp.style.height = 'auto';
-  document.getElementById('popup-chat-tips').style.display = 'none';
-  popupAppendMsg('user', msg);
-
-  // ─── Build full context ───────────────────────────────────
-  const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
-  const stockSummary = getEffectiveProducts().filter(p => !p.promoBase)
-    .map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
-  const history   = loadHistory();
-  const loyaltyN  = getLoyaltyN();
-
-  // ── ยอดขายกะนี้ ──
-  let todayCash = 0, todayTransfer = 0;
-  history.forEach(h => {
-    if (h.pay === 'cash')     todayCash     += h.total;
-    else if (h.pay === 'transfer') todayTransfer += h.total;
-  });
-  const freeCnt  = history.filter(h => h.pay === 'free').length;
-  const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
-  const lowStr   = lowItems.length > 0
-    ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
-
-  // ── (1) วันเวลาปัจจุบัน ──
-  const nowStr = new Date().toLocaleString('th-TH', {
-    year:'numeric', month:'short', day:'numeric',
-    hour:'2-digit', minute:'2-digit', weekday:'short'
-  });
-
-  // ── (2) กะการทำงาน ──
-  const shift = getShift();
-  let shiftStr = 'ยังไม่ได้เปิดกะ';
-  if (shift && shift.open) {
-    const petty       = loadPetty();
-    const pettyCash   = petty.reduce((s, p) => s + p.amount, 0);
-    const expectedCash = (shift.float || 0) + todayCash - pettyCash;
-    shiftStr = `เปิดกะตั้งแต่ ${shift.openTime} | เงินทอนตั้งต้น ฿${(shift.float||0).toLocaleString()}`
-      + `\n  ยอดขายสด ฿${todayCash.toLocaleString()} | รายจ่าย ฿${pettyCash.toLocaleString()}`
-      + `\n  เงินสดที่ควรมีในลิ้นชัก ฿${expectedCash.toLocaleString()}`;
-  }
-
-  // ── (3) Petty Cash — รายจ่ายกะนี้ ──
-  const pettyList = loadPetty();
-  const pettyStr  = pettyList.length > 0
-    ? pettyList.map(p => `  • ${p.desc}: ฿${p.amount} (${(p.time||'').split(' ')[1]||''})`).join('\n')
-    : '  ไม่มีรายจ่าย';
-  const pettyTotal = pettyList.reduce((s, p) => s + p.amount, 0);
-
-  // ── (4) Delivery Log — ลงของกะนี้ ──
-  const deliveries = loadDelivery();
-  const deliveryStr = deliveries.length > 0
-    ? deliveries.slice(0, 10).map(d =>
-        `  • รอบ${d.round} ${d.name} +${d.qty}${d.note ? ' ('+d.note+')' : ''} [${(d.time||'').split(' ')[1]||''}]`
-      ).join('\n')
-    : '  ยังไม่มีการลงของในกะนี้';
-  const deliveryTotalQty = deliveries.reduce((s, d) => s + (d.qty||0), 0);
-
-  // ── (5) ยอดขายรายสินค้า (กะนี้) ──
-  const prodSalesMap = {};
-  history.forEach(h => {
-    (h.items || []).forEach(item => {
-      const name = item.name || item.key || '?';
-      if (!prodSalesMap[name]) prodSalesMap[name] = { qty: 0, revenue: 0 };
-      prodSalesMap[name].qty     += (item.qty   || 1);
-      prodSalesMap[name].revenue += (item.price || 0) * (item.qty || 1);
-    });
-  });
-  const prodSalesStr = Object.entries(prodSalesMap).length > 0
-    ? Object.entries(prodSalesMap)
-        .sort((a, b) => b[1].qty - a[1].qty)
-        .map(([name, d]) => `  • ${name}: ขาย ${d.qty} ชิ้น | รายได้ ฿${d.revenue.toLocaleString()}`)
-        .join('\n')
-    : '  (ยังไม่มียอดขาย)';
-
-  // ── (6) บิลล่าสุด 8 รายการ (Stock Movement) ──
-  const recentBillsStr = history.slice(0, 8).map((h, i) => {
-    const timeLabel  = (h.time || '').split(' ')[1] || h.time || '';
-    const payLabel   = h.pay === 'cash' ? 'สด' : h.pay === 'transfer' ? 'โอน'
-                     : h.pay === 'free' ? 'ฟรี' : h.pay === 'debt' ? 'ค้าง' : h.pay;
-    const memberTag  = (h.member && h.member !== 'ทั่วไป') ? `[${h.member}]` : '';
-    const debtTag    = h.debtRemaining > 0 ? ` ⚠️ค้าง฿${h.debtRemaining}` : '';
-    const itemsStr   = (h.items || []).map(it => `${it.name}×${it.qty}@฿${it.price}`).join(', ');
-    return `  บิล${i+1} ${timeLabel}${memberTag}(${payLabel}): ${itemsStr} = ฿${h.total}${debtTag}`;
-  }).join('\n') || '  (ยังไม่มีบิล)';
-
-  // ── (7) บิลค้างชำระ (Debt) ──
-  const debtBills   = history.filter(h => h.debtRemaining > 0);
-  const debtTotal   = debtBills.reduce((s, h) => s + (h.debtRemaining||0), 0);
-  const debtStr     = debtBills.length > 0
-    ? debtBills.map(h => {
-        const items = (h.items||[]).map(i => `${i.name}×${i.qty}`).join(', ');
-        const mem   = (h.member && h.member !== 'ทั่วไป') ? h.member : 'ลูกค้าทั่วไป';
-        return `  • ${mem} — ${items} ค้างอยู่ ฿${h.debtRemaining} (${h.time})`;
-      }).join('\n')
-    : '  ไม่มีบิลค้างชำระ';
-
-  // ── (8) สมาชิกทั้งหมด ──
-  const members  = getMembers();
-  const memberStr = members.length > 0
-    ? members
-        .sort((a, b) => (b.totalSpend||0) - (a.totalSpend||0))
-        .map(m => {
-          const pts       = m.points || 0;
-          const redeemable = Math.floor(pts / loyaltyN);
-          const progressPts = pts % loyaltyN;
-          const redeemTag  = redeemable > 0 ? ` 🎁แลกได้${redeemable}ครั้ง` : '';
-          return `  • ${m.name}(${m.phone}): ${m.totalBills||0}ครั้ง ฿${(m.totalSpend||0).toLocaleString()} แต้ม${pts}(${progressPts}/${loyaltyN})${redeemTag}`;
-        }).join('\n')
-    : '  ยังไม่มีสมาชิก';
-
-  // ── (9) สมาชิกที่มาในกะนี้ ──
-  const memberBills       = history.filter(h => h.member && h.member !== 'ทั่วไป');
-  const memberSessionMap  = {};
-  memberBills.forEach(h => {
-    if (!memberSessionMap[h.member]) memberSessionMap[h.member] = { bills: 0, spend: 0, redeemed: 0 };
-    memberSessionMap[h.member].bills++;
-    memberSessionMap[h.member].spend   += h.total;
-    if (h.pay === 'free') memberSessionMap[h.member].redeemed++;
-  });
-  const memberSessionStr = Object.keys(memberSessionMap).length > 0
-    ? Object.entries(memberSessionMap)
-        .map(([name, d]) => `  • ${name}: ${d.bills}บิล ฿${d.spend.toLocaleString()}${d.redeemed > 0 ? ' 🎁แลกฟรี'+d.redeemed+'ครั้ง' : ''}`)
-        .join('\n')
-    : '  ไม่มีสมาชิกมาในกะนี้';
-
-  // ── รวม contextNote ──
-  const contextNote =
-    `\n\n=== สถานะร้าน ณ ปัจจุบัน ===` +
-    `\nวันเวลา: ${nowStr}` +
-    `\n\n--- กะการทำงาน ---\n${shiftStr}` +
-    `\n\n--- รายจ่ายกะนี้ (Petty Cash รวม ฿${pettyTotal}) ---\n${pettyStr}` +
-    `\n\n--- ลงของกะนี้ (${deliveries.length} รายการ รวม ${deliveryTotalQty} ชิ้น) ---\n${deliveryStr}` +
-    `\n\n--- สต็อกปัจจุบัน ---\n  ${stockSummary}` +
-    `\n\n--- สต็อกใกล้หมด (≤${LOW_THRESHOLD}) ---\n  ${lowStr}` +
-    `\n\n--- ยอดขายกะนี้ ---` +
-    `\n  เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer} | บิล ${history.length} ใบ (ฟรี ${freeCnt} ใบ)` +
-    `\n\n--- ยอดขายรายสินค้า (กะนี้) ---\n${prodSalesStr}` +
-    `\n\n--- บิลล่าสุด 8 รายการ (Stock Movement) ---\n${recentBillsStr}` +
-    `\n\n--- บิลค้างชำระ (${debtBills.length} บิล รวม ฿${debtTotal}) ---\n${debtStr}` +
-    `\n\n--- สมาชิกที่มาในกะนี้ ---\n${memberSessionStr}` +
-    `\n\n--- ทะเบียนสมาชิกทั้งหมด (ซื้อครบ ${loyaltyN} ครั้ง ฟรี 1) ---\n${memberStr}`;
-
-  const thinking = popupAppendThinking();
-  popupChatHist.push({ role: 'user', content: msg });
-
-  const msgs = popupChatHist.slice(-10);
-  try {
-    const fullSystem = buildShopSystem() + contextNote;
-    const contents = [];
-    contents.push({ role: 'user',  parts: [{ text: '[SYSTEM]\n' + fullSystem }] });
-    contents.push({ role: 'model', parts: [{ text: 'เข้าใจแล้วค่ะ พร้อมช่วยเต็มที่เลย 😊' }] });
-    msgs.slice(-10).forEach(m => {
-      contents.push({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] });
-    });
-
-    // เรียกผ่าน server proxy — key อยู่ฝั่ง server ปลอดภัย
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: 1000, temperature: 0.7 } })
-    });
-
-    popupRemoveThinking(thinking);
-    if (!res.ok) {
-      const err = await res.json();
-      if (res.status === 403) {
-        popupAppendMsg('error', '❌ ยังไม่ได้เปิดใช้งาน AI — ติดต่อทีมงานเพื่อเปิด package AI');
-      } else {
-        popupAppendMsg('error', '❌ ' + (err.error?.message || err.error || 'เกิดข้อผิดพลาด'));
-      }
-      popupChatHist.pop();
-      return;
-    }
-        const data = await res.json();
-    let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับคำตอบ';
-
-    // Process ACTION tags (same as main chat)
-    const box = document.getElementById('popup-chat-history');
-    if (reply.includes('<ACTION>')) {
-      const actionMatch = reply.match(/<ACTION>([\s\S]*?)<\/ACTION>/);
-      if (actionMatch) {
-        try {
-          const action = JSON.parse(actionMatch[1]);
-          
-          // --- 1. สำหรับเพิ่มสต๊อก (ของเดิม) ---
-          if (action.type === 'add_stock' && action.key && action.qty > 0) {
-            stock[action.key] = (stock[action.key] || 0) + action.qty;
-            saveStock();
-            renderProducts();
-            setTimeout(() => {
-              const chip = document.createElement('div');
-              chip.className = 'chat-msg system';
-              chip.textContent = `✅ ระบบอัปเดตสต็อก: ${action.name || action.key} +${action.qty} (รอบ ${action.round || '?'})`;
-              box.appendChild(chip);
-              box.scrollTop = box.scrollHeight;
-            }, 300);
-          }
-          
-          // --- 2. แทรกเพิ่ม: สำหรับลดสต๊อก (ของใหม่) ---
-          else if (action.type === 'reduce_stock' && action.key && action.qty > 0) {
-            stock[action.key] = Math.max(0, (stock[action.key] || 0) - action.qty);
-            saveStock();
-            renderProducts();
-            setTimeout(() => {
-              const chip = document.createElement('div');
-              chip.className = 'chat-msg system';
-              chip.textContent = `✅ ระบบตัดสต็อก: ${action.name || action.key} -${action.qty}`;
-              box.appendChild(chip);
-              box.scrollTop = box.scrollHeight;
-            }, 300);
-          }
-          
-          // --- 3. แทรกเพิ่ม: สำหรับตั้งค่าสต๊อกแบบเจาะจงตัวเลข (ของใหม่) ---
-          else if (action.type === 'set_stock' && action.key && action.qty >= 0) {
-            stock[action.key] = action.qty;
-            saveStock();
-            renderProducts();
-            setTimeout(() => {
-              const chip = document.createElement('div');
-              chip.className = 'chat-msg system';
-              chip.textContent = `✅ ระบบตั้งค่าสต็อก: ${action.name || action.key} เป็น ${action.qty}`;
-              box.appendChild(chip);
-              box.scrollTop = box.scrollHeight;
-            }, 300);
-          }
-
-        } catch(e) {}
-        reply = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
-      }
-    }
-
-    popupAppendMsg('bot', reply, true);
-    popupChatHist.push({ role: 'assistant', content: reply });
-    saveCurrentSession();
-
-
-  } catch(e) {
-    popupRemoveThinking(thinking);
-    popupAppendMsg('error', '❌ เชื่อมต่อไม่ได้: ' + e.message);
-    popupChatHist.pop();
-  }
-}
+popupAppendMsg
 
 function popupAppendMsg(type, text, isMarkdown = false) {
   const box = document.getElementById('popup-chat-history');
