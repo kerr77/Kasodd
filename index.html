@@ -2008,6 +2008,19 @@ function renderHistory() {
   });
   const total = cash + transfer;
 
+  // Petty Cash
+  const pettyList = loadPetty();
+  const pettyTotal = pettyList.reduce((s, p) => s + p.amount, 0);
+  const netProfit = total - pettyTotal;
+  const pettyRowsHtml = pettyList.length > 0
+    ? pettyList.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:rgba(192,84,74,0.06);border-radius:6px;margin-bottom:3px;">
+          <span style="font-size:12px;color:var(--text2);">💸 ${p.desc}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--red);font-family:'Prompt',sans-serif;">-฿${p.amount.toLocaleString()}</span>
+          <span style="font-size:10px;color:var(--muted);">${(p.time||'').split(' ')[1]||''}</span>
+        </div>`).join('')
+    : `<div style="font-size:12px;color:var(--muted);padding:4px 8px;">ไม่มีรายจ่าย</div>`;
+
   document.getElementById('summary-box').innerHTML = `
     <div class="summary-row"><span>เงินสด</span><span class="val cash">฿${cash.toLocaleString()}</span></div>
     <div class="summary-row"><span>โอน</span><span class="val transfer">฿${transfer.toLocaleString()}</span></div>
@@ -2015,6 +2028,15 @@ function renderHistory() {
     <div class="summary-row"><span>แลกฟรี</span><span class="val" style="color:#c39bd3">${freeCnt} บิล</span></div>
     ${debtTotal > 0 ? `<div class="summary-row"><span>🧾 ยอดค้างจ่าย</span><span class="val" style="color:#ffb74d">฿${debtTotal.toLocaleString()}</span></div>` : ''}
     <div class="summary-row"><span>จำนวนบิลทั้งหมด</span><span class="val">${history.length} ใบ</span></div>
+    <div class="summary-row" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:8px;">
+      <span>💸 รายจ่าย (Petty Cash)</span>
+      <span class="val" style="color:var(--red);">-฿${pettyTotal.toLocaleString()}</span>
+    </div>
+    <div style="padding:4px 0 6px;">${pettyRowsHtml}</div>
+    <div class="summary-row" style="border-top:1.5px solid var(--accent);margin-top:2px;">
+      <span style="font-weight:800;">💵 กำไรสุทธิ</span>
+      <span class="val" style="color:${netProfit >= 0 ? 'var(--green)' : 'var(--red)'};">฿${netProfit.toLocaleString()}</span>
+    </div>
   `;
 
   // ===== MEMBER DASHBOARD =====
