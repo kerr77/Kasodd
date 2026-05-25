@@ -1873,6 +1873,31 @@ function confirmSale(method) {
   cart = {};
   renderCart();
   renderProducts();
+
+  // Auto-sync to server หลังทุก transaction
+  autoSyncToServer();
+}
+
+// ===== AUTO SYNC TO SERVER =====
+async function autoSyncToServer() {
+  try {
+    const payload = {
+      history:  loadHistory(),
+      products: (() => { try { return JSON.parse(localStorage.getItem(LS_PRODUCTS)) || []; } catch { return []; } })(),
+      members:  (() => { try { return JSON.parse(localStorage.getItem(LS_MEMBERS))  || []; } catch { return []; } })(),
+      stock:    stock,
+      petty:    (() => { try { return JSON.parse(localStorage.getItem(LS_PETTY))    || []; } catch { return []; } })(),
+      loyaltyN: (() => { try { return parseInt(localStorage.getItem(LS_LOYALTY))   || 10; } catch { return 10; } })(),
+    };
+    await fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    // silent — ไม่ interrupt การขาย ถ้า offline ก็ข้ามไป
+    console.warn('Auto-sync failed (offline?):', e);
+  }
 }
 
 // ===== STOCK TAB =====
@@ -1915,6 +1940,9 @@ function adjustStock(key, delta) {
     el.textContent = stock[key];
     el.className = 'stock-qty-num ' + (stock[key] <= 2 ? 'low' : 'ok');
   }
+  // debounce sync — รอ 3 วิหลังหยุดกด แล้วค่อย sync ครั้งเดียว
+  clearTimeout(window._stockSyncTimer);
+  window._stockSyncTimer = setTimeout(autoSyncToServer, 3000);
   renderProducts();
 }
 
@@ -2526,6 +2554,7 @@ function updateProductField(idx, field, val) {
 
 function saveCustomProducts(prods) {
   localStorage.setItem(LS_PRODUCTS, JSON.stringify(prods));
+  autoSyncToServer();
 }
 
 function deleteCustomProduct(idx) {
@@ -2909,7 +2938,7 @@ function deletePetty(i) {
 function getMembers() {
   try { return JSON.parse(localStorage.getItem(LS_MEMBERS)) || []; } catch { return []; }
 }
-function saveMembers(m) { localStorage.setItem(LS_MEMBERS, JSON.stringify(m)); }
+function saveMembers(m) { localStorage.setItem(LS_MEMBERS, JSON.stringify(m)); autoSyncToServer(); }
 
 function getLoyaltyN() {
   try { return parseInt(localStorage.getItem(LS_LOYALTY)) || 10; } catch { return 10; }
