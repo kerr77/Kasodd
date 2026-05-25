@@ -171,7 +171,7 @@ def chat():
         return jsonify({'error': 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY'}), 500
 
     import urllib.request, urllib.error
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}'
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={GEMINI_KEY}'
 
     body = json.dumps({'contents': contents}).encode()
     req  = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
