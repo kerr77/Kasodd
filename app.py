@@ -357,6 +357,11 @@ def admin_list():
         if not backups:
             backups = '<span style="color:#6a5e50;font-size:11px;">ยังไม่มีข้อมูล</span>'
 
+        data_links = f'''<a href="/admin/analyze/{esc(uname)}?key={esc(key)}" style="color:#c9a84c;font-size:11px;font-weight:700;display:block;">🤖 AI วิเคราะห์</a>
+<a href="/admin/export/{esc(uname)}?key={esc(key)}&mode=sales" style="color:#5b8db8;font-size:11px;display:block;margin-top:2px;">⬇️ ยอดขาย CSV</a>
+<a href="/admin/export/{esc(uname)}?key={esc(key)}&mode=members" style="color:#5b8db8;font-size:11px;display:block;margin-top:2px;">⬇️ สมาชิก CSV</a>
+<a href="/admin/export/{esc(uname)}?key={esc(key)}&mode=products" style="color:#5b8db8;font-size:11px;display:block;margin-top:2px;">⬇️ สินค้า CSV</a>'''
+
         approve_btn = ''
         if u['status'] == 'pending':
             approve_btn = f'<a href="/admin/action?key={esc(key)}&act=approve&u={esc(uname)}" style="background:rgba(90,170,106,0.2);color:#5aaa6a;border:1px solid rgba(90,170,106,0.4);padding:4px 10px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;">✅ อนุมัติ</a>'
@@ -393,6 +398,7 @@ def admin_list():
           <td style="color:#{'e07b3a' if usage>15 else '5aaa6a'};font-weight:700">{usage} msg</td>
           <td style="font-size:11px;color:#a89880">{esc(u.get('created_at',''))}</td>
           <td>{backups}</td>
+          <td>{data_links}</td>
           <td style="white-space:nowrap">
             <form id="f-{esc(uname)}" method="POST" action="/admin/action?key={esc(key)}&act=edit&u={esc(uname)}" style="display:inline">
               <button type="submit" style="background:rgba(201,168,76,0.15);color:#c9a84c;border:1px solid rgba(201,168,76,0.4);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">💾 บันทึก</button>
@@ -441,7 +447,7 @@ a{{color:#e07b3a;text-decoration:none}}
   <th>แพ็กเกจ</th><th>สถานะ</th>
   <th>Password hash / รีเซ็ต</th>
   <th>AI วันนี้</th><th>สมัครเมื่อ</th>
-  <th>Backup JSON</th><th>Actions</th>
+  <th>Backup JSON</th><th>วิเคราะห์/Export</th><th>Actions</th>
 </tr>
 {rows}
 </table>
@@ -550,6 +556,239 @@ def approve(username):
     save_users(users)
     u = users[username]
     return f"✅ อนุมัติ {username} ({u['shop_name']}) {u['plan'].upper()} {u['price']}฿ สำเร็จ"
+
+# ── admin/export — CSV download ───────────────────────────
+
+@app.route('/admin/export/<username>')
+def admin_export(username):
+    key = request.args.get('key', '')
+    if key != ADMIN_KEY:
+        return 'ไม่มีสิทธิ์', 403
+    users = load_users()
+    if username not in users:
+        return 'ไม่พบ user', 404
+
+    sid = users[username].get('shop_id', '')
+    if not sid:
+        return 'ไม่มี shop_id', 404
+
+    mode = request.args.get('mode', 'sales')  # sales | members | products
+    bfiles = sorted((SHOPS_DIR / sid).glob('backup_*.json'), reverse=True)
+    if not bfiles:
+        return 'ยังไม่มีข้อมูล backup', 404
+
+    # รวมทุก backup (ไม่ซ้ำกัน)
+    all_data = {}
+    for bf in bfiles:
+        try:
+            raw = json.loads(bf.read_text(encoding='utf-8'))
+            d   = raw.get('data', {})
+            for k, v in d.items():
+                if k not in all_data:
+                    all_data[k] = v
+        except Exception:
+            pass
+
+    import io, csv
+    output = io.StringIO()
+    w      = csv.writer(output)
+    shop_name = users[username].get('shop_name', username)
+
+    if mode == 'sales':
+        # ประวัติการขาย
+        history = all_data.get('history', [])
+        if not history:
+            return 'ไม่มีข้อมูลประวัติการขาย', 404
+        w.writerow(['วันที่', 'เวลา', 'สินค้า', 'จำนวนชิ้น', 'ยอดรวม', 'ชำระด้วย', 'พนักงาน'])
+        for item in history:
+            items_txt = ', '.join([f"{x.get('name','')} x{x.get('qty',1)}" for x in item.get('items', [])])
+            qty_total = sum(x.get('qty', 1) for x in item.get('items', []))
+            ts        = item.get('timestamp', item.get('time', ''))
+            date_part = ts[:10] if len(ts) >= 10 else ts
+            time_part = ts[11:16] if len(ts) >= 16 else ''
+            w.writerow([
+                date_part, time_part, items_txt, qty_total,
+                item.get('total', 0),
+                item.get('payMethod', item.get('pay', '')),
+                item.get('staff', item.get('cashier', '')),
+            ])
+        filename = f'sales_{username}_{datetime.now().strftime("%Y%m%d")}.csv'
+
+    elif mode == 'members':
+        # ข้อมูลสมาชิก CRM
+        members = all_data.get('members', all_data.get('crm', []))
+        if not members:
+            return 'ไม่มีข้อมูลสมาชิก', 404
+        w.writerow(['ชื่อ', 'เบอร์โทร', 'แต้มสะสม', 'ยอดซื้อรวม', 'จำนวนครั้งที่ซื้อ', 'วันสมัคร'])
+        items_list = members if isinstance(members, list) else members.values()
+        for m in items_list:
+            w.writerow([
+                m.get('name', ''), m.get('phone', ''),
+                m.get('points', m.get('point', 0)),
+                m.get('totalSpent', m.get('total_spent', 0)),
+                m.get('visitCount', m.get('visit_count', 0)),
+                m.get('createdAt', m.get('created_at', '')),
+            ])
+        filename = f'members_{username}_{datetime.now().strftime("%Y%m%d")}.csv'
+
+    elif mode == 'products':
+        # สินค้าและสต็อก
+        products = all_data.get('products', all_data.get('items', []))
+        if not products:
+            return 'ไม่มีข้อมูลสินค้า', 404
+        w.writerow(['ชื่อสินค้า', 'ราคา', 'สต็อกคงเหลือ', 'หน่วย'])
+        items_list = products if isinstance(products, list) else products.values()
+        for p in items_list:
+            w.writerow([
+                p.get('name', ''), p.get('price', 0),
+                p.get('stock', p.get('qty', '')),
+                p.get('unit', ''),
+            ])
+        filename = f'products_{username}_{datetime.now().strftime("%Y%m%d")}.csv'
+
+    else:
+        return 'mode ไม่ถูกต้อง (sales/members/products)', 400
+
+    output.seek(0)
+    # BOM for Excel Thai
+    content = '\ufeff' + output.getvalue()
+    return Response(
+        content.encode('utf-8-sig'),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+    )
+
+# ── admin/analyze — AI วิเคราะห์ยอดขาย ──────────────────
+
+@app.route('/admin/analyze/<username>')
+def admin_analyze(username):
+    key = request.args.get('key', '')
+    if key != ADMIN_KEY:
+        return 'ไม่มีสิทธิ์', 403
+    users = load_users()
+    if username not in users:
+        return 'ไม่พบ user', 404
+
+    if not GEMINI_KEY:
+        return 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY', 500
+
+    sid = users[username].get('shop_id', '')
+    if not sid:
+        return 'ไม่มี shop_id', 404
+
+    bfiles = sorted((SHOPS_DIR / sid).glob('backup_*.json'), reverse=True)[:7]
+    if not bfiles:
+        return 'ยังไม่มีข้อมูล backup', 404
+
+    # รวมข้อมูล
+    all_history  = []
+    all_members  = []
+    all_products = []
+    for bf in bfiles:
+        try:
+            raw = json.loads(bf.read_text(encoding='utf-8'))
+            d   = raw.get('data', {})
+            h   = d.get('history', [])
+            if isinstance(h, list): all_history.extend(h)
+            m = d.get('members', d.get('crm', []))
+            if isinstance(m, list): all_members.extend(m)
+            elif isinstance(m, dict): all_members.extend(m.values())
+            p = d.get('products', d.get('items', []))
+            if isinstance(p, list): all_products.extend(p)
+            elif isinstance(p, dict): all_products.extend(p.values())
+        except Exception:
+            pass
+
+    if not all_history:
+        return 'ยังไม่มีข้อมูลยอดขาย', 404
+
+    # กรองไม่ให้ข้อมูลใหญ่เกิน — เอาแค่ 200 รายการล่าสุด
+    all_history  = all_history[-200:]
+    all_members  = all_members[:100]
+    all_products = all_products[:50]
+
+    shop_name = users[username].get('shop_name', username)
+    total_revenue = sum(item.get('total', 0) for item in all_history)
+
+    prompt = f"""คุณเป็นที่ปรึกษาธุรกิจค้าปลีกมืออาชีพ วิเคราะห์ข้อมูลร้าน "{shop_name}" แล้วสรุปเป็นรายงานภาษาไทยที่เจ้าของร้านอ่านเข้าใจง่าย
+
+ข้อมูลประวัติการขาย ({len(all_history)} รายการ, ยอดรวม {total_revenue:,.0f} บาท):
+{json.dumps(all_history, ensure_ascii=False)[:3000]}
+
+ข้อมูลสมาชิก ({len(all_members)} คน):
+{json.dumps(all_members[:20], ensure_ascii=False)[:1000]}
+
+สินค้า ({len(all_products)} รายการ):
+{json.dumps(all_products[:20], ensure_ascii=False)[:500]}
+
+กรุณาวิเคราะห์และสรุปในหัวข้อเหล่านี้:
+1. 📊 ภาพรวมยอดขาย (ยอดรวม เฉลี่ยต่อบิล จำนวนบิล)
+2. 🏆 สินค้าขายดี 5 อันดับแรก
+3. ⏰ ช่วงเวลาขายดีที่สุด
+4. 👥 สรุปพฤติกรรมลูกค้า/สมาชิก
+5. 💡 คำแนะนำเพื่อเพิ่มยอดขาย 3 ข้อ
+6. ⚠️ สิ่งที่ควรระวัง (ถ้ามี)
+
+ตอบเป็น HTML ที่อ่านง่าย ใช้ emoji ประกอบ ไม่ต้องมี CSS ซับซ้อน"""
+
+    url  = f'https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_KEY}'
+    body = json.dumps({
+        'contents': [{'parts': [{'text': prompt}], 'role': 'user'}],
+        'generationConfig': {'maxOutputTokens': 2000, 'temperature': 0.4}
+    }).encode()
+    req = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
+
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            resp = json.loads(r.read())
+        ai_html = resp['candidates'][0]['content']['parts'][0]['text']
+        # clean markdown code fences if any
+        ai_html = ai_html.replace('```html', '').replace('```', '').strip()
+    except Exception as e:
+        ai_html = f'<p style="color:red">เกิดข้อผิดพลาด: {esc(str(e))}</p>'
+
+    page = f"""<!DOCTYPE html>
+<html lang="th"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>วิเคราะห์ — {esc(shop_name)}</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:'Sarabun',sans-serif;background:#0f0e0c;color:#f0e8dc;padding:16px;font-size:15px;line-height:1.7}}
+h1{{color:#c9a84c;font-size:18px;margin-bottom:4px}}
+.meta{{color:#6a5e50;font-size:12px;margin-bottom:16px}}
+.back{{color:#e07b3a;text-decoration:none;font-size:13px}}
+.export-links{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}}
+.export-links a{{background:#1a1815;border:1px solid #2e2820;color:#5b8db8;padding:7px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700}}
+.export-links a:hover{{border-color:#5b8db8}}
+.report{{background:#1a1815;border:1px solid #2e2820;border-radius:12px;padding:16px}}
+.report h2,.report h3{{color:#c9a84c;margin:14px 0 6px}}
+.report h2:first-child,.report h3:first-child{{margin-top:0}}
+.report ul,.report ol{{padding-left:18px;margin:6px 0}}
+.report li{{margin:4px 0}}
+.report strong{{color:#e8c56a}}
+.report p{{margin:6px 0}}
+.report table{{border-collapse:collapse;width:100%;margin:8px 0}}
+.report th{{background:#26201a;color:#c9a84c;padding:7px 10px;text-align:left;border:1px solid #2e2820}}
+.report td{{border:1px solid #2e2820;padding:7px 10px}}
+</style>
+</head><body>
+<a class="back" href="/admin/list?key={esc(key)}">← กลับหน้า Admin</a>
+<br><br>
+<h1>📊 รายงานวิเคราะห์ร้าน {esc(shop_name)}</h1>
+<div class="meta">@{esc(username)} · วิเคราะห์เมื่อ {datetime.now().strftime('%d/%m/%Y %H:%M')} · {len(all_history)} บิล</div>
+
+<div class="export-links">
+  <a href="/admin/export/{esc(username)}?key={esc(key)}&mode=sales">⬇️ Export ยอดขาย CSV</a>
+  <a href="/admin/export/{esc(username)}?key={esc(key)}&mode=members">⬇️ Export สมาชิก CSV</a>
+  <a href="/admin/export/{esc(username)}?key={esc(key)}&mode=products">⬇️ Export สินค้า CSV</a>
+</div>
+
+<div class="report">
+{ai_html}
+</div>
+</body></html>"""
+    return page
 
 # ── health ─────────────────────────────────────────────────
 
