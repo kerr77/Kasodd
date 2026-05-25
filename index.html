@@ -2336,15 +2336,26 @@ ${prodLines}
 === ยอดขายวันนี้ ===
 - รวม ${billCount} บิล ยอด ฿${todaySales.toLocaleString()}
 
+=== ข้อมูลที่คุณได้รับในทุก message (ใช้ให้ครบ) ===
+1. สต็อกปัจจุบันรายสินค้า — ตอบได้ทันทีว่าเหลือเท่าไหร่
+2. ยอดขายรายสินค้า (Product Name + Quantity Sold) — ใช้จัดอันดับสินค้าขายดี
+3. บิลล่าสุด 8 รายการพร้อม item detail — ใช้คำนวณ Stock Movement และ trend
+4. สต็อกใกล้หมด — แจ้งเตือนและแนะนำสั่งของ
+5. ข้อมูล 7 วันย้อนหลัง — วิเคราะห์ภาพรวม payment breakdown, สมาชิก
+
 === สิ่งที่คุณทำได้ ===
 1. ตอบคำถามเรื่องสินค้า ราคา สต็อก
-2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก (ทั้งวันนี้และ 7 วันล่าสุด)
-3. รับคำสั่งลงของผ่านแชท (ดูรูปแบบด้านล่าง)
-4. แนะนำการบริหารร้าน สต็อก การสั่งของ
-5. วิเคราะห์สินค้าขายดี product_name, quantity_sold, total_amount จากประวัติหลายวัน
-6. แจ้งเตือนสต็อกต่ำกว่าเกณฑ์พร้อมแนะนำการสั่งซื้อ
-7. วิเคราะห์พฤติกรรมสมาชิก ยอดสะสม สิทธิ์แลกฟรี วางแผนโปรโมชั่น
-8. แสดง payment breakdown เงินสด/โอน/แลกฟรี พร้อม % ชัดเจน
+2. สรุปและจัดอันดับสินค้าขายดี (product_name + quantity_sold + revenue)
+3. คำนวณ Stock Movement จากบิลล่าสุด — เช่น "ขายไปแล้วกี่ชิ้น สต็อกลดไปเท่าไหร่"
+4. รับคำสั่งลงของผ่านแชท (ดูรูปแบบด้านล่าง)
+5. วิเคราะห์วิธีชำระ สมาชิก และแนะนำโปรโมชั่น
+
+=== วิธีวิเคราะห์ Stock Movement ===
+เมื่อถูกถามเรื่องการเคลื่อนไหวสต็อก ให้ดูที่:
+- "ยอดขายรายสินค้า (กะนี้)" — quantity_sold แต่ละรายการ
+- "บิลล่าสุด 8 รายการ" — ดูว่าแต่ละบิลขายอะไร qty เท่าไหร่
+- เปรียบเทียบกับ "สต็อกปัจจุบัน" เพื่อประเมินว่าควรสั่งเพิ่มเมื่อไหร่
+- ถ้าสินค้าขายเร็ว (qty สูง) + สต็อกน้อย → แนะนำสั่งด่วน
 
 === รับคำสั่งลงของผ่านแชท ===
 เมื่อผู้ใช้บอกว่ามีของมาลง หรือสั่งให้เติมสต็อก ให้ทำตามนี้เสมอ:
@@ -3547,90 +3558,6 @@ let popupChatHist = [];
 let popupSessionId = null;
 const SESSIONS_KEY = 'pos_chat_sessions';
 
-// ── Analytics cache (refreshed each time popup opens) ────
-let _analyticsCache = null;
-let _analyticsFetching = false;
-
-async function fetchShopAnalytics() {
-  if (_analyticsFetching) return;
-  _analyticsFetching = true;
-  try {
-    const [salesRes, stockRes, memberRes, payRes] = await Promise.all([
-      fetch('/api/shop/sales-report'),
-      fetch('/api/shop/low-stock?threshold=' + (LOW_THRESHOLD || 10)),
-      fetch('/api/shop/member-insights'),
-      fetch('/api/shop/payment-breakdown'),
-    ]);
-    const [sales, stockAlert, members, payment] = await Promise.all([
-      salesRes.ok ? salesRes.json() : null,
-      stockRes.ok ? stockRes.json() : null,
-      memberRes.ok ? memberRes.json() : null,
-      payRes.ok ? payRes.json() : null,
-    ]);
-    _analyticsCache = { sales, stockAlert, members, payment, fetchedAt: new Date().toLocaleTimeString('th-TH') };
-  } catch(e) {
-    // ถ้า fetch ไม่ได้ก็ใช้ context จาก localStorage ต่อ
-    _analyticsCache = null;
-  } finally {
-    _analyticsFetching = false;
-  }
-}
-
-function buildAnalyticsContext() {
-  if (!_analyticsCache) return '';
-  const { sales, stockAlert, members, payment } = _analyticsCache;
-  let ctx = '\n\n=== ข้อมูลเชิงลึกจากระบบ (Multi-day Analytics) ===';
-
-  // 1. Sales Report
-  if (sales && sales.ok) {
-    const s = sales.summary;
-    ctx += `\n\n📊 สรุปยอดขาย (7 วันล่าสุด):`;
-    ctx += `\n- รวม ${s.total_bills} บิล | ยอดรวม ฿${(s.total_revenue||0).toLocaleString()} | เฉลี่ย ฿${s.avg_bill_amount}/บิล`;
-    if (sales.products && sales.products.length > 0) {
-      ctx += `\n- สินค้าขายดี: ` + sales.products.slice(0, 5).map(p =>
-        `${p.product_name} (${p.quantity_sold} ชิ้น, ฿${(p.total_amount||0).toLocaleString()})`
-      ).join(' | ');
-    }
-  }
-
-  // 2. Low Stock Alert
-  if (stockAlert && stockAlert.ok) {
-    if (stockAlert.total > 0) {
-      ctx += `\n\n⚠️ สต็อกใกล้หมด (ต่ำกว่า ${stockAlert.threshold}):`;
-      stockAlert.low_stock.forEach(p => {
-        ctx += `\n- ${p.name}: เหลือ ${p.stock} ${p.unit} [${p.status}]`;
-      });
-    } else {
-      ctx += `\n\n✅ สต็อกทุกรายการปกติ (ไม่มีใกล้หมด)`;
-    }
-  }
-
-  // 3. Member Insights
-  if (members && members.ok && members.total_members > 0) {
-    const ins = members.insights;
-    ctx += `\n\n👥 ข้อมูลสมาชิก (${members.total_members} คน):`;
-    ctx += `\n- แต้มสะสมรวม: ${ins.total_points_outstanding} | ยอดซื้อรวม: ฿${(ins.total_member_spend||0).toLocaleString()}`;
-    ctx += `\n- สมาชิกที่แลกฟรีได้แล้ว: ${ins.members_with_redeemable_points} คน`;
-    ctx += `\n- เฉลี่ยซื้อ ${ins.avg_bills_per_member} ครั้ง/คน | ใช้จ่าย ฿${ins.avg_spend_per_member}/คน`;
-    if (members.top_members && members.top_members.length > 0) {
-      ctx += `\n- Top สมาชิก: ` + members.top_members.slice(0, 3).map(m =>
-        `${m.name}(฿${(m.total_spend||0).toLocaleString()},${m.points}แต้ม${m.redeemable > 0 ? ',แลกได้'+m.redeemable : ''})`
-      ).join(' | ');
-    }
-  }
-
-  // 4. Payment Breakdown
-  if (payment && payment.ok) {
-    const b = payment.breakdown;
-    ctx += `\n\n💳 วิธีชำระเงิน (${payment.total_transactions} บิล, ฿${(payment.grand_total||0).toLocaleString()}):`;
-    ctx += `\n- เงินสด: ${b.cash.count} บิล ฿${(b.cash.total||0).toLocaleString()} (${b.cash.percentage}%)`;
-    ctx += `\n- โอน/QR: ${b.transfer.count} บิล ฿${(b.transfer.total||0).toLocaleString()} (${b.transfer.percentage}%)`;
-    ctx += `\n- แลกฟรี: ${b.free.count} บิล`;
-  }
-
-  return ctx;
-}
-
 // --- Session Storage Helpers ---
 function loadSessions() {
   try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
@@ -3659,9 +3586,6 @@ function openAiPopup() {
   document.getElementById('ai-popup-overlay').classList.add('open');
   document.getElementById('popup-assistant-name').textContent =
     localStorage.getItem('pos_assistant_name') || 'ผู้ช่วย AI ประจำร้าน';
-
-  // Refresh analytics in background every time popup opens
-  fetchShopAnalytics();
 
   if (document.getElementById('popup-chat-history').children.length === 0) {
     popupInitChat();
@@ -3772,7 +3696,39 @@ async function popupSendChat() {
   const freeCnt = history.filter(h => h.pay === 'free').length;
   const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
   const lowStr = lowItems.length > 0 ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
-  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===\nสต็อกปัจจุบัน: ${stockSummary}\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)` + buildAnalyticsContext();
+
+  // ── (1) Product Sales Summary — ยอดขายรายสินค้า กะนี้ ──
+  const prodSalesMap = {};
+  history.forEach(h => {
+    (h.items || []).forEach(item => {
+      const name = item.name || item.key || '?';
+      if (!prodSalesMap[name]) prodSalesMap[name] = { qty: 0, revenue: 0 };
+      prodSalesMap[name].qty     += (item.qty   || 1);
+      prodSalesMap[name].revenue += (item.price || 0) * (item.qty || 1);
+    });
+  });
+  const prodSalesLines = Object.entries(prodSalesMap)
+    .sort((a, b) => b[1].qty - a[1].qty)
+    .map(([name, d]) => `  • ${name}: ขาย ${d.qty} ชิ้น | รายได้ ฿${d.revenue.toLocaleString()}`)
+    .join('\n');
+  const prodSalesStr = prodSalesLines || '  (ยังไม่มียอดขายในกะนี้)';
+
+  // ── (2) Recent Bills Detail — รายการสินค้าในแต่ละบิลล่าสุด (stock movement) ──
+  const recentBillsStr = history.slice(0, 8).map((h, i) => {
+    const timeLabel = (h.time || '').split(' ')[1] || h.time || '';
+    const payLabel  = h.pay === 'cash' ? 'สด' : h.pay === 'transfer' ? 'โอน' : h.pay === 'free' ? 'ฟรี' : h.pay;
+    const memberTag = (h.member && h.member !== 'ทั่วไป') ? ` [${h.member}]` : '';
+    const itemsStr  = (h.items || []).map(it => `${it.name}×${it.qty}@฿${it.price}`).join(', ');
+    return `  บิล${i+1} ${timeLabel}${memberTag}(${payLabel}) → ${itemsStr} = ฿${h.total}`;
+  }).join('\n') || '  (ยังไม่มีบิล)';
+
+  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===` +
+    `\nสต็อกปัจจุบัน: ${stockSummary}` +
+    `\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}` +
+    `\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}` +
+    `\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)` +
+    `\n\n=== ยอดขายรายสินค้า (กะนี้) ===\n${prodSalesStr}` +
+    `\n\n=== บิลล่าสุด 8 รายการ (Stock Movement) ===\n${recentBillsStr}`;
 
   const thinking = popupAppendThinking();
   popupChatHist.push({ role: 'user', content: msg });
