@@ -298,7 +298,7 @@ def admin_users():
 
 @app.route('/api/admin/approve/<username>', methods=['POST'])
 def api_admin_approve(username):
-    if not is_admin(): return jsonify({'ok':False}), 401
+    if not is_admin_request(): return jsonify({'ok':False}), 401
     users = load_users()
     if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     users[username]['status'] = 'active'
@@ -307,7 +307,7 @@ def api_admin_approve(username):
 
 @app.route('/api/admin/suspend/<username>', methods=['POST'])
 def api_admin_suspend(username):
-    if not is_admin(): return jsonify({'ok':False}), 401
+    if not is_admin_request(): return jsonify({'ok':False}), 401
     users = load_users()
     if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     users[username]['status'] = 'pending'
@@ -316,7 +316,7 @@ def api_admin_suspend(username):
 
 @app.route('/api/admin/edit/<username>', methods=['POST'])
 def api_admin_edit(username):
-    if not is_admin(): return jsonify({'ok':False}), 401
+    if not is_admin_request(): return jsonify({'ok':False}), 401
     users = load_users()
     if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     d         = request.get_json(silent=True) or {}
@@ -334,7 +334,7 @@ def api_admin_edit(username):
 
 @app.route('/api/admin/reset_password/<username>', methods=['POST'])
 def api_admin_reset_password(username):
-    if not is_admin(): return jsonify({'ok':False}), 401
+    if not is_admin_request(): return jsonify({'ok':False}), 401
     users = load_users()
     if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     d        = request.get_json(silent=True) or {}
@@ -346,7 +346,7 @@ def api_admin_reset_password(username):
 
 @app.route('/api/admin/delete/<username>', methods=['POST'])
 def api_admin_delete(username):
-    if not is_admin(): return jsonify({'ok':False}), 401
+    if not is_admin_request(): return jsonify({'ok':False}), 401
     users = load_users()
     if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     shop_name = users[username].get('shop_name', username)
