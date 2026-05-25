@@ -1,7 +1,7 @@
-# ค้าสด (KAASOD) 🌿
+# ค้าสด (KASOD) 🌿
 ### ระบบ POS สำหรับร้านค้าไทย — ใช้มือถือเครื่องเดิม ไม่ต้องซื้ออุปกรณ์ใหม่
 
-![KAASOD](https://img.shields.io/badge/version-2.0-gold) ![Python](https://img.shields.io/badge/python-3.13-blue) ![Flask](https://img.shields.io/badge/flask-SaaS-green) ![License](https://img.shields.io/badge/license-MIT-orange)
+![KASOD](https://img.shields.io/badge/version-2.0-gold) ![Python](https://img.shields.io/badge/python-3.13-blue) ![Flask](https://img.shields.io/badge/flask-SaaS-green) ![License](https://img.shields.io/badge/license-MIT-orange)
 
 ---
 
