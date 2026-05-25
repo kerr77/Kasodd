@@ -2535,6 +2535,14 @@ ${promoLines}
 <ACTION>{"type":"create_promo","name":"คู่น้ำส้ม+สตรอเบอรี่","items":[{"key":"orange_juice","qty":1},{"key":"strawberry_juice","qty":1}],"promoPrice":90}</ACTION>
 หมายเหตุ: items ต้องใช้ key จากรายการสินค้าข้างบน, promoPrice คือราคารวมทั้งชุด (ต้องน้อยกว่าราคาปกติรวม)
 
+▶ บันทึกการขาย (เมื่อลูกค้าซื้อสินค้า / มาซื้อ / ขายได้ / จ่ายเงิน):
+<ACTION>{"type":"record_sale","items":[{"key":"[product_key]","qty":[จำนวน]}],"pay":"[cash|transfer|free]","member":"[ชื่อหรือเบอร์สมาชิก หรือ ทั่วไป]"}</ACTION>
+ตัวอย่าง: "คุณสมชายมาซื้อน้ำส้ม 2 ขวด จ่ายสด"
+<ACTION>{"type":"record_sale","items":[{"key":"orange_juice","qty":2}],"pay":"cash","member":"ทั่วไป"}</ACTION>
+ตัวอย่าง: "ขายน้ำส้ม 3 โอน น้ำมะพร้าว 1 สด ให้คุณมีนา (095-777-8944)"
+<ACTION>{"type":"record_sale","items":[{"key":"orange_juice","qty":3},{"key":"coconut","qty":1}],"pay":"transfer","member":"095-777-8944"}</ACTION>
+หมายเหตุ: pay ใช้ "cash"=เงินสด, "transfer"=โอน, "free"=แลกฟรี — ระบบจะตัดสต็อก บันทึกบิล และอัปเดตแต้มสมาชิกอัตโนมัติ
+
 ▶ เปิด/ปิดโปรโมชั่น (toggle เปิด-ปิดโปรที่มีอยู่แล้ว):
 <ACTION>{"type":"toggle_promo","name":"[ชื่อโปรโมชั่น]"}</ACTION>
 ตัวอย่าง: "ปิดโปรคู่น้ำส้มก่อนนะ" → <ACTION>{"type":"toggle_promo","name":"คู่น้ำส้ม+สตรอเบอรี่"}</ACTION>
@@ -4111,6 +4119,7 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('สต็อกใกล้หมดมีอะไรบ้าง?')">⚠️ ใกล้หมด</span>
         <span class="tip-chip" onclick="popupSetTip('มีสินค้ามาใหม่ [ชื่อสินค้า] ราคา [ราคา] บาท จำนวน [จำนวน] ชิ้น')">✨ เพิ่มสินค้าใหม่</span>
         <span class="tip-chip" onclick="popupSetTip('ซื้อ[รายการ]ไป [จำนวน] บาท')">💸 บันทึกค่าใช้จ่าย</span>
+        <span class="tip-chip" onclick="popupSetTip('ขาย[สินค้า] [จำนวน] [สด/โอน]')">🧾 บันทึกขาย</span>
         <span class="tip-chip" onclick="popupSetTip('สร้างโปรโมชั่น ซื้อ [สินค้า A] + [สินค้า B] ราคาพิเศษ [ราคา] บาท')">🎉 สร้างโปร</span>
         <span class="tip-chip" onclick="popupSetTip('ปิดโปรโมชั่น [ชื่อโปร]')">⏸️ ปิด/เปิดโปร</span>
         <span class="tip-chip" onclick="popupSetTip('เพิ่มสมาชิกใหม่ เบอร์ [เบอร์โทร] ชื่อ [ชื่อ]')">👤 เพิ่มสมาชิก</span>
@@ -4601,7 +4610,68 @@ async function popupSendChat() {
             }, 300);
           }
 
-          // --- 7. toggle โปรโมชั่น (เปิด/ปิด) ---
+          // --- 7. บันทึกการขาย ---
+          else if (action.type === 'record_sale' && action.items && action.items.length > 0) {
+            const effProds = getEffectiveProducts();
+            const payMethod = action.pay || 'cash';
+            const memberVal = action.member || 'ทั่วไป';
+            let total = 0;
+            const billItems = [];
+            let stockOk = true;
+
+            action.items.forEach(it => {
+              const p = effProds.find(x => x.key === it.key);
+              if (!p) return;
+              const qty = it.qty || 1;
+              const stockKey = p.promoBase ? p.promoBase : it.key;
+              const deduct = p.promoBase ? qty * (p.promoQty || 1) : qty;
+              if ((stock[stockKey] || 0) < deduct) stockOk = false;
+              stock[stockKey] = Math.max(0, (stock[stockKey] || 0) - deduct);
+              total += p.price * qty;
+              billItems.push({ key: it.key, name: p.name, qty, price: p.price });
+            });
+
+            if (billItems.length > 0) {
+              saveStock();
+              const history = loadHistory();
+              history.unshift({
+                time: new Date().toLocaleString('th-TH'),
+                items: billItems, total, pay: payMethod,
+                member: memberVal, redeem: payMethod === 'free'
+              });
+              saveHistory(history);
+
+              // อัปเดตแต้มสมาชิก (ถ้าไม่ใช่ทั่วไป)
+              if (memberVal !== 'ทั่วไป') {
+                const members = getMembers();
+                const mIdx = members.findIndex(m => m.phone === memberVal || m.name === memberVal);
+                if (mIdx >= 0) {
+                  members[mIdx].totalBills = (members[mIdx].totalBills || 0) + 1;
+                  members[mIdx].totalSpend = (members[mIdx].totalSpend || 0) + total;
+                  if (payMethod !== 'free') members[mIdx].points = (members[mIdx].points || 0) + 1;
+                  saveMembers(members);
+                }
+              }
+
+              renderProducts();
+              renderStock();
+              renderCart();
+              autoSyncToServer();
+
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                const payLabel = payMethod === 'cash' ? 'เงินสด' : payMethod === 'transfer' ? 'โอน' : 'ฟรี';
+                const itemsDesc = billItems.map(i => `${i.name}×${i.qty}`).join(', ');
+                const warnTag = stockOk ? '' : ' ⚠️สต็อกบางรายการไม่พอ';
+                chip.textContent = `🧾 บันทึกบิล: ${itemsDesc} = ฿${total.toLocaleString()} (${payLabel})${memberVal !== 'ทั่วไป' ? ' | ' + memberVal : ''}${warnTag}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 8. toggle โปรโมชั่น (เปิด/ปิด) ---
           else if (action.type === 'toggle_promo' && action.name) {
             const promos = loadPromos();
             const idx = promos.findIndex(p => p.name === action.name);
