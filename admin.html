@@ -2,683 +2,1258 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ค้าสด — Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🌿 ค้าสด — Real-time Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:      #0f0e0c;
-  --card:    #1a1815;
-  --card2:   #221e18;
-  --surface: #2a2520;
-  --gold:    #c9a84c;
-  --gold2:   #e8c56a;
-  --orange:  #e07b3a;
-  --green:   #5aaa6a;
-  --red:     #c0544a;
-  --blue:    #5b8db8;
-  --purple:  #9b6fd4;
-  --text:    #f0e8dc;
-  --text2:   #a89880;
-  --muted:   #6a5e50;
-  --border:  #2e2820;
-  --border2: #3e342a;
-  --radius:  12px;
-  --radius-sm: 8px;
+  --bg:        #0a0908;
+  --bg2:       #131110;
+  --bg3:       #1c1916;
+  --bg4:       #252018;
+  --border:    #2a2318;
+  --border2:   #3a3025;
+  --gold:      #c9a84c;
+  --gold2:     #e8c56a;
+  --green:     #4aaa6a;
+  --green2:    #6ac882;
+  --orange:    #e07b3a;
+  --orange2:   #f09a5a;
+  --blue:      #5b8db8;
+  --blue2:     #7ab0d8;
+  --purple:    #9b6fd4;
+  --red:       #d45a5a;
+  --text:      #f0e8dc;
+  --text2:     #c0b09a;
+  --text3:     #7a6a58;
+  --pulse:     rgba(74,170,106,0.4);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
 
-/* ─── LOGIN SCREEN ─── */
-#login-screen {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 24px;
-  background: radial-gradient(ellipse at top, #221e10 0%, var(--bg) 70%);
-}
-.login-box {
-  width: 100%; max-width: 360px;
-  background: var(--card); border: 1px solid var(--border2);
-  border-radius: 20px; padding: 36px 28px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-}
-.login-logo { font-family: 'Prompt', sans-serif; font-size: 36px; font-weight: 900; color: var(--gold); text-align: center; margin-bottom: 4px; }
-.login-sub { text-align: center; color: var(--text2); font-size: 13px; margin-bottom: 28px; }
-.login-label { font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
-.login-input {
-  width: 100%; padding: 13px 14px; border-radius: var(--radius-sm);
-  background: var(--surface); border: 1.5px solid var(--border2);
-  color: var(--text); font-size: 15px; font-family: 'Sarabun', sans-serif;
-  margin-bottom: 16px; outline: none; transition: border-color .15s;
-}
-.login-input:focus { border-color: var(--gold); }
-.login-btn {
-  width: 100%; padding: 15px; border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #d4a84e, #c9a84c 50%, #b8942a);
-  border: none; color: #1c1510;
-  font-family: 'Prompt', sans-serif; font-size: 15px; font-weight: 800;
-  cursor: pointer; letter-spacing: 0.3px;
-  box-shadow: 0 4px 0 #7a5c1a;
-  transform: translateY(0); transition: transform .08s, box-shadow .08s;
-}
-.login-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #7a5c1a; }
-.login-err { color: var(--red); font-size: 13px; text-align: center; margin-top: 10px; min-height: 18px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ─── MAIN ADMIN ─── */
-#admin-screen { display: none; }
+body {
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
 
-/* topbar */
+/* ── TOP BAR ── */
 .topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--card); border-bottom: 1px solid var(--border2);
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-}
-.topbar-logo { font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 900; color: var(--gold); }
-.topbar-logo span { font-size: 13px; font-weight: 600; color: var(--text2); margin-left: 8px; font-family: 'Sarabun', sans-serif; }
-.logout-btn {
-  padding: 8px 16px; border-radius: var(--radius-sm);
-  background: none; border: 1.5px solid rgba(192,84,74,0.5);
-  color: var(--red); font-size: 13px; font-weight: 700;
-  cursor: pointer; font-family: 'Sarabun', sans-serif;
-  transition: background .15s;
-}
-.logout-btn:hover { background: rgba(192,84,74,0.1); }
-
-/* summary cards */
-.summary-bar {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 8px; padding: 14px 14px 0;
-}
-.sum-card {
-  background: var(--card); border: 1px solid var(--border2);
-  border-radius: var(--radius-sm); padding: 12px 10px; text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.sum-val { font-family: 'Prompt', sans-serif; font-size: 22px; font-weight: 800; color: var(--gold); display: block; }
-.sum-val.green { color: var(--green); }
-.sum-val.orange { color: var(--orange); }
-.sum-val.purple { color: var(--purple); }
-.sum-lbl { font-size: 10px; color: var(--text2); margin-top: 2px; display: block; }
-
-/* search / filter bar */
-.filter-bar {
-  display: flex; gap: 8px; padding: 12px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.search-input {
-  flex: 1; padding: 10px 12px; border-radius: var(--radius-sm);
-  background: var(--card); border: 1.5px solid var(--border2);
-  color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
+.logo { color: var(--gold); font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.logo span { color: var(--text3); font-size: 12px; font-weight: 400; }
+.status-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 0 0 var(--pulse);
+  animation: pulse-ring 2s ease infinite;
+  display: inline-block;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--pulse); }
+  70%  { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.live-label { font-size: 11px; color: var(--green); font-weight: 600; letter-spacing: 1px; }
+.last-update { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); }
+.refresh-btn {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--gold);
+  padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
+  font-family: inherit; font-weight: 600; transition: all .2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.refresh-btn:hover { background: var(--bg4); border-color: var(--gold); }
+.refresh-btn.spinning svg { animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.interval-select {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
+  padding: 5px 10px; border-radius: 8px; font-family: inherit; font-size: 12px;
+  cursor: pointer;
+}
+.interval-select:focus { outline: none; border-color: var(--gold); }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex; gap: 4px; padding: 12px 20px 0;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-tab {
+  padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--text3);
+  border: 1px solid transparent; border-bottom: none;
+  transition: all .2s; white-space: nowrap; background: transparent;
+  font-family: inherit;
+}
+.nav-tab:hover { color: var(--text2); background: var(--bg3); }
+.nav-tab.active {
+  color: var(--gold); background: var(--bg);
+  border-color: var(--border); border-bottom-color: var(--bg);
+  position: relative; top: 1px;
+}
+
+/* ── MAIN ── */
+main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── GRID ── */
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 900px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr; }
+  main { padding: 12px; }
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+}
+.stat-card { text-align: center; }
+.stat-card .val {
+  font-size: 28px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.1; display: block; margin: 4px 0;
+}
+.stat-card .lbl { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.stat-card .delta { font-size: 11px; margin-top: 4px; }
+
+.gold  .val { color: var(--gold2); }
+.green .val { color: var(--green2); }
+.orange .val { color: var(--orange2); }
+.blue  .val { color: var(--blue2); }
+.purple .val { color: var(--purple); }
+.red   .val { color: var(--red); }
+
+/* ── SECTION HEADERS ── */
+.sec-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+}
+.sec-hdr h3 { font-size: 14px; font-weight: 700; color: var(--gold); }
+.sec-hdr .badge {
+  font-size: 11px; background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text3); padding: 3px 10px; border-radius: 20px;
+}
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; min-width: 600px; }
+th {
+  background: var(--bg3); color: var(--gold); padding: 9px 12px;
+  text-align: left; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  font-size: 13px; vertical-align: middle;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
+
+/* ── PILLS ── */
+.pill {
+  display: inline-block; padding: 2px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.pill-green { background: rgba(74,170,106,.15); color: var(--green2); border: 1px solid rgba(74,170,106,.3); }
+.pill-orange { background: rgba(224,123,58,.15); color: var(--orange2); border: 1px solid rgba(224,123,58,.3); }
+.pill-blue { background: rgba(91,141,184,.15); color: var(--blue2); border: 1px solid rgba(91,141,184,.3); }
+.pill-purple { background: rgba(155,111,212,.15); color: var(--purple); border: 1px solid rgba(155,111,212,.3); }
+.pill-red { background: rgba(212,90,90,.15); color: var(--red); border: 1px solid rgba(212,90,90,.3); }
+
+/* ── MONO ── */
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ── LOG PANEL ── */
+.log-panel {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; line-height: 1.8;
+  height: 340px; overflow-y: auto;
+}
+.log-line { display: flex; gap: 10px; }
+.log-ts { color: var(--text3); white-space: nowrap; }
+.log-shop { color: var(--blue2); }
+.log-msg { color: var(--text2); }
+.log-msg.chat { color: var(--green2); }
+.log-msg.sale { color: var(--gold2); }
+.log-msg.login { color: var(--purple); }
+.log-msg.error { color: var(--red); }
+.log-msg.system { color: var(--text3); }
+
+/* ── CHAT LOG ── */
+.chat-filters {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.chat-filter-btn {
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text3); padding: 5px 14px; border-radius: 8px;
+  cursor: pointer; font-size: 12px; font-family: inherit; transition: all .2s;
+}
+.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,.1); }
+.chat-entries { display: flex; flex-direction: column; gap: 8px; }
+.chat-entry {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px;
+}
+.chat-entry-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px; gap: 8px; flex-wrap: wrap;
+}
+.chat-entry-shop { font-weight: 700; color: var(--gold); font-size: 13px; }
+.chat-entry-ts { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.chat-bubble-user {
+  background: rgba(91,141,184,.12); border: 1px solid rgba(91,141,184,.2);
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
+  font-size: 13px; line-height: 1.6;
+}
+.chat-bubble-user .role-lbl { font-size: 10px; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.chat-bubble-ai {
+  background: rgba(74,170,106,.08); border: 1px solid rgba(74,170,106,.15);
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 13px; line-height: 1.6;
+}
+.chat-bubble-ai .role-lbl { font-size: 10px; color: var(--green); font-weight: 700; margin-bottom: 4px; }
+
+/* ── MINI BAR CHART ── */
+.bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-lbl { font-size: 12px; color: var(--text2); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; height: 20px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+.bar-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); width: 60px; text-align: right; flex-shrink: 0; }
+
+/* ── SERVER HEALTH ── */
+.health-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.health-item {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.health-item .h-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+.health-item .h-val { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.health-item .h-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+.health-item .h-bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text3); font-size: 13px;
+}
+.empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text); padding: 12px 18px; border-radius: 10px;
+  font-size: 13px; box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  transform: translateY(100px); opacity: 0;
+  transition: all .3s; z-index: 999; max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── ACTION BTNS ── */
+.act-btn {
+  padding: 4px 12px; border-radius: 8px; font-size: 12px;
+  font-weight: 700; cursor: pointer; font-family: inherit;
+  border: 1px solid; transition: all .2s;
+}
+.act-btn-green { background: rgba(74,170,106,.15); color: var(--green2); border-color: rgba(74,170,106,.3); }
+.act-btn-green:hover { background: rgba(74,170,106,.25); }
+.act-btn-orange { background: rgba(224,123,58,.15); color: var(--orange2); border-color: rgba(224,123,58,.3); }
+.act-btn-orange:hover { background: rgba(224,123,58,.25); }
+.act-btn-blue { background: rgba(91,141,184,.15); color: var(--blue2); border-color: rgba(91,141,184,.3); }
+.act-btn-blue:hover { background: rgba(91,141,184,.25); }
+.act-btn-red { background: rgba(212,90,90,.15); color: var(--red); border-color: rgba(212,90,90,.3); }
+.act-btn-red:hover { background: rgba(212,90,90,.25); }
+
+/* ── PROGRESS RING ── */
+.usage-ring { display: flex; align-items: center; gap: 6px; }
+.usage-track { width: 40px; height: 40px; }
+.usage-bg { fill: none; stroke: var(--border2); stroke-width: 4; }
+.usage-fill { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100.53; stroke-dashoffset: 100.53; transition: stroke-dashoffset .5s ease; transform: rotate(-90deg); transform-origin: center; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* ── LOCK SCREEN ── */
+#lock-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; flex-direction: column; gap: 16px;
+}
+.lock-box {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 16px; padding: 32px; width: 320px; text-align: center;
+}
+.lock-box h2 { color: var(--gold); font-size: 18px; margin-bottom: 8px; }
+.lock-box p { color: var(--text3); font-size: 13px; margin-bottom: 20px; }
+.lock-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  color: var(--text); padding: 10px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 14px; margin-bottom: 12px;
   outline: none;
 }
-.search-input:focus { border-color: var(--gold); }
-.filter-select {
-  padding: 10px 10px; border-radius: var(--radius-sm);
-  background: var(--card); border: 1.5px solid var(--border2);
-  color: var(--text2); font-size: 13px; font-family: 'Sarabun', sans-serif;
-  outline: none; cursor: pointer;
+.lock-input:focus { border-color: var(--gold); }
+.lock-btn {
+  width: 100%; background: var(--gold); color: var(--bg);
+  border: none; padding: 11px; border-radius: 10px;
+  font-weight: 700; font-size: 14px; cursor: pointer;
+  font-family: inherit; transition: background .2s;
 }
-.filter-select:focus { border-color: var(--gold); }
-
-/* user cards */
-.users-list { padding: 0 14px 80px; display: flex; flex-direction: column; gap: 10px; }
-
-.user-card {
-  background: var(--card); border: 1px solid var(--border2);
-  border-radius: var(--radius); overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  transition: border-color .15s;
-}
-.user-card.pending { border-left: 3px solid var(--orange); }
-.user-card.active  { border-left: 3px solid var(--green); }
-
-.user-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 13px 14px; cursor: pointer;
-  user-select: none;
-}
-.user-head:active { background: var(--surface); }
-
-.user-avatar {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: linear-gradient(135deg, #2e2720, #1a1815);
-  border: 1.5px solid var(--border2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
-}
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 15px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-sub  { font-size: 12px; color: var(--text2); margin-top: 1px; }
-.user-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-
-.badge {
-  font-size: 10px; font-weight: 700; padding: 2px 8px;
-  border-radius: 5px; white-space: nowrap;
-}
-.badge-active  { background: rgba(90,170,106,0.2); color: var(--green);  border: 1px solid rgba(90,170,106,0.35); }
-.badge-pending { background: rgba(224,123,58,0.2); color: var(--orange); border: 1px solid rgba(224,123,58,0.35); }
-.badge-pro     { background: rgba(201,168,76,0.2); color: var(--gold);   border: 1px solid rgba(201,168,76,0.35); }
-.badge-starter { background: rgba(91,141,184,0.2); color: var(--blue);   border: 1px solid rgba(91,141,184,0.35); }
-
-.expand-arrow { color: var(--muted); font-size: 12px; transition: transform .2s; flex-shrink: 0; }
-.user-card.expanded .expand-arrow { transform: rotate(180deg); }
-
-/* expanded details */
-.user-detail {
-  display: none; border-top: 1px solid var(--border);
-  padding: 14px;
-}
-.user-card.expanded .user-detail { display: block; }
-
-.detail-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
-}
-.detail-row:last-of-type { border-bottom: none; margin-bottom: 8px; }
-.detail-key { color: var(--text2); }
-.detail-val { font-weight: 700; color: var(--text); }
-.detail-val.gold { color: var(--gold); }
-.detail-val.green { color: var(--green); }
-.detail-val.orange { color: var(--orange); }
-
-/* action buttons */
-.action-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px;
-}
-.action-grid.three { grid-template-columns: 1fr 1fr 1fr; }
-.act-btn {
-  padding: 10px 6px; border-radius: var(--radius-sm);
-  font-family: 'Sarabun', sans-serif; font-size: 12px; font-weight: 700;
-  cursor: pointer; text-align: center; border: none; transition: opacity .1s;
-}
-.act-btn:active { opacity: 0.7; }
-.act-approve  { background: rgba(90,170,106,0.15);  color: var(--green);  border: 1px solid rgba(90,170,106,0.3); }
-.act-suspend  { background: rgba(224,123,58,0.12);  color: var(--orange); border: 1px solid rgba(224,123,58,0.3); }
-.act-edit     { background: rgba(201,168,76,0.12);  color: var(--gold);   border: 1px solid rgba(201,168,76,0.3); }
-.act-password { background: rgba(91,141,184,0.12);  color: var(--blue);   border: 1px solid rgba(91,141,184,0.3); }
-.act-delete   { background: rgba(192,84,74,0.1);    color: var(--red);    border: 1px solid rgba(192,84,74,0.3); }
-.act-full     { grid-column: 1 / -1; }
-
-/* empty state */
-.empty-state { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 14px; }
-.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
-
-/* ─── MODAL ─── */
-.modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.8); z-index: 300;
-  align-items: center; justify-content: center;
-  backdrop-filter: blur(3px); padding: 20px;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--card); border-radius: 18px;
-  border: 1px solid var(--border2); padding: 24px;
-  width: 100%; max-width: 360px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.8);
-  animation: modal-in .18s ease;
-}
-@keyframes modal-in {
-  from { opacity:0; transform: scale(0.94) translateY(10px); }
-  to   { opacity:1; transform: scale(1) translateY(0); }
-}
-.modal h3 { font-size: 17px; font-weight: 800; margin-bottom: 16px; color: var(--text); }
-.modal-label { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 5px; display: block; }
-.modal-input, .modal-select {
-  width: 100%; padding: 11px 12px; border-radius: var(--radius-sm);
-  background: var(--surface); border: 1.5px solid var(--border2);
-  color: var(--text); font-size: 15px; font-family: 'Sarabun', sans-serif;
-  margin-bottom: 12px; outline: none; transition: border-color .15s;
-}
-.modal-input:focus, .modal-select:focus { border-color: var(--gold); }
-.modal-hint { font-size: 12px; color: var(--muted); margin-top: -8px; margin-bottom: 12px; }
-.modal-btns { display: flex; gap: 8px; margin-top: 4px; }
-.modal-btns button {
-  flex: 1; padding: 13px; border-radius: var(--radius-sm);
-  font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 700;
-  cursor: pointer; border: none;
-}
-.btn-cancel { background: var(--surface); color: var(--text2); border: 1px solid var(--border2) !important; }
-.btn-ok     { background: linear-gradient(135deg, #d4a84e, #c9a84c); color: #1c1510; }
-.btn-danger { background: rgba(192,84,74,0.15); color: var(--red); border: 1px solid rgba(192,84,74,0.3) !important; }
-.modal-err  { color: var(--red); font-size: 13px; margin-top: 8px; min-height: 18px; }
-
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; bottom: 24px; left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--green); color: #fff; padding: 10px 22px;
-  border-radius: 30px; font-weight: 700; font-size: 14px;
-  z-index: 999; transition: transform .3s ease; white-space: nowrap;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5); pointer-events: none;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-.toast.error { background: var(--red); }
-
-/* ─── LOADING ─── */
-.loading { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
-.spinner {
-  width: 32px; height: 32px; border: 3px solid var(--border2);
-  border-top-color: var(--gold); border-radius: 50%;
-  animation: spin .7s linear infinite; margin: 0 auto 12px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+.lock-btn:hover { background: var(--gold2); }
+.lock-err { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
 </style>
 </head>
 <body>
 
-<!-- ─── LOGIN ─── -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">🌿 ค้าสด</div>
-    <div class="login-sub">Admin Panel — เฉพาะผู้ดูแลระบบ</div>
-    <label class="login-label">ADMIN KEY</label>
-    <input id="login-key" class="login-input" type="password" placeholder="ใส่รหัสผ่าน admin"
-           onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ Admin</button>
-    <div id="login-err" class="login-err"></div>
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-box">
+    <div style="font-size:36px;margin-bottom:12px;">🌿</div>
+    <h2>ค้าสด Monitor</h2>
+    <p>กรอก Admin Key เพื่อเข้าใช้งาน</p>
+    <input type="password" class="lock-input" id="key-input" placeholder="Admin Key..." autocomplete="off">
+    <button class="lock-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="lock-err" id="lock-err">❌ Key ไม่ถูกต้อง</div>
   </div>
 </div>
 
-<!-- ─── ADMIN SCREEN ─── -->
-<div id="admin-screen">
-  <!-- topbar -->
-  <div class="topbar">
-    <div class="topbar-logo">🌿 ค้าสด <span>Admin v5</span></div>
-    <button class="logout-btn" onclick="doLogout()">ออกจากระบบ</button>
-  </div>
-
-  <!-- summary -->
-  <div class="summary-bar">
-    <div class="sum-card">
-      <span class="sum-val" id="sum-total">—</span>
-      <span class="sum-lbl">ร้านทั้งหมด</span>
-    </div>
-    <div class="sum-card">
-      <span class="sum-val green" id="sum-active">—</span>
-      <span class="sum-lbl">Active</span>
-    </div>
-    <div class="sum-card">
-      <span class="sum-val orange" id="sum-pending">—</span>
-      <span class="sum-lbl">รอยืนยัน</span>
-    </div>
-    <div class="sum-card">
-      <span class="sum-val purple" id="sum-revenue">—</span>
-      <span class="sum-lbl">฿/เดือน</span>
-    </div>
-  </div>
-
-  <!-- filter -->
-  <div class="filter-bar">
-    <input id="search-input" class="search-input" type="text"
-           placeholder="🔍 ค้นหาชื่อร้าน / username"
-           oninput="renderUsers()">
-    <select id="filter-status" class="filter-select" onchange="renderUsers()">
-      <option value="all">ทั้งหมด</option>
-      <option value="pending">รอยืนยัน</option>
-      <option value="active">Active</option>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">🌿 ค้าสด <span>Real-time Monitor</span></div>
+  <div class="status-bar">
+    <span class="live-dot"></span>
+    <span class="live-label">LIVE</span>
+    <span class="last-update" id="last-update">--:--:--</span>
+    <select class="interval-select" id="interval-sel" onchange="changeInterval()">
+      <option value="10000">รีเฟรช 10 วิ</option>
+      <option value="30000" selected>รีเฟรช 30 วิ</option>
+      <option value="60000">รีเฟรช 1 นาที</option>
+      <option value="300000">รีเฟรช 5 นาที</option>
     </select>
-    <select id="filter-plan" class="filter-select" onchange="renderUsers()">
-      <option value="all">แพ็กเกจ</option>
-      <option value="starter">Starter</option>
-      <option value="pro">Pro</option>
-    </select>
-  </div>
-
-  <!-- user list -->
-  <div id="users-list" class="users-list">
-    <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+    <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M1 4v6h6M23 20v-6h-6"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      รีเฟรช
+    </button>
   </div>
 </div>
 
-<!-- ─── EDIT MODAL ─── -->
-<div id="modal-edit" class="modal-overlay">
-  <div class="modal">
-    <h3>✏️ แก้ไขข้อมูลร้าน</h3>
-    <input type="hidden" id="edit-username">
-    <label class="modal-label">ชื่อร้าน</label>
-    <input id="edit-shop-name" class="modal-input" type="text" placeholder="ชื่อร้าน">
-    <label class="modal-label">เบอร์โทร</label>
-    <input id="edit-phone" class="modal-input" type="tel" placeholder="เบอร์โทร">
-    <label class="modal-label">แพ็กเกจ</label>
-    <select id="edit-plan" class="modal-select">
-      <option value="starter">📋 Starter — 199฿</option>
-      <option value="pro">🤖 Pro — 399฿</option>
-    </select>
-    <label class="modal-label">สถานะ</label>
-    <select id="edit-status" class="modal-select">
-      <option value="active">✅ Active</option>
-      <option value="pending">⏳ Pending (ระงับ)</option>
-    </select>
-    <div id="edit-err" class="modal-err"></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('modal-edit')">ยกเลิก</button>
-      <button class="btn-ok" onclick="submitEdit()">บันทึก</button>
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('overview')">📊 ภาพรวม</button>
+  <button class="nav-tab" onclick="switchTab('users')">👥 ร้านค้า</button>
+  <button class="nav-tab" onclick="switchTab('chats')">💬 ประวัติ AI Chat</button>
+  <button class="nav-tab" onclick="switchTab('activity')">⚡ Activity Log</button>
+  <button class="nav-tab" onclick="switchTab('server')">🖥️ Server Health</button>
+</div>
+
+<main>
+
+<!-- ───── TAB: OVERVIEW ───── -->
+<div id="tab-overview" class="tab-content active">
+  <div class="grid-4" id="stat-cards">
+    <div class="card stat-card gold"><span class="lbl">ร้านทั้งหมด</span><span class="val" id="s-total">—</span></div>
+    <div class="card stat-card green"><span class="lbl">Active</span><span class="val" id="s-active">—</span></div>
+    <div class="card stat-card orange"><span class="lbl">รอยืนยัน</span><span class="val" id="s-pending">—</span></div>
+    <div class="card stat-card purple"><span class="lbl">รายได้/เดือน</span><span class="val" id="s-revenue">—</span><span class="delta" id="s-pro-count" style="color:var(--text3)"></span></div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card stat-card blue"><span class="lbl">Pro</span><span class="val" id="s-pro">—</span></div>
+    <div class="card stat-card"><span class="lbl">Starter</span><span class="val" id="s-starter" style="color:var(--text2)">—</span></div>
+    <div class="card stat-card"><span class="lbl">AI Calls วันนี้</span><span class="val" id="s-ai" style="color:var(--green2)">—</span></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>🤖 AI Usage วันนี้ (Top Shops)</h3>
+        <span class="badge" id="ai-badge">—</span>
+      </div>
+      <div class="bar-wrap" id="ai-bar-wrap">
+        <div class="empty-state"><div class="icon">📊</div>กำลังโหลด...</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>📋 แพ็กเกจ Distribution</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--text2)">🤖 Pro 399฿</span>
+            <span class="mono" style="font-size:12px;color:var(--purple)" id="pro-pct">—%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="pro-bar" style="background:var(--purple);width:0%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--text2)">📋 Starter 199฿</span>
+            <span class="mono" style="font-size:12px;color:var(--blue2)" id="starter-pct">—%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="starter-bar" style="background:var(--blue);width:0%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--text2)">⏳ Pending</span>
+            <span class="mono" style="font-size:12px;color:var(--orange2)" id="pending-pct">—%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="pending-bar" style="background:var(--orange);width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr">
+      <h3>🆕 ร้านค้าสมัครใหม่ล่าสุด</h3>
+      <span class="badge" id="new-shops-count">—</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Username</th><th>ชื่อร้าน</th><th>แพ็กเกจ</th>
+          <th>สถานะ</th><th>สมัครเมื่อ</th><th>Actions</th>
+        </tr>
+        <tbody id="new-shops-body">
+          <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- ─── RESET PASSWORD MODAL ─── -->
-<div id="modal-password" class="modal-overlay">
-  <div class="modal">
-    <h3>🔑 รีเซ็ตรหัสผ่าน</h3>
-    <input type="hidden" id="pw-username">
-    <p style="color:var(--text2);font-size:13px;margin-bottom:14px;">
-      ร้าน: <strong id="pw-shop-name" style="color:var(--text)"></strong>
-    </p>
-    <label class="modal-label">รหัสผ่านใหม่</label>
-    <input id="pw-new" class="modal-input" type="text" placeholder="รหัสผ่านใหม่ (อย่างน้อย 4 ตัว)">
-    <div class="modal-hint">💡 แนะนำให้แจ้งลูกค้าหลังรีเซ็ต</div>
-    <div id="pw-err" class="modal-err"></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('modal-password')">ยกเลิก</button>
-      <button class="btn-ok" onclick="submitPassword()">รีเซ็ต</button>
+<!-- ───── TAB: USERS ───── -->
+<div id="tab-users" class="tab-content">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="sec-hdr">
+      <h3>👥 ร้านค้าทั้งหมด</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="user-search" placeholder="🔍 ค้นหา..." style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:6px 12px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;width:180px;" oninput="filterUsers()">
+        <select id="user-filter" style="background:var(--bg);border:1px solid var(--border2);color:var(--text2);padding:6px 10px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;" onchange="filterUsers()">
+          <option value="all">ทั้งหมด</option>
+          <option value="active">Active เท่านั้น</option>
+          <option value="pending">Pending เท่านั้น</option>
+          <option value="pro">Pro เท่านั้น</option>
+        </select>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th>
+          <th>แพ็กเกจ</th><th>สถานะ</th>
+          <th>AI วันนี้</th><th>สมัครเมื่อ</th>
+          <th>Backup</th><th>Export</th><th>Actions</th>
+        </tr>
+        <tbody id="users-body">
+          <tr><td colspan="10"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- ─── DELETE MODAL ─── -->
-<div id="modal-delete" class="modal-overlay">
-  <div class="modal">
-    <h3>🗑 ลบบัญชีร้าน</h3>
-    <input type="hidden" id="del-username">
-    <p style="color:var(--text2);font-size:14px;margin-bottom:8px;">
-      คุณแน่ใจว่าจะลบร้าน<br>
-      <strong id="del-shop-name" style="color:var(--red);font-size:16px;"></strong> ?
-    </p>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">⚠️ ไม่สามารถกู้คืนได้</p>
-    <div id="del-err" class="modal-err"></div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('modal-delete')">ยกเลิก</button>
-      <button class="btn-danger" onclick="submitDelete()">ลบเลย</button>
+<!-- ───── TAB: CHATS ───── -->
+<div id="tab-chats" class="tab-content">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="sec-hdr">
+      <h3>💬 ประวัติ AI Chat แต่ละร้าน</h3>
+      <span class="badge">จากข้อมูล Backup</span>
+    </div>
+    <div class="chat-filters" id="chat-shop-filters">
+      <button class="chat-filter-btn active" onclick="filterChats('all')" data-shop="all">ทุกร้าน</button>
+    </div>
+    <div id="chat-entries-wrap">
+      <div class="empty-state"><div class="icon">💬</div>ยังไม่มีข้อมูล Chat — กด Refresh เพื่อโหลด</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr">
+      <h3>📊 สถิติ AI Usage รายร้าน (7 วัน)</h3>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>ร้าน</th><th>Username</th><th>แพ็กเกจ</th>
+          <th>ใช้วันนี้</th><th>เหลือวันนี้</th>
+          <th>Usage Bar</th>
+        </tr>
+        <tbody id="ai-usage-body">
+          <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- ─── TOAST ─── -->
-<div id="toast" class="toast"></div>
+<!-- ───── TAB: ACTIVITY ───── -->
+<div id="tab-activity" class="tab-content">
+  <div class="grid-2">
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>⚡ Activity Feed</h3>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span id="log-count" class="badge">0 events</span>
+          <button class="act-btn act-btn-orange" onclick="clearLog()">ล้าง</button>
+        </div>
+      </div>
+      <div class="log-panel" id="log-panel">
+        <div class="log-line"><span class="log-ts">--:--:--</span><span class="log-msg system">เริ่มต้น Monitor...</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>📦 Backup Files รายร้าน</h3>
+        <span class="badge" id="backup-count">—</span>
+      </div>
+      <div class="tbl-wrap" style="max-height:340px;overflow-y:auto;">
+        <table>
+          <tr><th>ร้าน</th><th>ไฟล์ล่าสุด</th><th>ขนาด</th><th>ดู</th></tr>
+          <tbody id="backup-body">
+            <tr><td colspan="4"><div class="empty-state"><div class="icon">📁</div>กำลังโหลด...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr">
+      <h3>🔄 Sync Timeline (7 วันล่าสุด)</h3>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>ร้าน</th><th>Username</th><th>วันที่ Sync ล่าสุด</th><th>จำนวนไฟล์</th><th>มี History</th><th>มี Members</th><th>มี Products</th></tr>
+        <tbody id="sync-body">
+          <tr><td colspan="7"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ───── TAB: SERVER ───── -->
+<div id="tab-server" class="tab-content">
+  <div class="grid-4">
+    <div class="card stat-card green"><span class="lbl">Server Status</span><span class="val" id="srv-status">—</span></div>
+    <div class="card stat-card blue"><span class="lbl">Version</span><span class="val" id="srv-version" style="font-size:20px">—</span></div>
+    <div class="card stat-card"><span class="lbl">Gemini Model</span><span class="val" id="srv-model" style="font-size:14px;color:var(--gold2)">—</span></div>
+    <div class="card stat-card"><span class="lbl">AI Key</span><span class="val" id="srv-aikey">—</span></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="sec-hdr"><h3>🕐 Server Time</h3></div>
+      <div class="mono" id="srv-time" style="font-size:28px;color:var(--gold2);margin:8px 0;">--:--:--</div>
+      <div style="font-size:12px;color:var(--text3)" id="srv-date">-- / -- / ----</div>
+      <div style="margin-top:16px;font-size:12px;color:var(--text3)">Starter Daily Limit</div>
+      <div class="mono" style="font-size:24px;color:var(--blue2);margin-top:4px;" id="srv-limit">—</div>
+    </div>
+    <div class="card">
+      <div class="sec-hdr"><h3>📡 API Health Check</h3></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;" id="api-checks">
+        <div class="health-item">
+          <span class="h-lbl">Last Health Check</span>
+          <span class="h-val" id="last-health" style="color:var(--green2)">—</span>
+        </div>
+        <div class="health-item">
+          <span class="h-lbl">Response Time</span>
+          <span class="h-val" id="resp-time" style="color:var(--blue2)">— ms</span>
+        </div>
+        <div class="health-item">
+          <span class="h-lbl">Total API Calls (session)</span>
+          <span class="h-val" id="total-calls" style="color:var(--gold2)">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr"><h3>📈 Uptime Stats (session)</h3></div>
+    <div class="bar-wrap" id="uptime-bars">
+      <div class="empty-state"><div class="icon">📡</div>กำลังตรวจสอบ...</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- TOAST -->
+<div id="toast"></div>
 
 <script>
-let allUsers = [];
-let expandedUser = null;
+// ──────────────────────────────────────
+// STATE
+// ──────────────────────────────────────
+let ADMIN_KEY = '';
+let BASE_URL  = '';
+let refreshTimer = null;
+let allUsersData  = [];
+let sessionCalls  = 0;
+let sessionErrors = 0;
+let sessionStart  = Date.now();
+let logLines      = [];
+let chatData      = {};
+let currentChatShop = 'all';
 
-// ─── AUTH ───────────────────────────────────────────────
+// ──────────────────────────────────────
+// LOGIN
+// ──────────────────────────────────────
+function doLogin() {
+  const k = document.getElementById('key-input').value.trim();
+  if (!k) return;
+  ADMIN_KEY = k;
+  BASE_URL  = window.location.origin;
+  // Test with health endpoint
+  fetch(`${BASE_URL}/api/health`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'ok') {
+        document.getElementById('lock-screen').style.display = 'none';
+        init();
+      } else {
+        showLockError();
+      }
+    })
+    .catch(() => showLockError());
+}
+document.getElementById('key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+function showLockError() {
+  const el = document.getElementById('lock-err');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
 
-async function checkAuth() {
+// ──────────────────────────────────────
+// INIT
+// ──────────────────────────────────────
+function init() {
+  addLog('system', '', 'Monitor เริ่มต้นแล้ว 🌿');
+  refreshAll();
+  const iv = parseInt(document.getElementById('interval-sel').value);
+  refreshTimer = setInterval(refreshAll, iv);
+}
+
+function changeInterval() {
+  clearInterval(refreshTimer);
+  const iv = parseInt(document.getElementById('interval-sel').value);
+  refreshTimer = setInterval(refreshAll, iv);
+  addLog('system', '', `เปลี่ยน interval เป็น ${iv/1000}s`);
+}
+
+// ──────────────────────────────────────
+// TABS
+// ──────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ──────────────────────────────────────
+// REFRESH ALL
+// ──────────────────────────────────────
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  sessionCalls++;
+  document.getElementById('total-calls').textContent = sessionCalls;
+
   try {
-    const r = await fetch('/api/admin/me');
-    if (r.ok) showAdmin();
-    else showLogin();
-  } catch { showLogin(); }
+    await Promise.all([
+      loadHealth(),
+      loadUsers(),
+    ]);
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      now.toLocaleTimeString('th-TH');
+    addLog('system', '', `รีเฟรชข้อมูลสำเร็จ ✓`);
+  } catch(e) {
+    sessionErrors++;
+    addLog('error', '', `รีเฟรชล้มเหลว: ${e.message}`);
+  }
+  btn.classList.remove('spinning');
 }
 
-function showLogin() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('admin-screen').style.display = 'none';
-  setTimeout(() => document.getElementById('login-key').focus(), 100);
-}
-function showAdmin() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('admin-screen').style.display = 'block';
-  loadUsers();
+// ──────────────────────────────────────
+// HEALTH
+// ──────────────────────────────────────
+async function loadHealth() {
+  const t0 = Date.now();
+  const r   = await fetch(`${BASE_URL}/api/health`);
+  const d   = await r.json();
+  const ms  = Date.now() - t0;
+
+  document.getElementById('srv-status').textContent  = d.status === 'ok' ? '✅ OK' : '❌ ERROR';
+  document.getElementById('srv-version').textContent = d.version || '—';
+  document.getElementById('srv-model').textContent   = d.model || '—';
+  document.getElementById('srv-aikey').textContent   = d.ai_key ? '✅ พร้อม' : '❌ ไม่มี';
+  document.getElementById('srv-limit').textContent   = d.starter_limit || '—';
+  document.getElementById('resp-time').textContent   = `${ms} ms`;
+  document.getElementById('last-health').textContent = new Date().toLocaleTimeString('th-TH');
+
+  if (d.time) {
+    const parts = d.time.split(' ');
+    document.getElementById('srv-time').textContent = parts[1] || d.time;
+    document.getElementById('srv-date').textContent = parts[0] || '';
+  }
+
+  // uptime bars
+  const uptime = Math.floor((Date.now() - sessionStart) / 1000);
+  const errPct = sessionCalls > 0 ? Math.round(sessionErrors / sessionCalls * 100) : 0;
+  document.getElementById('uptime-bars').innerHTML = `
+    <div class="bar-row">
+      <span class="bar-lbl">Uptime (session)</span>
+      <div class="bar-track"><div class="bar-fill" style="background:var(--green);width:100%"></div></div>
+      <span class="bar-val">${fmtUptime(uptime)}</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">Response Time</span>
+      <div class="bar-track"><div class="bar-fill" style="background:${ms<300?'var(--green)':ms<800?'var(--gold)':'var(--red)'};width:${Math.min(ms/10,100)}%"></div></div>
+      <span class="bar-val">${ms}ms</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">API Calls</span>
+      <div class="bar-track"><div class="bar-fill" style="background:var(--blue);width:${Math.min(sessionCalls*5,100)}%"></div></div>
+      <span class="bar-val">${sessionCalls}</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">Error Rate</span>
+      <div class="bar-track"><div class="bar-fill" style="background:${errPct>10?'var(--red)':'var(--green)'};width:${errPct}%"></div></div>
+      <span class="bar-val">${errPct}%</span>
+    </div>
+  `;
 }
 
-async function doLogin() {
-  const key = document.getElementById('login-key').value.trim();
-  const err = document.getElementById('login-err');
-  err.textContent = '';
-  if (!key) { err.textContent = 'กรุณาใส่รหัส'; return; }
-  try {
-    const r = await fetch('/api/admin/login', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ key })
-    });
-    const d = await r.json();
-    if (d.ok) showAdmin();
-    else err.textContent = d.msg || 'รหัสไม่ถูกต้อง';
-  } catch { err.textContent = 'เชื่อมต่อไม่ได้'; }
-}
-
-async function doLogout() {
-  await fetch('/api/admin/logout', { method: 'POST' });
-  document.getElementById('login-key').value = '';
-  showLogin();
-}
-
-// ─── LOAD USERS ─────────────────────────────────────────
-
+// ──────────────────────────────────────
+// USERS + ALL DATA
+// ──────────────────────────────────────
 async function loadUsers() {
-  document.getElementById('users-list').innerHTML =
-    '<div class="loading"><div class="spinner"></div>กำลังโหลด...</div>';
-  try {
-    const r = await fetch('/api/admin/users');
-    if (r.status === 401) { showLogin(); return; }
-    const d = await r.json();
-    if (!d.ok) { showToast('โหลดข้อมูลไม่ได้', true); return; }
-    allUsers = d.users;
-    // summary
-    const s = d.summary;
-    document.getElementById('sum-total').textContent   = s.total;
-    document.getElementById('sum-active').textContent  = s.active;
-    document.getElementById('sum-pending').textContent = s.pending;
-    document.getElementById('sum-revenue').textContent = s.revenue.toLocaleString();
-    renderUsers();
-  } catch { showToast('เชื่อมต่อไม่ได้', true); }
-}
-
-function renderUsers() {
-  const q      = document.getElementById('search-input').value.trim().toLowerCase();
-  const status = document.getElementById('filter-status').value;
-  const plan   = document.getElementById('filter-plan').value;
-
-  let list = allUsers.filter(u => {
-    if (status !== 'all' && u.status !== status) return false;
-    if (plan   !== 'all' && u.plan   !== plan)   return false;
-    if (q && !u.shop_name.toLowerCase().includes(q) && !u.username.toLowerCase().includes(q)) return false;
-    return true;
+  const r = await fetch(`${BASE_URL}/api/admin/users`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    credentials: 'include'
   });
 
-  const el = document.getElementById('users-list');
-  if (!list.length) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">🏪</div>ไม่พบร้านที่ค้นหา</div>';
+  // Try session-based admin endpoint
+  let d;
+  if (r.status === 401) {
+    // Login session first
+    await fetch(`${BASE_URL}/api/admin/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({key: ADMIN_KEY}),
+      credentials: 'include'
+    });
+    const r2 = await fetch(`${BASE_URL}/api/admin/users`, { credentials: 'include' });
+    d = await r2.json();
+  } else {
+    d = await r.json();
+  }
+
+  if (!d.ok) {
+    // Fallback: use admin/list page data via key param
+    await loadFromListPage();
     return;
   }
 
-  el.innerHTML = list.map(u => {
-    const statusBadge = u.status === 'active'
-      ? '<span class="badge badge-active">✅ Active</span>'
-      : '<span class="badge badge-pending">⏳ Pending</span>';
-    const planBadge = u.plan === 'pro'
-      ? '<span class="badge badge-pro">🤖 Pro</span>'
-      : '<span class="badge badge-starter">📋 Starter</span>';
+  const users   = d.users || [];
+  const summary = d.summary || {};
+  allUsersData  = users;
 
-    const isExpanded = expandedUser === u.username;
-    const expanded   = isExpanded ? 'expanded' : '';
+  // Overview stats
+  document.getElementById('s-total').textContent   = summary.total || users.length;
+  document.getElementById('s-active').textContent  = summary.active || 0;
+  document.getElementById('s-pending').textContent = summary.pending || 0;
+  document.getElementById('s-revenue').textContent = `${(summary.revenue||0).toLocaleString()}฿`;
 
-    const approveBtn = u.status === 'pending'
-      ? `<button class="act-btn act-approve" onclick="quickApprove('${u.username}',event)">✅ อนุมัติ</button>`
-      : `<button class="act-btn act-suspend" onclick="quickSuspend('${u.username}',event)">⏸ ระงับ</button>`;
+  const pro     = users.filter(u => u.plan === 'pro' && u.status === 'active').length;
+  const starter = users.filter(u => u.plan === 'starter' && u.status === 'active').length;
+  const pending = users.filter(u => u.status === 'pending').length;
+  const total   = users.length;
 
+  document.getElementById('s-pro').textContent     = pro;
+  document.getElementById('s-starter').textContent = starter;
+  document.getElementById('s-pro-count').textContent = `${pro} Pro / ${starter} Starter`;
+
+  // Total AI today
+  const totalAI = users.reduce((a, u) => a + (u.ai_today || 0), 0);
+  document.getElementById('s-ai').textContent = totalAI;
+
+  // Plan distribution bars
+  if (total > 0) {
+    const pp = Math.round(pro/total*100);
+    const sp = Math.round(starter/total*100);
+    const pep= Math.round(pending/total*100);
+    document.getElementById('pro-pct').textContent     = pp + '%';
+    document.getElementById('starter-pct').textContent = sp + '%';
+    document.getElementById('pending-pct').textContent  = pep + '%';
+    document.getElementById('pro-bar').style.width     = pp + '%';
+    document.getElementById('starter-bar').style.width = sp + '%';
+    document.getElementById('pending-bar').style.width  = pep + '%';
+  }
+
+  // AI Usage bars
+  const aiUsers = [...users].sort((a, b) => (b.ai_today||0) - (a.ai_today||0)).slice(0, 8);
+  const maxAI   = Math.max(...aiUsers.map(u => u.ai_today||0), 1);
+  document.getElementById('ai-badge').textContent = `${totalAI} calls วันนี้`;
+  document.getElementById('ai-bar-wrap').innerHTML = aiUsers.length
+    ? aiUsers.map(u => `
+      <div class="bar-row">
+        <span class="bar-lbl" title="${u.shop_name}">${u.shop_name||u.username}</span>
+        <div class="bar-track"><div class="bar-fill" style="background:${(u.ai_today||0)>15?'var(--orange)':'var(--green)'};width:${Math.round((u.ai_today||0)/maxAI*100)}%"></div></div>
+        <span class="bar-val">${u.ai_today||0}</span>
+      </div>`).join('')
+    : '<div class="empty-state"><div class="icon">📊</div>ยังไม่มี AI Usage</div>';
+
+  // New shops
+  const sorted5 = [...users].sort((a, b) => b.created_at > a.created_at ? 1 : -1).slice(0, 5);
+  document.getElementById('new-shops-count').textContent = `${users.length} ร้าน`;
+  document.getElementById('new-shops-body').innerHTML = sorted5.map(u => `
+    <tr>
+      <td class="mono" style="color:var(--gold2)">${esc(u.username)}</td>
+      <td>${esc(u.shop_name)}</td>
+      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro':'📋 Starter'}</span></td>
+      <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
+      <td class="mono" style="font-size:12px;color:var(--text3)">${u.created_at||'—'}</td>
+      <td>
+        ${u.status==='pending'
+          ? `<button class="act-btn act-btn-green" onclick="approveUser('${esc(u.username)}')">✅ อนุมัติ</button>`
+          : `<button class="act-btn act-btn-orange" onclick="suspendUser('${esc(u.username)}')">⏸ ระงับ</button>`}
+      </td>
+    </tr>`).join('');
+
+  // Full users table
+  renderUsersTable(users);
+
+  // AI usage table (chats tab)
+  renderAIUsageTable(users);
+
+  // Activity log - detect new pending
+  const newPending = users.filter(u => u.status === 'pending');
+  if (newPending.length > 0) {
+    newPending.forEach(u => {
+      const key = `pending-${u.username}`;
+      if (!window._loggedPending) window._loggedPending = {};
+      if (!window._loggedPending[key]) {
+        window._loggedPending[key] = true;
+        addLog('login', u.shop_name, `🆕 สมัครใหม่รอยืนยัน: ${u.username} (${u.plan})`);
+      }
+    });
+  }
+
+  // Load backup data for each shop (chat history)
+  loadShopBackups(users);
+}
+
+// ──────────────────────────────────────
+// FALLBACK: load from admin/list page
+// ──────────────────────────────────────
+async function loadFromListPage() {
+  addLog('system', '', 'ใช้ key-based fallback...');
+  // Parse data from health endpoint which is public
+  const r = await fetch(`${BASE_URL}/api/health`);
+  const d = await r.json();
+  document.getElementById('s-total').textContent  = d.total || '—';
+  document.getElementById('s-active').textContent = d.active || '—';
+}
+
+// ──────────────────────────────────────
+// RENDER USERS TABLE
+// ──────────────────────────────────────
+function renderUsersTable(users) {
+  if (!users.length) {
+    document.getElementById('users-body').innerHTML =
+      '<tr><td colspan="10"><div class="empty-state"><div class="icon">👥</div>ยังไม่มีร้านค้า</div></td></tr>';
+    return;
+  }
+  document.getElementById('users-body').innerHTML = users.map(u => `
+    <tr id="urow-${esc(u.username)}">
+      <td class="mono" style="color:var(--gold2);font-size:13px">${esc(u.username)}</td>
+      <td style="font-weight:600">${esc(u.shop_name)}</td>
+      <td class="mono" style="font-size:12px;color:var(--text2)">${esc(u.phone||'—')}</td>
+      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro 399฿':'📋 Starter 199฿'}</span></td>
+      <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
+      <td style="color:${(u.ai_today||0)>15?'var(--orange2)':'var(--green2)'};font-weight:700" class="mono">${u.ai_today||0}</td>
+      <td class="mono" style="font-size:11px;color:var(--text3)">${u.created_at||'—'}</td>
+      <td>
+        <a href="${BASE_URL}/admin/backup/${esc(u.username)}/?key=${ADMIN_KEY}" target="_blank"
+           style="font-size:11px;color:var(--blue2)">📄 ดู JSON</a>
+      </td>
+      <td style="font-size:11px;">
+        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=sales" style="color:var(--blue2);display:block;">⬇️ ยอดขาย</a>
+        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=members" style="color:var(--blue2);display:block;margin-top:2px;">⬇️ สมาชิก</a>
+        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=products" style="color:var(--blue2);display:block;margin-top:2px;">⬇️ สินค้า</a>
+        <a href="${BASE_URL}/admin/analyze/${esc(u.username)}?key=${ADMIN_KEY}" target="_blank" style="color:var(--gold);display:block;margin-top:2px;font-weight:700;">🤖 AI วิเคราะห์</a>
+      </td>
+      <td style="white-space:nowrap;">
+        ${u.status==='pending'
+          ? `<button class="act-btn act-btn-green" onclick="approveUser('${esc(u.username)}')">✅ อนุมัติ</button> `
+          : `<button class="act-btn act-btn-orange" onclick="suspendUser('${esc(u.username)}')">⏸ ระงับ</button> `}
+        <button class="act-btn act-btn-red" onclick="deleteUser('${esc(u.username)}','${esc(u.shop_name)}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ──────────────────────────────────────
+// FILTER USERS
+// ──────────────────────────────────────
+function filterUsers() {
+  const q  = document.getElementById('user-search').value.toLowerCase();
+  const f  = document.getElementById('user-filter').value;
+  let filtered = allUsersData;
+  if (q) filtered = filtered.filter(u =>
+    u.username.toLowerCase().includes(q) ||
+    (u.shop_name||'').toLowerCase().includes(q) ||
+    (u.phone||'').includes(q)
+  );
+  if (f === 'active')  filtered = filtered.filter(u => u.status === 'active');
+  if (f === 'pending') filtered = filtered.filter(u => u.status === 'pending');
+  if (f === 'pro')     filtered = filtered.filter(u => u.plan === 'pro');
+  renderUsersTable(filtered);
+}
+
+// ──────────────────────────────────────
+// AI USAGE TABLE
+// ──────────────────────────────────────
+function renderAIUsageTable(users) {
+  const limit = 20;
+  document.getElementById('ai-usage-body').innerHTML = users.map(u => {
+    const used = u.ai_today || 0;
+    const isPro = u.plan === 'pro';
+    const rem   = isPro ? '∞' : Math.max(0, limit - used);
+    const pct   = isPro ? 0 : Math.min(used / limit * 100, 100);
     return `
-    <div class="user-card ${u.status} ${expanded}" id="card-${u.username}">
-      <div class="user-head" onclick="toggleExpand('${u.username}')">
-        <div class="user-avatar">${u.plan === 'pro' ? '🤖' : '🏪'}</div>
-        <div class="user-info">
-          <div class="user-name">${escHtml(u.shop_name)}</div>
-          <div class="user-sub">@${escHtml(u.username)} · ${escHtml(u.phone)}</div>
-        </div>
-        <div class="user-badges">
-          ${statusBadge}
-          ${planBadge}
-        </div>
-        <span class="expand-arrow">▼</span>
-      </div>
-      <div class="user-detail">
-        <div class="detail-row">
-          <span class="detail-key">สมัครเมื่อ</span>
-          <span class="detail-val">${u.created_at || '—'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-key">AI วันนี้</span>
-          <span class="detail-val ${u.ai_today > 15 ? 'orange' : 'green'}">${u.ai_today} ข้อความ</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-key">ราคา</span>
-          <span class="detail-val gold">${u.price.toLocaleString()}฿/เดือน</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-key">Shop ID</span>
-          <span class="detail-val" style="font-size:11px;color:var(--muted)">${u.shop_id}</span>
-        </div>
-        <div class="action-grid">
-          ${approveBtn}
-          <button class="act-btn act-edit" onclick="openEdit('${u.username}')">✏️ แก้ไขข้อมูล</button>
-          <button class="act-btn act-password" onclick="openPassword('${u.username}','${escHtml(u.shop_name)}')">🔑 รีเซ็ต PW</button>
-          <button class="act-btn act-delete" onclick="openDelete('${u.username}','${escHtml(u.shop_name)}')">🗑 ลบบัญชี</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+    <tr>
+      <td style="font-weight:600">${esc(u.shop_name)}</td>
+      <td class="mono" style="font-size:12px;color:var(--gold2)">${esc(u.username)}</td>
+      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan}</span></td>
+      <td class="mono" style="color:${used>15?'var(--orange2)':'var(--text)'}">${used}</td>
+      <td class="mono" style="color:${isPro?'var(--purple)':used>15?'var(--red)':'var(--green2)'}">${rem}</td>
+      <td style="min-width:120px;">
+        <div class="bar-track"><div class="bar-fill" style="background:${pct>75?'var(--red)':pct>50?'var(--orange)':'var(--green)'};width:${isPro?0:pct}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6"><div class="empty-state"><div class="icon">📊</div>ไม่มีข้อมูล</div></td></tr>';
 }
 
-function toggleExpand(username) {
-  expandedUser = expandedUser === username ? null : username;
-  renderUsers();
+// ──────────────────────────────────────
+// SHOP BACKUPS + CHAT HISTORY
+// ──────────────────────────────────────
+async function loadShopBackups(users) {
+  const backupRows = [];
+  const syncRows   = [];
+
+  for (const u of users.slice(0, 10)) {
+    // Get backup list via admin/list page key link
+    try {
+      // We can infer backup from the backup endpoint
+      const url = `${BASE_URL}/admin/backup/${encodeURIComponent(u.username)}/?key=${ADMIN_KEY}`;
+      // Can't fetch HTML directly due to structure — use the known pattern
+      // Fetch the latest backup JSON if possible
+      const bUrl = `${BASE_URL}/admin/export/${encodeURIComponent(u.username)}?key=${ADMIN_KEY}&mode=sales`;
+
+      backupRows.push(`
+        <tr>
+          <td style="font-weight:600">${esc(u.shop_name)}</td>
+          <td><a href="${BASE_URL}/admin/list?key=${ADMIN_KEY}" target="_blank" style="color:var(--blue2);font-size:12px;">📂 ดูรายการ</a></td>
+          <td class="mono" style="font-size:11px;color:var(--text3)">—</td>
+          <td><a href="${BASE_URL}/admin/analyze/${encodeURIComponent(u.username)}?key=${ADMIN_KEY}" target="_blank" class="act-btn act-btn-blue" style="text-decoration:none;">🤖 วิเคราะห์</a></td>
+        </tr>`);
+
+      syncRows.push(`
+        <tr>
+          <td style="font-weight:600">${esc(u.shop_name)}</td>
+          <td class="mono" style="font-size:12px;color:var(--gold2)">${esc(u.username)}</td>
+          <td class="mono" style="font-size:12px;color:var(--text3)">${u.created_at||'—'}</td>
+          <td class="mono">—</td>
+          <td><span class="pill pill-blue">—</span></td>
+          <td><span class="pill pill-blue">—</span></td>
+          <td><span class="pill pill-blue">—</span></td>
+        </tr>`);
+    } catch(e) {}
+  }
+
+  document.getElementById('backup-count').textContent = `${users.length} ร้าน`;
+  document.getElementById('backup-body').innerHTML = backupRows.join('') ||
+    '<tr><td colspan="4"><div class="empty-state"><div class="icon">📁</div>ไม่มีข้อมูล Backup</div></td></tr>';
+  document.getElementById('sync-body').innerHTML = syncRows.join('') ||
+    '<tr><td colspan="7"><div class="empty-state"><div class="icon">🔄</div>ไม่มีข้อมูล</div></td></tr>';
+
+  // Build chat shop filter buttons
+  buildChatFilters(users);
+  // Build chat entries from AI usage
+  buildChatEntries(users);
 }
 
-// ─── QUICK ACTIONS ───────────────────────────────────────
-
-async function quickApprove(username, e) {
-  e.stopPropagation();
-  const r = await fetch(`/api/admin/approve/${username}`, { method: 'POST' });
-  const d = await r.json();
-  if (d.ok) { showToast('✅ ' + d.msg); await loadUsers(); }
-  else showToast(d.msg, true);
-}
-
-async function quickSuspend(username, e) {
-  e.stopPropagation();
-  const r = await fetch(`/api/admin/suspend/${username}`, { method: 'POST' });
-  const d = await r.json();
-  if (d.ok) { showToast('⏸ ' + d.msg); await loadUsers(); }
-  else showToast(d.msg, true);
-}
-
-// ─── EDIT ────────────────────────────────────────────────
-
-function openEdit(username) {
-  const u = allUsers.find(x => x.username === username);
-  if (!u) return;
-  document.getElementById('edit-username').value    = username;
-  document.getElementById('edit-shop-name').value   = u.shop_name;
-  document.getElementById('edit-phone').value       = u.phone;
-  document.getElementById('edit-plan').value        = u.plan;
-  document.getElementById('edit-status').value      = u.status;
-  document.getElementById('edit-err').textContent   = '';
-  openModal('modal-edit');
-  setTimeout(() => document.getElementById('edit-shop-name').focus(), 200);
-}
-
-async function submitEdit() {
-  const username  = document.getElementById('edit-username').value;
-  const shop_name = document.getElementById('edit-shop-name').value.trim();
-  const phone     = document.getElementById('edit-phone').value.trim();
-  const plan      = document.getElementById('edit-plan').value;
-  const status    = document.getElementById('edit-status').value;
-  const err       = document.getElementById('edit-err');
-  if (!shop_name || !phone) { err.textContent = 'กรุณากรอกข้อมูลให้ครบ'; return; }
-  const r = await fetch(`/api/admin/edit/${username}`, {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ shop_name, phone, plan, status })
+// ──────────────────────────────────────
+// CHAT HISTORY (from AI usage data + simulated from backup)
+// ──────────────────────────────────────
+function buildChatFilters(users) {
+  const wrap = document.getElementById('chat-shop-filters');
+  const existing = Array.from(wrap.querySelectorAll('[data-shop]')).map(b => b.dataset.shop);
+  users.forEach(u => {
+    if (!existing.includes(u.username)) {
+      const btn = document.createElement('button');
+      btn.className = 'chat-filter-btn';
+      btn.dataset.shop = u.username;
+      btn.textContent = u.shop_name || u.username;
+      btn.onclick = () => filterChats(u.username);
+      wrap.appendChild(btn);
+    }
   });
-  const d = await r.json();
-  if (d.ok) {
-    closeModal('modal-edit');
-    showToast('✏️ ' + d.msg);
-    await loadUsers();
-  } else err.textContent = d.msg || 'เกิดข้อผิดพลาด';
 }
 
-// ─── RESET PASSWORD ──────────────────────────────────────
-
-function openPassword(username, shopName) {
-  document.getElementById('pw-username').value      = username;
-  document.getElementById('pw-shop-name').textContent = shopName;
-  document.getElementById('pw-new').value           = '';
-  document.getElementById('pw-err').textContent     = '';
-  openModal('modal-password');
-  setTimeout(() => document.getElementById('pw-new').focus(), 200);
-}
-
-async function submitPassword() {
-  const username = document.getElementById('pw-username').value;
-  const password = document.getElementById('pw-new').value.trim();
-  const err      = document.getElementById('pw-err');
-  if (password.length < 4) { err.textContent = 'รหัสผ่านต้องมีอย่างน้อย 4 ตัว'; return; }
-  const r = await fetch(`/api/admin/reset_password/${username}`, {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ password })
+function filterChats(shop) {
+  currentChatShop = shop;
+  document.querySelectorAll('.chat-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.shop === shop);
   });
-  const d = await r.json();
-  if (d.ok) {
-    closeModal('modal-password');
-    showToast('🔑 ' + d.msg);
-  } else err.textContent = d.msg || 'เกิดข้อผิดพลาด';
+  renderChatEntries();
 }
 
-// ─── DELETE ──────────────────────────────────────────────
-
-function openDelete(username, shopName) {
-  document.getElementById('del-username').value        = username;
-  document.getElementById('del-shop-name').textContent = shopName;
-  document.getElementById('del-err').textContent       = '';
-  openModal('modal-delete');
+function buildChatEntries(users) {
+  // Build synthetic chat data from AI usage info
+  // Real chat history would need a server-side endpoint that logs it
+  const entries = [];
+  users.forEach(u => {
+    const used = u.ai_today || 0;
+    if (used > 0) {
+      entries.push({
+        shop: u.username,
+        shop_name: u.shop_name,
+        ts: new Date().toLocaleTimeString('th-TH'),
+        used,
+        plan: u.plan,
+      });
+      addLog('chat', u.shop_name, `ใช้ AI ${used} ข้อความวันนี้`);
+    }
+  });
+  chatData._all = entries;
+  renderChatEntries();
 }
 
-async function submitDelete() {
-  const username = document.getElementById('del-username').value;
-  const err      = document.getElementById('del-err');
-  const r = await fetch(`/api/admin/delete/${username}`, { method: 'POST' });
-  const d = await r.json();
-  if (d.ok) {
-    closeModal('modal-delete');
-    expandedUser = null;
-    showToast('🗑 ' + d.msg);
-    await loadUsers();
-  } else err.textContent = d.msg || 'เกิดข้อผิดพลาด';
+function renderChatEntries() {
+  const entries = chatData._all || [];
+  const filtered = currentChatShop === 'all'
+    ? entries
+    : entries.filter(e => e.shop === currentChatShop);
+
+  const wrap = document.getElementById('chat-entries-wrap');
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">💬</div>ไม่พบประวัติ AI Chat — ยังไม่มีการใช้งาน AI วันนี้<br><br><small style="color:var(--text3)">💡 ต้องการดูประวัติ Chat ทั้งหมด ให้เพิ่ม endpoint /api/admin/chat-logs ใน app.py</small></div>';
+    return;
+  }
+
+  wrap.innerHTML = filtered.map(e => `
+    <div class="chat-entry">
+      <div class="chat-entry-hdr">
+        <span class="chat-entry-shop">🏪 ${esc(e.shop_name)} <span style="color:var(--text3);font-weight:400;font-size:12px">@${esc(e.shop)}</span></span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="pill ${e.plan==='pro'?'pill-purple':'pill-blue'}">${e.plan}</span>
+          <span class="chat-entry-ts">${e.ts}</span>
+        </div>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;font-size:13px;color:var(--text3);">
+        📊 ใช้ AI ไปแล้ว <strong style="color:var(--gold2)">${e.used} ข้อความ</strong> วันนี้
+        ${e.plan==='starter'?`<br>เหลือ <strong style="color:${Math.max(0,20-e.used)<=5?'var(--red)':'var(--green2)'}">${Math.max(0,20-e.used)}</strong> ข้อความ`:'<br><span style="color:var(--purple)">Pro: ไม่จำกัด</span>'}
+        <br><br>
+        <span style="color:var(--text3);font-size:12px;">⚠️ ดู Chat Log แบบ real-time ต้องเพิ่ม endpoint ใน app.py — ดูวิธีด้านล่าง</span>
+      </div>
+    </div>`).join('');
 }
 
-// ─── MODAL HELPERS ───────────────────────────────────────
+// ──────────────────────────────────────
+// ACTIONS
+// ──────────────────────────────────────
+async function approveUser(username) {
+  if (!confirm(`อนุมัติ ${username}?`)) return;
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/approve/${encodeURIComponent(username)}`, {
+      method: 'POST', credentials: 'include'
+    });
+    const d = await r.json();
+    showToast(d.msg || `✅ อนุมัติ ${username} แล้ว`);
+    addLog('login', username, `✅ อนุมัติแล้ว`);
+    setTimeout(loadUsers, 500);
+  } catch(e) {
+    // Fallback to URL-based approve
+    window.open(`${BASE_URL}/admin/action?key=${ADMIN_KEY}&act=approve&u=${encodeURIComponent(username)}`,'_blank');
+  }
+}
 
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+async function suspendUser(username) {
+  if (!confirm(`ระงับ ${username}?`)) return;
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/suspend/${encodeURIComponent(username)}`, {
+      method: 'POST', credentials: 'include'
+    });
+    const d = await r.json();
+    showToast(d.msg || `⏸ ระงับ ${username} แล้ว`);
+    addLog('login', username, `⏸ ระงับแล้ว`);
+    setTimeout(loadUsers, 500);
+  } catch(e) {
+    window.open(`${BASE_URL}/admin/action?key=${ADMIN_KEY}&act=suspend&u=${encodeURIComponent(username)}`,'_blank');
+  }
+}
 
-// close on backdrop click
-document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-});
+async function deleteUser(username, shopName) {
+  if (!confirm(`⚠️ ลบร้าน ${shopName} (@${username}) ออกจากระบบ?\nไม่สามารถกู้คืนได้!`)) return;
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/delete/${encodeURIComponent(username)}`, {
+      method: 'POST', credentials: 'include'
+    });
+    const d = await r.json();
+    showToast(d.msg || `🗑️ ลบ ${username} แล้ว`);
+    addLog('error', username, `🗑️ ลบออกจากระบบ`);
+    setTimeout(loadUsers, 500);
+  } catch(e) {
+    showToast('❌ ไม่สามารถลบได้ ลองอีกครั้ง');
+  }
+}
 
-// ─── TOAST ───────────────────────────────────────────────
+// ──────────────────────────────────────
+// LOG
+// ──────────────────────────────────────
+function addLog(type, shop, msg) {
+  const ts   = new Date().toLocaleTimeString('th-TH');
+  const line = { type, shop, msg, ts };
+  logLines.unshift(line);
+  if (logLines.length > 200) logLines.pop();
 
-let toastTimer;
-function showToast(msg, isError = false) {
+  const panel = document.getElementById('log-panel');
+  const div   = document.createElement('div');
+  div.className = 'log-line';
+  div.innerHTML = `
+    <span class="log-ts">${ts}</span>
+    ${shop ? `<span class="log-shop">[${esc(shop)}]</span>` : ''}
+    <span class="log-msg ${type}">${esc(msg)}</span>`;
+  panel.insertBefore(div, panel.firstChild);
+
+  // keep max 100 DOM lines
+  while (panel.children.length > 100) panel.removeChild(panel.lastChild);
+
+  document.getElementById('log-count').textContent = `${logLines.length} events`;
+}
+
+function clearLog() {
+  logLines = [];
+  document.getElementById('log-panel').innerHTML =
+    '<div class="log-line"><span class="log-ts">--:--:--</span><span class="log-msg system">ล้าง log แล้ว</span></div>';
+  document.getElementById('log-count').textContent = '0 events';
+}
+
+// ──────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtUptime(s) {
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}m`;
+  return `${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m`;
+}
+
+function showToast(msg, duration=3000) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast' + (isError ? ' error' : '');
-  requestAnimationFrame(() => t.classList.add('show'));
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
 }
 
-// ─── UTILS ───────────────────────────────────────────────
-
-function escHtml(t) {
-  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─── INIT ────────────────────────────────────────────────
-checkAuth();
+// ──────────────────────────────────────
+// TIP: CHAT LOG ENDPOINT (shown in UI)
+// ──────────────────────────────────────
+window.addEventListener('load', () => {
+  // Show chat log tip after 2s
+  setTimeout(() => {
+    if (document.getElementById('tab-chats').classList.contains('active')) return;
+    addLog('system', '', '💡 เพิ่ม /api/admin/chat-logs ใน app.py เพื่อดู chat history แบบ real-time');
+  }, 2000);
+});
 </script>
+
+<!-- TIP BOX: HOW TO ADD CHAT LOGS -->
+<div style="display:none" id="chat-log-tip">
+  <!-- 
+  เพิ่ม endpoint นี้ใน app.py เพื่อเก็บและดู Chat Log แบบ real-time:
+
+  # ในฟังก์ชัน chat() หลัง increment_usage() เพิ่ม:
+  log_chat(shop_id, session.get('username',''), contents, resp)
+
+  def log_chat(shop_id, username, contents, resp):
+      f = shop_dir(shop_id) / 'chat_log.json'
+      logs = json.loads(f.read_text(encoding='utf-8')) if f.exists() else []
+      ai_text = ''
+      try: ai_text = resp['candidates'][0]['content']['parts'][0]['text'][:500]
+      except: pass
+      logs.append({
+          'ts': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+          'user_msg': contents[-1]['parts'][0]['text'][:300] if contents else '',
+          'ai_reply': ai_text,
+          'username': username,
+      })
+      logs = logs[-50:]  # เก็บ 50 ล่าสุด
+      f.write_text(json.dumps(logs, ensure_ascii=False), encoding='utf-8')
+
+  @app.route('/api/admin/chat-logs')
+  def admin_chat_logs():
+      key = request.args.get('key','')
+      if key != ADMIN_KEY: return jsonify({'ok':False}), 403
+      users = load_users()
+      result = {}
+      for uname, u in users.items():
+          sid = u.get('shop_id','')
+          if not sid: continue
+          f = shop_dir(sid) / 'chat_log.json'
+          if f.exists():
+              result[uname] = {
+                  'shop_name': u['shop_name'],
+                  'logs': json.loads(f.read_text(encoding='utf-8'))
+              }
+      return jsonify({'ok':True,'data':result})
+  -->
+</div>
+
 </body>
 </html>
