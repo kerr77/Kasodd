@@ -2535,6 +2535,38 @@ ${promoLines}
 <ACTION>{"type":"create_promo","name":"คู่น้ำส้ม+สตรอเบอรี่","items":[{"key":"orange_juice","qty":1},{"key":"strawberry_juice","qty":1}],"promoPrice":90}</ACTION>
 หมายเหตุ: items ต้องใช้ key จากรายการสินค้าข้างบน, promoPrice คือราคารวมทั้งชุด (ต้องน้อยกว่าราคาปกติรวม)
 
+▶ เปิด/ปิดโปรโมชั่น (toggle เปิด-ปิดโปรที่มีอยู่แล้ว):
+<ACTION>{"type":"toggle_promo","name":"[ชื่อโปรโมชั่น]"}</ACTION>
+ตัวอย่าง: "ปิดโปรคู่น้ำส้มก่อนนะ" → <ACTION>{"type":"toggle_promo","name":"คู่น้ำส้ม+สตรอเบอรี่"}</ACTION>
+หมายเหตุ: ใช้ชื่อโปรให้ตรงกับที่มีในรายการโปรโมชั่นข้างบน
+
+▶ ลบโปรโมชั่น (ลบโปรออกจากระบบถาวร):
+<ACTION>{"type":"delete_promo","name":"[ชื่อโปรโมชั่น]"}</ACTION>
+ตัวอย่าง: "ลบโปรคู่น้ำส้มออกเลย" → <ACTION>{"type":"delete_promo","name":"คู่น้ำส้ม+สตรอเบอรี่"}</ACTION>
+
+▶ เพิ่มสมาชิกใหม่ (ลงทะเบียนสมาชิกใหม่):
+<ACTION>{"type":"create_member","phone":"[เบอร์โทร]","name":"[ชื่อสมาชิก]"}</ACTION>
+ตัวอย่าง: "เพิ่มสมาชิกใหม่ เบอร์ 0812345678 ชื่อสมชาย" → <ACTION>{"type":"create_member","phone":"0812345678","name":"สมชาย"}</ACTION>
+หมายเหตุ: phone ต้องไม่ซ้ำกับที่มีในระบบ
+
+▶ เพิ่มแต้มสมาชิก (เติมแต้มให้สมาชิก):
+<ACTION>{"type":"add_member_points","phone":"[เบอร์โทร]","points":[จำนวนแต้ม]}</ACTION>
+ตัวอย่าง: "เพิ่มแต้มให้ 0812345678 อีก 3 แต้ม" → <ACTION>{"type":"add_member_points","phone":"0812345678","points":3}</ACTION>
+
+▶ เปิดกะ (เริ่มกะการทำงานใหม่ พร้อมเงินตั้งต้น):
+<ACTION>{"type":"open_shift","float":[จำนวนเงินตั้งต้น],"staffName":"[ชื่อพนักงาน]"}</ACTION>
+ตัวอย่าง: "เปิดกะ เงินในลิ้นชัก 500 บาท" → <ACTION>{"type":"open_shift","float":500,"staffName":""}</ACTION>
+หมายเหตุ: ใช้เฉพาะเมื่อยังไม่มีกะเปิดอยู่
+
+▶ แก้ราคาสินค้า (อัปเดตราคาสินค้าที่มีอยู่แล้ว):
+<ACTION>{"type":"update_product_price","key":"[product_key]","price":[ราคาใหม่],"name":"[ชื่อสินค้า]"}</ACTION>
+ตัวอย่าง: "เปลี่ยนราคาน้ำส้มเป็น 55 บาท" → <ACTION>{"type":"update_product_price","key":"orange_juice","price":55,"name":"น้ำส้ม"}</ACTION>
+
+▶ ลบสินค้า (ลบสินค้าออกจากระบบถาวร):
+<ACTION>{"type":"delete_product","key":"[product_key]","name":"[ชื่อสินค้า]"}</ACTION>
+ตัวอย่าง: "ลบน้ำส้มออกจากเมนูเลย" → <ACTION>{"type":"delete_product","key":"orange_juice","name":"น้ำส้ม"}</ACTION>
+หมายเหตุ: ระวัง! การลบสินค้าจะลบออกถาวร
+
 
 
 Product keys ที่ใช้ได้: ${effProds.filter(p=>!p.promoBase).map(p=>`${p.name}=${p.key}`).join(', ')}
@@ -4080,6 +4112,11 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('มีสินค้ามาใหม่ [ชื่อสินค้า] ราคา [ราคา] บาท จำนวน [จำนวน] ชิ้น')">✨ เพิ่มสินค้าใหม่</span>
         <span class="tip-chip" onclick="popupSetTip('ซื้อ[รายการ]ไป [จำนวน] บาท')">💸 บันทึกค่าใช้จ่าย</span>
         <span class="tip-chip" onclick="popupSetTip('สร้างโปรโมชั่น ซื้อ [สินค้า A] + [สินค้า B] ราคาพิเศษ [ราคา] บาท')">🎉 สร้างโปร</span>
+        <span class="tip-chip" onclick="popupSetTip('ปิดโปรโมชั่น [ชื่อโปร]')">⏸️ ปิด/เปิดโปร</span>
+        <span class="tip-chip" onclick="popupSetTip('เพิ่มสมาชิกใหม่ เบอร์ [เบอร์โทร] ชื่อ [ชื่อ]')">👤 เพิ่มสมาชิก</span>
+        <span class="tip-chip" onclick="popupSetTip('เพิ่มแต้มให้เบอร์ [เบอร์โทร] อีก [จำนวน] แต้ม')">⭐ เพิ่มแต้ม</span>
+        <span class="tip-chip" onclick="popupSetTip('เปิดกะ เงินในลิ้นชัก [จำนวน] บาท')">🌅 เปิดกะ</span>
+        <span class="tip-chip" onclick="popupSetTip('เปลี่ยนราคา [ชื่อสินค้า] เป็น [ราคา] บาท')">💱 แก้ราคา</span>
       </div>
     </div>
 
@@ -4562,6 +4599,167 @@ async function popupSendChat() {
               box.appendChild(chip);
               box.scrollTop = box.scrollHeight;
             }, 300);
+          }
+
+          // --- 7. toggle โปรโมชั่น (เปิด/ปิด) ---
+          else if (action.type === 'toggle_promo' && action.name) {
+            const promos = loadPromos();
+            const idx = promos.findIndex(p => p.name === action.name);
+            if (idx >= 0) {
+              promos[idx].active = !promos[idx].active;
+              savePromos(promos);
+              renderPromoList();
+              renderCart();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                const st = promos[idx].active ? '✅ เปิดแล้ว' : '⏸️ ปิดแล้ว';
+                chip.textContent = `${st} โปรโมชั่น: ${action.name}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 8. ลบโปรโมชั่น ---
+          else if (action.type === 'delete_promo' && action.name) {
+            const promos = loadPromos();
+            const idx = promos.findIndex(p => p.name === action.name);
+            if (idx >= 0) {
+              promos.splice(idx, 1);
+              savePromos(promos);
+              renderPromoList();
+              renderCart();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `🗑️ ลบโปรโมชั่นแล้ว: ${action.name}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 9. เพิ่มสมาชิกใหม่ ---
+          else if (action.type === 'create_member' && action.phone) {
+            const members = getMembers();
+            const exists = members.find(m => m.phone === action.phone);
+            if (!exists) {
+              members.unshift({
+                phone: action.phone,
+                name: action.name || action.phone,
+                points: 0,
+                totalBills: 0,
+                totalSpend: 0
+              });
+              saveMembers(members);
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `👤 เพิ่มสมาชิกใหม่: ${action.name || action.phone} (${action.phone})`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ เบอร์ ${action.phone} มีในระบบแล้ว`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 10. เพิ่มแต้มสมาชิก ---
+          else if (action.type === 'add_member_points' && action.phone && action.points > 0) {
+            const members = getMembers();
+            const idx = members.findIndex(m => m.phone === action.phone);
+            if (idx >= 0) {
+              members[idx].points = (members[idx].points || 0) + action.points;
+              saveMembers(members);
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⭐ เพิ่ม ${action.points} แต้มให้ ${members[idx].name} (${action.phone}) รวม ${members[idx].points} แต้ม`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 11. เปิดกะ ---
+          else if (action.type === 'open_shift') {
+            const shift = getShift();
+            if (!shift || !shift.open) {
+              const newShift = {
+                open: true,
+                openTime: new Date().toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                float: action.float || 0,
+                staffName: action.staffName || ''
+              };
+              saveShift(newShift);
+              renderShiftBar();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `🌅 เปิดกะแล้ว — เงินตั้งต้น ฿${(action.float || 0).toLocaleString()}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ มีกะเปิดอยู่แล้ว — ต้องปิดกะเดิมก่อน`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 12. แก้ราคาสินค้า ---
+          else if (action.type === 'update_product_price' && action.key && action.price >= 0) {
+            const prods = getEffectiveProducts();
+            const idx = prods.findIndex(p => p.key === action.key);
+            if (idx >= 0) {
+              const oldPrice = prods[idx].price;
+              prods[idx].price = action.price;
+              saveCustomProducts(prods);
+              renderProducts();
+              renderAdminProducts();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `💱 แก้ราคา ${prods[idx].name}: ฿${oldPrice} → ฿${action.price}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 13. ลบสินค้า ---
+          else if (action.type === 'delete_product' && action.key) {
+            const prods = getEffectiveProducts();
+            const idx = prods.findIndex(p => p.key === action.key);
+            if (idx >= 0) {
+              const deletedName = prods[idx].name;
+              prods.splice(idx, 1);
+              saveCustomProducts(prods);
+              delete stock[action.key];
+              saveStock();
+              renderProducts();
+              renderStock();
+              renderAdminProducts();
+              initDeliverySelect();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `🗑️ ลบสินค้าแล้ว: ${deletedName}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
           }
 
         } catch(e) {}
