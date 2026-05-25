@@ -171,15 +171,21 @@ def chat():
         return jsonify({'error': 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY'}), 500
 
     import urllib.request, urllib.error
-    url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={GEMINI_KEY}'
+    # ใช้โมเดลเดิมที่ทำงานได้จริง
+    model = 'gemini-2.0-flash-lite'
+    url   = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_KEY}'
 
-    body = json.dumps({'contents': contents}).encode()
+    gen_config = data.get('generationConfig', {'maxOutputTokens': 1000, 'temperature': 0.7})
+    body = json.dumps({'contents': contents, 'generationConfig': gen_config}).encode()
     req  = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
-        text = resp['candidates'][0]['content']['parts'][0]['text']
-        return jsonify({'ok': True, 'text': text})
+        # ส่ง Gemini format ตรงๆ ให้ index.html อ่านได้เลย
+        return jsonify(resp)
+    except urllib.error.HTTPError as e:
+        err = json.loads(e.read().decode())
+        return jsonify(err), e.code
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
