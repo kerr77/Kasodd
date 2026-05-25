@@ -1,306 +1,362 @@
 """
-app.py — Flask Backend สำหรับ KAASOD POS v13
-รองรับ: serve หน้า POS, backup/sync ข้อมูล, export CSV, Gemini AI proxy
+app.py — ค้าสด (KAASOD) SaaS v3
+แพ็กเกจ: Starter 199฿ (สรุปรายอาทิตย์) | Pro 399฿ (AI ประจำร้าน)
 """
 
-from flask import Flask, request, jsonify, send_file, send_from_directory
-import json, os, csv, io, urllib.request, urllib.error
-from datetime import datetime
+from flask import Flask, request, jsonify, session, redirect
 from pathlib import Path
+import json, os, hashlib, secrets, csv, io
+from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'kaasod-secret-2026')
 
-# ─── โฟลเดอร์เก็บข้อมูล ───────────────────────────────────────────────────────
+# ─── Directories ──────────────────────────────────────────
 DATA_DIR   = Path('pos_data')
-BACKUP_DIR = DATA_DIR / 'backups'
-EXPORT_DIR = DATA_DIR / 'exports'
-STATIC_DIR = Path('static')
+SHOPS_DIR  = DATA_DIR / 'shops'
+USERS_FILE = DATA_DIR / 'users.json'
 
-for d in [DATA_DIR, BACKUP_DIR, EXPORT_DIR, STATIC_DIR]:
+for d in [DATA_DIR, SHOPS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
-INDEX_HTML = Path('index.html')
+ADMIN_KEY = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
+GEMINI_KEY = os.environ.get('GEMINI_API_KEY', '')
 
-# ─── ไฟล์เก็บ Gemini Key (ฝั่ง server ปลอดภัยกว่า localStorage) ──────────────
-GEMINI_KEY_FILE = DATA_DIR / 'gemini.key'
+# ─── Helpers ──────────────────────────────────────────────
+def load_users():
+    if USERS_FILE.exists():
+        return json.loads(USERS_FILE.read_text(encoding='utf-8'))
+    return {}
 
+def save_users(u):
+    USERS_FILE.write_text(json.dumps(u, ensure_ascii=False, indent=2), encoding='utf-8')
 
-def _get_gemini_key() -> str:
-    """อ่าน Gemini API Key จาก ENV ก่อน ถ้าไม่มีค่อยอ่านจากไฟล์"""
-    return (
-        os.environ.get('GEMINI_API_KEY', '').strip()
-        or (GEMINI_KEY_FILE.read_text().strip() if GEMINI_KEY_FILE.exists() else '')
-    )
+def hash_pw(pw):
+    return hashlib.sha256(pw.encode()).hexdigest()
 
+def shop_dir(shop_id):
+    d = SHOPS_DIR / shop_id
+    d.mkdir(exist_ok=True)
+    return d
 
-# ════════════════════════════════════════════════════════════
+def current_user():
+    if 'username' not in session:
+        return None
+    return load_users().get(session['username'])
+
+# ════════════════════════════════════════════════════════
 #  PAGES
-# ════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
 
 @app.route('/')
 def index():
-    """Serve หน้า POS หลัก"""
-    if INDEX_HTML.exists():
-        return INDEX_HTML.read_text(encoding='utf-8')
-    return "<h1>❌ ไม่พบ index.html — วางไฟล์ไว้ที่รูทโปรเจกต์</h1>", 404
+    f = Path('landing.html')
+    if f.exists():
+        return f.read_text(encoding='utf-8')
+    return "<h1>ไม่พบ landing.html</h1>", 404
+
+@app.route('/pos')
+def pos():
+    if 'shop_id' not in session:
+        return redirect('/')
+    f = Path('index.html')
+    if f.exists():
+        return f.read_text(encoding='utf-8')
+    return "<h1>ไม่พบ index.html</h1>", 404
+
+@app.route('/sw.js')
+def sw():
+    f = Path('sw.js')
+    if f.exists():
+        from flask import Response
+        return Response(f.read_text(), mimetype='application/javascript')
+    return '', 404
+
+# ════════════════════════════════════════════════════════
+#  AUTH
+# ════════════════════════════════════════════════════════
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    d         = request.get_json(silent=True) or {}
+    shop_name = d.get('shop_name', '').strip()
+    username  = d.get('username', '').strip().lower()
+    password  = d.get('password', '').strip()
+    phone     = d.get('phone', '').strip()
+    plan      = d.get('plan', 'starter')  # starter | pro
+
+    if plan not in ('starter', 'pro'):
+        plan = 'starter'
+
+    if not all([shop_name, username, password, phone]):
+        return jsonify({'ok': False, 'msg': 'กรอกข้อมูลให้ครบครับ'}), 400
+
+    users = load_users()
+    if username in users:
+        return jsonify({'ok': False, 'msg': 'ชื่อผู้ใช้นี้มีแล้วครับ'}), 400
+
+    shop_id = secrets.token_hex(6)
+    price   = 199 if plan == 'starter' else 399
+
+    users[username] = {
+        'shop_id':    shop_id,
+        'shop_name':  shop_name,
+        'phone':      phone,
+        'password':   hash_pw(password),
+        'plan':       plan,
+        'price':      price,
+        'status':     'pending',
+        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
+    }
+    save_users(users)
+    shop_dir(shop_id)
+
+    return jsonify({'ok': True, 'plan': plan, 'price': price})
 
 
-@app.route('/static/<path:filename>')
-def static_files(filename):
-    return send_from_directory(STATIC_DIR, filename)
+@app.route('/api/login', methods=['POST'])
+def login():
+    d        = request.get_json(silent=True) or {}
+    username = d.get('username', '').strip().lower()
+    password = d.get('password', '').strip()
+
+    users = load_users()
+    user  = users.get(username)
+
+    if not user or user['password'] != hash_pw(password):
+        return jsonify({'ok': False, 'msg': 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'}), 401
+
+    if user['status'] == 'pending':
+        return jsonify({'ok': False, 'msg': 'รอยืนยันการโอนเงินก่อนนะครับ ติดต่อ Line: @kaasod'}), 403
+
+    session['shop_id']   = user['shop_id']
+    session['shop_name'] = user['shop_name']
+    session['username']  = username
+    session['plan']      = user['plan']
+
+    return jsonify({'ok': True, 'shop_name': user['shop_name'], 'plan': user['plan']})
 
 
-# ════════════════════════════════════════════════════════════
-#  API — GEMINI AI PROXY  🤖
-#  Key อยู่ฝั่ง server — client ไม่เห็น key เลย
-# ════════════════════════════════════════════════════════════
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'ok': True})
 
-@app.route('/api/chat', methods=['POST'])
-def proxy_chat():
-    """
-    Proxy คำถามไปยัง Gemini API
-    Body: { contents: [...] }  ← Gemini contents format
-    Response: Gemini JSON response ตรงๆ
-    """
-    api_key = _get_gemini_key()
-    if not api_key:
-        return jsonify({
-            'error': 'ยังไม่ได้ตั้งค่า Gemini API Key',
-            'hint':  'ติดต่อทีมงานเพื่อเปิดใช้งาน AI หรือตั้งค่า GEMINI_API_KEY ใน environment'
-        }), 403
 
-    payload = request.get_json(silent=True) or {}
-    contents = payload.get('contents', [])
-    gen_cfg  = payload.get('generationConfig', {
-        'maxOutputTokens': 1000,
-        'temperature': 0.7
+@app.route('/api/me')
+def me():
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+    return jsonify({
+        'ok':        True,
+        'shop_id':   session['shop_id'],
+        'shop_name': session['shop_name'],
+        'username':  session['username'],
+        'plan':      session.get('plan', 'starter'),
     })
 
-    model = 'gemini-2.0-flash-lite'   # อัปเดตเป็นรุ่นล่าสุด
-    url   = (
-        f'https://generativelanguage.googleapis.com/v1beta/models'
-        f'/{model}:generateContent?key={api_key}'
-    )
-    body  = json.dumps({
-        'contents': contents,
-        'generationConfig': gen_cfg
-    }).encode('utf-8')
+# ════════════════════════════════════════════════════════
+#  AI CHAT — Pro เท่านั้น
+# ════════════════════════════════════════════════════════
 
-    req = urllib.request.Request(
-        url, data=body,
-        headers={'Content-Type': 'application/json'},
-        method='POST'
-    )
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    if 'shop_id' not in session:
+        return jsonify({'error': 'ไม่ได้ login'}), 401
+
+    # ตรวจ plan
+    if session.get('plan') != 'pro':
+        return jsonify({
+            'error': 'plan_required',
+            'msg':   'AI ประจำร้านสำหรับแพ็กเกจ Pro 399฿/เดือน เท่านั้นครับ 🤖'
+        }), 403
+
+    data     = request.get_json(silent=True) or {}
+    messages = data.get('messages', [])
+    system   = data.get('system', '')
+
+    if not GEMINI_KEY:
+        return jsonify({'error': 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY'}), 500
+
+    import urllib.request, urllib.error
+    url     = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}'
+    contents = []
+    if system:
+        contents.append({'role': 'user',  'parts': [{'text': '[SYSTEM]\n' + system}]})
+        contents.append({'role': 'model', 'parts': [{'text': 'รับทราบครับ พร้อมให้บริการ'}]})
+    contents.extend(messages)
+
+    body = json.dumps({'contents': contents}).encode()
+    req  = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
+
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
-            return jsonify(json.loads(r.read()))
+            resp = json.loads(r.read())
+        text = resp['candidates'][0]['content']['parts'][0]['text']
+        return jsonify({'ok': True, 'text': text})
     except urllib.error.HTTPError as e:
-        err_body = json.loads(e.read())
-        return jsonify({'error': err_body}), e.code
+        return jsonify({'error': e.read().decode()}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/chat/status', methods=['GET'])
-def chat_status():
-    """
-    บอก frontend ว่า AI พร้อมใช้งานหรือเปล่า (ไม่ส่ง key กลับ)
-    Response: { ai_ready: true/false }
-    """
-    return jsonify({'ai_ready': bool(_get_gemini_key())})
+# Weekly summary — Starter ขึ้นไปใช้ได้
+@app.route('/api/summary/weekly', methods=['POST'])
+def weekly_summary():
+    if 'shop_id' not in session:
+        return jsonify({'error': 'ไม่ได้ login'}), 401
 
+    data = request.get_json(silent=True) or {}
+    sales = data.get('sales', [])
 
-@app.route('/api/set-key', methods=['POST'])
-def set_api_key():
-    """
-    ทีมงานเรียกครั้งเดียวเพื่อฝัง Gemini Key ให้ร้าน
-    Header: X-Admin-Key: <ADMIN_KEY>
-    Body:   { "key": "AIzaSy..." }
-    """
-    admin_key = request.headers.get('X-Admin-Key', '')
-    expected  = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
-    if admin_key != expected:
-        return jsonify({'error': 'Unauthorized'}), 401
+    if not sales:
+        return jsonify({'ok': True, 'summary': 'ยังไม่มีข้อมูลยอดขายสัปดาห์นี้ครับ'})
 
-    key = (request.get_json(silent=True) or {}).get('key', '').strip()
-    if not key or not key.startswith('AIza'):
-        return jsonify({'error': 'key ไม่ถูกต้อง (ต้องขึ้นต้นด้วย AIza)'}), 400
+    total     = sum(s.get('total', 0) for s in sales)
+    count     = len(sales)
+    avg       = total / count if count else 0
+    top_items = {}
+    for s in sales:
+        for item in s.get('items', []):
+            name = item.get('name', '')
+            top_items[name] = top_items.get(name, 0) + item.get('qty', 1)
 
-    GEMINI_KEY_FILE.write_text(key, encoding='utf-8')
-    return jsonify({'status': 'ok', 'message': 'บันทึก Gemini Key แล้ว 🎉'})
+    top = sorted(top_items.items(), key=lambda x: x[1], reverse=True)[:3]
+    top_text = ', '.join([f"{n} ({q} ชิ้น)" for n, q in top]) or 'ไม่มีข้อมูล'
 
+    summary = (
+        f"📊 สรุปยอดขายสัปดาห์นี้\n"
+        f"รายได้รวม: {total:,.0f} บาท\n"
+        f"จำนวนบิล: {count} บิล\n"
+        f"เฉลี่ย/บิล: {avg:,.0f} บาท\n"
+        f"สินค้าขายดี: {top_text}"
+    )
+    return jsonify({'ok': True, 'summary': summary})
 
-@app.route('/api/remove-key', methods=['DELETE'])
-def remove_api_key():
-    """ลบ Gemini Key ออกจาก server (สำหรับยกเลิก package AI)"""
-    admin_key = request.headers.get('X-Admin-Key', '')
-    expected  = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
-    if admin_key != expected:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    if GEMINI_KEY_FILE.exists():
-        GEMINI_KEY_FILE.unlink()
-        return jsonify({'status': 'ok', 'message': 'ลบ Gemini Key แล้ว'})
-    return jsonify({'status': 'not_found'}), 404
-
-
-# ════════════════════════════════════════════════════════════
-#  API — SYNC / BACKUP  (รับข้อมูลจาก localStorage ของ browser)
-# ════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════
+#  SYNC / BACKUP
+# ════════════════════════════════════════════════════════
 
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
-    """
-    รับ snapshot ข้อมูล POS ทั้งหมดจาก frontend แล้วบันทึกเป็น JSON backup
-    Body: {
-        stock:    {...},
-        history:  [...],
-        products: [...],
-        members:  [...],
-        petty:    [...],
-        delivery: [...],
-        shift:    {...},
-    }
-    """
+    if 'shop_id' not in session:
+        return jsonify({'error': 'ไม่ได้ login'}), 401
+
     payload  = request.get_json(silent=True) or {}
-    ts       = datetime.now().strftime('%Y%m%d_%H%M%S')
     date_str = datetime.now().strftime('%Y-%m-%d')
+    ts       = datetime.now().strftime('%Y%m%d_%H%M%S')
+    d        = shop_dir(session['shop_id'])
 
-    # backup รายวัน (เขียนทับถ้าวันเดิม)
-    daily_file = BACKUP_DIR / f'pos_backup_{date_str}.json'
-    with open(daily_file, 'w', encoding='utf-8') as f:
-        json.dump({'synced_at': ts, 'data': payload}, f, ensure_ascii=False, indent=2)
-
-    # snapshot แยกทุกครั้ง (เก็บ 30 อันล่าสุด)
-    snap_file = BACKUP_DIR / f'snap_{ts}.json'
-    with open(snap_file, 'w', encoding='utf-8') as f:
-        json.dump({'synced_at': ts, 'data': payload}, f, ensure_ascii=False, indent=2)
-
-    _trim_snapshots(30)
-    return jsonify({'status': 'ok', 'backup': str(daily_file), 'snapshot': str(snap_file)})
+    f = d / f'backup_{date_str}.json'
+    f.write_text(json.dumps({'synced_at': ts, 'data': payload}, ensure_ascii=False, indent=2), encoding='utf-8')
+    return jsonify({'status': 'ok'})
 
 
 @app.route('/api/sync', methods=['GET'])
-def get_latest_backup():
-    """ดึงข้อมูล backup ล่าสุดให้ frontend โหลด (ใช้กู้คืน localStorage)"""
-    snaps = sorted(BACKUP_DIR.glob('snap_*.json'), reverse=True)
-    if not snaps:
+def get_sync():
+    if 'shop_id' not in session:
         return jsonify({'status': 'empty', 'data': {}})
-    with open(snaps[0], encoding='utf-8') as f:
-        data = json.load(f)
+
+    d     = shop_dir(session['shop_id'])
+    files = sorted(d.glob('backup_*.json'), reverse=True)
+    if not files:
+        return jsonify({'status': 'empty', 'data': {}})
+
+    data = json.loads(files[0].read_text(encoding='utf-8'))
     return jsonify({'status': 'ok', **data})
 
+# ════════════════════════════════════════════════════════
+#  ADMIN
+# ════════════════════════════════════════════════════════
 
-def _trim_snapshots(keep: int):
-    snaps = sorted(BACKUP_DIR.glob('snap_*.json'), reverse=True)
-    for old in snaps[keep:]:
-        try:
-            old.unlink()
-        except Exception:
-            pass
+@app.route('/admin/approve/<username>')
+def approve(username):
+    if request.args.get('key') != ADMIN_KEY:
+        return "ไม่มีสิทธิ์", 403
+    users = load_users()
+    if username not in users:
+        return f"ไม่พบ {username}", 404
+    users[username]['status'] = 'active'
+    save_users(users)
+    u = users[username]
+    return f"✅ อนุมัติ {username} ({u['shop_name']}) แพ็กเกจ {u['plan'].upper()} {u['price']}฿ สำเร็จ"
 
 
-# ════════════════════════════════════════════════════════════
-#  API — EXPORT
-# ════════════════════════════════════════════════════════════
+@app.route('/admin/list')
+def admin_list():
+    if request.args.get('key') != ADMIN_KEY:
+        return "ไม่มีสิทธิ์", 403
 
-@app.route('/api/export/csv', methods=['POST'])
-def export_csv():
+    users = load_users()
+    rows  = []
+    for u, d in users.items():
+        plan_badge = '🤖 Pro' if d['plan'] == 'pro' else '📋 Starter'
+        status_color = '#5aaa6a' if d['status'] == 'active' else '#e07b3a'
+        rows.append(f"""
+        <tr>
+          <td>{u}</td>
+          <td>{d['shop_name']}</td>
+          <td>{d['phone']}</td>
+          <td>{plan_badge} — {d['price']}฿</td>
+          <td style="color:{status_color};font-weight:bold">{d['status']}</td>
+          <td>{d['created_at']}</td>
+          <td><a href="/admin/approve/{u}?key={request.args.get('key')}">✅ อนุมัติ</a></td>
+        </tr>""")
+
+    active  = sum(1 for d in users.values() if d['status'] == 'active')
+    pending = sum(1 for d in users.values() if d['status'] == 'pending')
+    revenue = sum(d['price'] for d in users.values() if d['status'] == 'active')
+
+    return f"""
+    <html><head><meta charset="utf-8">
+    <style>
+      body{{font-family:sans-serif;padding:20px;background:#0f0e0c;color:#f0e8dc}}
+      table{{border-collapse:collapse;width:100%}}
+      td,th{{border:1px solid #2e2820;padding:10px;text-align:left}}
+      th{{background:#1a1815;color:#c9a84c}}
+      tr:hover{{background:#1a1815}}
+      .stat{{display:inline-block;background:#1a1815;border:1px solid #2e2820;
+             border-radius:10px;padding:12px 20px;margin:8px;text-align:center}}
+      .stat b{{display:block;font-size:24px;color:#c9a84c}}
+      a{{color:#e07b3a}}
+    </style></head>
+    <body>
+    <h2 style="color:#c9a84c">ค้าสด — Admin Panel</h2>
+    <div>
+      <div class="stat"><b>{len(users)}</b>ร้านทั้งหมด</div>
+      <div class="stat"><b style="color:#5aaa6a">{active}</b>Active</div>
+      <div class="stat"><b style="color:#e07b3a">{pending}</b>รอยืนยัน</div>
+      <div class="stat"><b>{revenue:,}฿</b>รายได้/เดือน</div>
+    </div>
+    <br>
+    <table>
+      <tr><th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th><th>แพ็กเกจ</th><th>สถานะ</th><th>สมัครเมื่อ</th><th>Action</th></tr>
+      {''.join(rows)}
+    </table>
+    </body></html>
     """
-    สร้าง CSV สรุปยอดขาย
-    Body: { history: [...], products: [...], stock: {...} }
-    """
-    payload  = request.get_json(silent=True) or {}
-    history  = payload.get('history', [])
-    products = payload.get('products', [])
-    stock    = payload.get('stock', {})
-    date_str = datetime.now().strftime('%Y-%m-%d')
 
-    summary = {}
-    for bill in history:
-        for item in bill.get('items', []):
-            key = item.get('key', '')
-            summary[key] = summary.get(key, 0) + item.get('qty', 0)
+# ════════════════════════════════════════════════════════
+#  HEALTH
+# ════════════════════════════════════════════════════════
 
-    cash      = sum(b['total'] for b in history if b.get('pay') == 'cash')
-    transfer  = sum(b['total'] for b in history if b.get('pay') == 'transfer')
-    free_cnt  = sum(1 for b in history if b.get('pay') == 'free')
-
-    output = io.StringIO()
-    output.write('\ufeff')  # BOM for Excel
-    w = csv.writer(output)
-
-    w.writerow([f'รายงานยอดขาย KAASOD POS — {date_str}'])
-    w.writerow([])
-    w.writerow(['สินค้า', 'ราคา/หน่วย', 'จำนวนที่ขาย', 'ยอดเงิน', 'สต็อกเหลือ'])
-    for p in products:
-        if p.get('promoBase'):
-            continue
-        key = p.get('key', '')
-        qty = summary.get(key, 0)
-        amt = qty * p.get('price', 0)
-        stk = stock.get(key, 0)
-        w.writerow([p.get('name', ''), p.get('price', 0), qty, amt, stk])
-
-    w.writerow([])
-    w.writerow(['─── สรุปการชำระ ───'])
-    w.writerow(['เงินสด',     f'฿{cash:,.0f}'])
-    w.writerow(['โอน',        f'฿{transfer:,.0f}'])
-    w.writerow(['รวม',        f'฿{cash + transfer:,.0f}'])
-    w.writerow(['แลกฟรี',     f'{free_cnt} บิล'])
-    w.writerow(['บิลทั้งหมด', f'{len(history)} ใบ'])
-
-    w.writerow([])
-    w.writerow(['─── ประวัติบิลแต่ละใบ ───'])
-    w.writerow(['เวลา', 'สมาชิก', 'วิธีชำระ', 'รายการ', 'ยอด'])
-    for bill in history:
-        items_str = ', '.join(f"{i['name']} x{i['qty']}" for i in bill.get('items', []))
-        w.writerow([
-            bill.get('time', ''),
-            bill.get('member', 'ทั่วไป'),
-            bill.get('pay', ''),
-            items_str,
-            bill.get('total', 0),
-        ])
-
-    csv_bytes = output.getvalue().encode('utf-8-sig')
-    fname     = f'pos_report_{date_str}.csv'
-    (EXPORT_DIR / fname).write_bytes(csv_bytes)
-
-    return send_file(
-        io.BytesIO(csv_bytes),
-        mimetype='text/csv; charset=utf-8-sig',
-        as_attachment=True,
-        download_name=fname,
-    )
+@app.route('/api/health')
+def health():
+    users = load_users()
+    return jsonify({
+        'status':      'ok',
+        'time':        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'total_shops': len(users),
+        'active':      sum(1 for u in users.values() if u['status'] == 'active'),
+        'pro':         sum(1 for u in users.values() if u['plan'] == 'pro' and u['status'] == 'active'),
+        'starter':     sum(1 for u in users.values() if u['plan'] == 'starter' and u['status'] == 'active'),
+    })
 
 
-@app.route('/api/export/json', methods=['POST'])
-def export_json():
-    """Export ข้อมูลทั้งหมดเป็น JSON"""
-    payload  = request.get_json(silent=True) or {}
-    date_str = datetime.now().strftime('%Y-%m-%d')
-    ts       = datetime.now().strftime('%Y%m%d_%H%M%S')
-
-    payload['exported_at'] = ts
-    json_bytes = json.dumps(payload, ensure_ascii=False, indent=2).encode('utf-8')
-    fname = f'pos_export_{date_str}.json'
-    (EXPORT_DIR / fname).write_bytes(json_bytes)
-
-    return send_file(
-        io.BytesIO(json_bytes),
-        mimetype='application/json',
-        as_attachment=True,
-        download_name=fname,
-    )
-
-
-# ════════════════════════════════════════════════════════════
-#  API — BACKUP MANAGEMENT
-# ════════════════════════════════════════════════════════════
-
-@app.route('/api/backups', methods=['GET'])
-def list_backups():
+if __name__ == '__main__':
+    print("🌿 ค้าสด SaaS v3 — http://localhost:5000")
+    app.run(debug=True, host='0.0.0.0', port=5000)
+_backups():
     snaps  = sorted(BACKUP_DIR.glob('snap_*.json'), reverse=True)
     result = []
     for f in snaps[:20]:
