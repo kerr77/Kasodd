@@ -2365,21 +2365,36 @@ ${prodLines}
 - รวม ${billCount} บิล ยอด ฿${todaySales.toLocaleString()}
 
 === สิ่งที่คุณทำได้ ===
+
 1. ตอบคำถามเรื่องสินค้า ราคา สต็อก
 2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก
-3. รับคำสั่งลงของผ่านแชท (ดูรูปแบบด้านล่าง)
+3. รับคำสั่งจัดการสต็อกผ่านแชท (เพิ่ม ลด ตั้งค่า)
 4. แนะนำการบริหารร้าน สต็อก การสั่งของ
 
-=== รับคำสั่งลงของผ่านแชท ===
-เมื่อผู้ใช้บอกว่ามีของมาลง หรือสั่งให้เติมสต็อก ให้ทำตามนี้เสมอ:
+=== รับคำสั่งจัดการสต็อกผ่านแชท ===
+เมื่อผู้ใช้สั่งให้จัดการสต็อก ให้ทำตามนี้เสมอ:
 1. ต้องส่ง <ACTION> tag ทุกครั้ง ห้ามละเว้น
 2. ต้องส่งทันทีในคำตอบเดียวกัน ไม่ต้องถามซ้ำ
-3. รูปแบบที่ต้องส่ง:
+3. ห้ามตอบแค่ข้อความโดยไม่มี <ACTION> tag เด็ดขาด
+
+รูปแบบที่ใช้ได้:
+
+▶ เพิ่มสต็อก (ของมาลง / เติมสต็อก):
 <ACTION>{"type":"add_stock","key":"[product_key]","qty":[number],"round":[round_number],"name":"[product_name]"}</ACTION>
-ตัวอย่าง: ถ้าผู้ใช้พิมพ์ "น้ำส้ม 50 ขวดมาลงนะ" ให้ตอบว่า:
-"รับทราบค่ะ ลงน้ำส้ม 50 ขวดเรียบร้อย 📦
-<ACTION>{"type":"add_stock","key":"orange_juice","qty":50,"round":1,"name":"น้ำส้ม"}</ACTION>"
-ห้ามตอบแค่ข้อความโดยไม่มี <ACTION> tag เด็ดขาด
+ตัวอย่าง: "น้ำส้ม 50 ขวดมาลงนะ"
+<ACTION>{"type":"add_stock","key":"orange_juice","qty":50,"round":1,"name":"น้ำส้ม"}</ACTION>
+
+▶ ลบ/ตัดสต็อก (ของหาย เสีย ทิ้ง ปรับลด หรือสั่งให้ลบออก):
+<ACTION>{"type":"reduce_stock","key":"[product_key]","qty":[number],"name":"[product_name]"}</ACTION>
+ตัวอย่าง: "ลบสต็อกน้ำส้มออก 100 ขวด"
+<ACTION>{"type":"reduce_stock","key":"orange_juice","qty":100,"name":"น้ำส้ม"}</ACTION>
+
+▶ ตั้งค่าสต็อกตรงๆ (set ให้เป็นจำนวนที่ระบุ):
+<ACTION>{"type":"set_stock","key":"[product_key]","qty":[number],"name":"[product_name]"}</ACTION>
+ตัวอย่าง: "ตั้งสต็อกน้ำส้มเป็น 80 ขวด"
+<ACTION>{"type":"set_stock","key":"orange_juice","qty":80,"name":"น้ำส้ม"}</ACTION>'''
+
+
 
 Product keys ที่ใช้ได้: ${effProds.filter(p=>!p.promoBase).map(p=>`${p.name}=${p.key}`).join(', ')}
 
@@ -3865,7 +3880,7 @@ async function popupSendChat() {
       popupChatHist.pop();
       return;
     }
-    const data = await res.json();
+        const data = await res.json();
     let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับคำตอบ';
 
     // Process ACTION tags (same as main chat)
@@ -3875,6 +3890,8 @@ async function popupSendChat() {
       if (actionMatch) {
         try {
           const action = JSON.parse(actionMatch[1]);
+          
+          // --- 1. สำหรับเพิ่มสต๊อก (ของเดิม) ---
           if (action.type === 'add_stock' && action.key && action.qty > 0) {
             stock[action.key] = (stock[action.key] || 0) + action.qty;
             saveStock();
@@ -3887,6 +3904,35 @@ async function popupSendChat() {
               box.scrollTop = box.scrollHeight;
             }, 300);
           }
+          
+          // --- 2. แทรกเพิ่ม: สำหรับลดสต๊อก (ของใหม่) ---
+          else if (action.type === 'reduce_stock' && action.key && action.qty > 0) {
+            stock[action.key] = Math.max(0, (stock[action.key] || 0) - action.qty);
+            saveStock();
+            renderProducts();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `✅ ระบบตัดสต็อก: ${action.name || action.key} -${action.qty}`;
+              box.appendChild(chip);
+              box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+          
+          // --- 3. แทรกเพิ่ม: สำหรับตั้งค่าสต๊อกแบบเจาะจงตัวเลข (ของใหม่) ---
+          else if (action.type === 'set_stock' && action.key && action.qty >= 0) {
+            stock[action.key] = action.qty;
+            saveStock();
+            renderProducts();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `✅ ระบบตั้งค่าสต็อก: ${action.name || action.key} เป็น ${action.qty}`;
+              box.appendChild(chip);
+              box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
         } catch(e) {}
         reply = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
       }
@@ -3895,6 +3941,7 @@ async function popupSendChat() {
     popupAppendMsg('bot', reply, true);
     popupChatHist.push({ role: 'assistant', content: reply });
     saveCurrentSession();
+
 
   } catch(e) {
     popupRemoveThinking(thinking);
