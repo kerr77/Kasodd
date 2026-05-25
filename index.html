@@ -2561,6 +2561,28 @@ ${promoLines}
 <ACTION>{"type":"add_member_points","phone":"[เบอร์โทร]","points":[จำนวนแต้ม]}</ACTION>
 ตัวอย่าง: "เพิ่มแต้มให้ 0812345678 อีก 3 แต้ม" → <ACTION>{"type":"add_member_points","phone":"0812345678","points":3}</ACTION>
 
+▶ แก้ข้อมูลสมาชิก (เปลี่ยนชื่อหรือเบอร์):
+<ACTION>{"type":"update_member","phone":"[เบอร์เดิม]","newName":"[ชื่อใหม่]","newPhone":"[เบอร์ใหม่]"}</ACTION>
+ตัวอย่าง: "เปลี่ยนชื่อเบอร์ 0812345678 เป็นสมหญิง" → <ACTION>{"type":"update_member","phone":"0812345678","newName":"สมหญิง"}</ACTION>
+
+▶ ลบสมาชิก (ลบออกจากระบบถาวร):
+<ACTION>{"type":"delete_member","phone":"[เบอร์โทร]"}</ACTION>
+ตัวอย่าง: "ลบสมาชิกเบอร์ 0812345678 ออก" → <ACTION>{"type":"delete_member","phone":"0812345678"}</ACTION>
+
+▶ ตั้งแต้มสมาชิกตรงๆ (set ให้เป็นจำนวนที่ระบุ ไม่ใช่เพิ่ม):
+<ACTION>{"type":"set_member_points","phone":"[เบอร์โทร]","points":[จำนวนแต้ม]}</ACTION>
+ตัวอย่าง: "รีเซ็ตแต้มเบอร์ 0812345678 เป็น 0" → <ACTION>{"type":"set_member_points","phone":"0812345678","points":0}</ACTION>
+
+▶ ปิดกะ (จบกะการทำงาน):
+<ACTION>{"type":"close_shift"}</ACTION>
+ตัวอย่าง: "ปิดกะได้เลย" → <ACTION>{"type":"close_shift"}</ACTION>
+หมายเหตุ: ใช้เฉพาะเมื่อมีกะเปิดอยู่ ระบบจะสรุปยอดให้อัตโนมัติ
+
+▶ ยกเลิกบิลล่าสุด (คืนสต็อกและลบบิลออก):
+<ACTION>{"type":"cancel_bill","index":0}</ACTION>
+ตัวอย่าง: "ยกเลิกบิลล่าสุด" → <ACTION>{"type":"cancel_bill","index":0}</ACTION>
+หมายเหตุ: index 0 = บิลล่าสุด, ระบบจะคืนสต็อกสินค้าในบิลนั้นด้วย
+
 ▶ เปิดกะ (เริ่มกะการทำงานใหม่ พร้อมเงินตั้งต้น):
 <ACTION>{"type":"open_shift","float":[จำนวนเงินตั้งต้น],"staffName":"[ชื่อพนักงาน]"}</ACTION>
 ตัวอย่าง: "เปิดกะ เงินในลิ้นชัก 500 บาท" → <ACTION>{"type":"open_shift","float":500,"staffName":""}</ACTION>
@@ -2574,6 +2596,22 @@ ${promoLines}
 <ACTION>{"type":"delete_product","key":"[product_key]","name":"[ชื่อสินค้า]"}</ACTION>
 ตัวอย่าง: "ลบน้ำส้มออกจากเมนูเลย" → <ACTION>{"type":"delete_product","key":"orange_juice","name":"น้ำส้ม"}</ACTION>
 หมายเหตุ: ระวัง! การลบสินค้าจะลบออกถาวร
+
+▶ แก้ชื่อ+ราคาสินค้าในคราวเดียว (เปลี่ยนชื่อ หรือราคา หรือทั้งคู่):
+<ACTION>{"type":"update_product","key":"[product_key]","name":"[ชื่อใหม่]","price":[ราคาใหม่]}</ACTION>
+ตัวอย่าง: "เปลี่ยนชื่อน้ำส้มเป็น น้ำส้มสด และราคา 60 บาท" → <ACTION>{"type":"update_product","key":"orange_juice","name":"น้ำส้มสด","price":60}</ACTION>
+ตัวอย่าง: "เปลี่ยนชื่อน้ำส้มเป็น น้ำส้มคั้น (ไม่เปลี่ยนราคา)" → <ACTION>{"type":"update_product","key":"orange_juice","name":"น้ำส้มคั้น"}</ACTION>
+หมายเหตุ: ส่งแค่ field ที่ต้องการเปลี่ยน ไม่ต้องส่งทั้งคู่เสมอ
+
+▶ บันทึกชำระหนี้ค้าง (ลูกค้าจ่ายหนี้บิลเก่า):
+<ACTION>{"type":"pay_debt","billIndex":[ลำดับบิลใน history 0=ล่าสุด],"amount":[จำนวนที่ชำระ]}</ACTION>
+ตัวอย่าง: "ลูกค้าจ่ายหนี้บิลล่าสุด 150 บาท" → <ACTION>{"type":"pay_debt","billIndex":0,"amount":150}</ACTION>
+หมายเหตุ: billIndex ดูจากบิลค้างชำระในสถานะร้าน (0 = ล่าสุด) — ระบบจะหักจาก debtRemaining และปิดหนี้ให้อัตโนมัติถ้าชำระครบ
+
+▶ แก้เงินตั้งต้นกะ (ถ้าใส่ผิดตอนเปิดกะ):
+<ACTION>{"type":"update_shift_float","float":[จำนวนเงินตั้งต้นที่ถูกต้อง]}</ACTION>
+ตัวอย่าง: "แก้เงินตั้งต้นกะเป็น 1000 บาท" → <ACTION>{"type":"update_shift_float","float":1000}</ACTION>
+หมายเหตุ: ใช้ได้เฉพาะเมื่อมีกะเปิดอยู่
 
 
 
@@ -4758,7 +4796,117 @@ async function popupSendChat() {
             }
           }
 
-          // --- 11. เปิดกะ ---
+          // --- 11. แก้ข้อมูลสมาชิก ---
+          else if (action.type === 'update_member' && action.phone) {
+            const members = getMembers();
+            const idx = members.findIndex(m => m.phone === action.phone);
+            if (idx >= 0) {
+              const oldName = members[idx].name;
+              if (action.newName) members[idx].name = action.newName;
+              if (action.newPhone) members[idx].phone = action.newPhone;
+              saveMembers(members);
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `✏️ แก้ข้อมูลสมาชิก: ${oldName} → ${members[idx].name}${action.newPhone ? ' เบอร์ใหม่: ' + action.newPhone : ''}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 12. ลบสมาชิก ---
+          else if (action.type === 'delete_member' && action.phone) {
+            const members = getMembers();
+            const idx = members.findIndex(m => m.phone === action.phone);
+            if (idx >= 0) {
+              const deletedName = members[idx].name;
+              members.splice(idx, 1);
+              saveMembers(members);
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `🗑️ ลบสมาชิกแล้ว: ${deletedName} (${action.phone})`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 13. ตั้งแต้มสมาชิกตรงๆ ---
+          else if (action.type === 'set_member_points' && action.phone && action.points >= 0) {
+            const members = getMembers();
+            const idx = members.findIndex(m => m.phone === action.phone);
+            if (idx >= 0) {
+              members[idx].points = action.points;
+              saveMembers(members);
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⭐ ตั้งแต้ม ${members[idx].name}: ${action.points} แต้ม`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 14. ปิดกะ ---
+          else if (action.type === 'close_shift') {
+            const shift = getShift();
+            if (shift && shift.open) {
+              const history = loadHistory();
+              const cash = history.filter(h => h.pay === 'cash').reduce((s, h) => s + h.total, 0);
+              const transfer = history.filter(h => h.pay === 'transfer').reduce((s, h) => s + h.total, 0);
+              const petty = loadPetty().reduce((s, p) => s + p.amount, 0);
+              shift.open = false;
+              shift.closeTime = new Date().toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit' });
+              saveShift(shift);
+              renderShiftBar();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `🌙 ปิดกะแล้ว — สด ฿${cash.toLocaleString()} | โอน ฿${transfer.toLocaleString()} | รายจ่าย ฿${petty.toLocaleString()} | กำไรสุทธิ ฿${(cash + transfer - petty).toLocaleString()}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ ยังไม่มีกะเปิดอยู่`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 15. ยกเลิกบิลล่าสุด ---
+          else if (action.type === 'cancel_bill') {
+            const history = loadHistory();
+            const idx = action.index ?? 0;
+            if (history[idx]) {
+              const bill = history[idx];
+              (bill.items || []).forEach(it => {
+                stock[it.key] = (stock[it.key] || 0) + (it.qty || 1);
+              });
+              saveStock();
+              history.splice(idx, 1);
+              saveHistory(history);
+              renderProducts();
+              renderStock();
+              autoSyncToServer();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                const itemsDesc = (bill.items || []).map(i => `${i.name}×${i.qty}`).join(', ');
+                chip.textContent = `↩️ ยกเลิกบิลแล้ว: ${itemsDesc} ฿${bill.total.toLocaleString()} (คืนสต็อกแล้ว)`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 16. เปิดกะ ---
           else if (action.type === 'open_shift') {
             const shift = getShift();
             if (!shift || !shift.open) {
@@ -4826,6 +4974,95 @@ async function popupSendChat() {
                 const chip = document.createElement('div');
                 chip.className = 'chat-msg system';
                 chip.textContent = `🗑️ ลบสินค้าแล้ว: ${deletedName}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 14. แก้ชื่อ+ราคาสินค้าในคราวเดียว ---
+          else if (action.type === 'update_product' && action.key) {
+            const prods = getEffectiveProducts();
+            const idx = prods.findIndex(p => p.key === action.key);
+            if (idx >= 0) {
+              const oldName  = prods[idx].name;
+              const oldPrice = prods[idx].price;
+              const changed  = [];
+              if (action.name  !== undefined && action.name  !== oldName)  { prods[idx].name  = action.name;  changed.push(`ชื่อ: ${oldName} → ${action.name}`); }
+              if (action.price !== undefined && action.price !== oldPrice)  { prods[idx].price = action.price; changed.push(`ราคา: ฿${oldPrice} → ฿${action.price}`); }
+              if (changed.length > 0) {
+                saveCustomProducts(prods);
+                renderProducts();
+                renderAdminProducts();
+              }
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = changed.length > 0
+                  ? `✏️ อัปเดตสินค้า ${prods[idx].name}: ${changed.join(' | ')}`
+                  : `ℹ️ ไม่มีการเปลี่ยนแปลงสำหรับ ${prods[idx].name}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 15. บันทึกชำระหนี้ค้าง ---
+          else if (action.type === 'pay_debt' && action.billIndex >= 0 && action.amount > 0) {
+            const history = loadHistory();
+            const bIdx = action.billIndex;
+            if (bIdx < history.length && history[bIdx].debtRemaining > 0) {
+              const bill   = history[bIdx];
+              const before = bill.debtRemaining;
+              const paid   = Math.min(action.amount, before);
+              bill.debtRemaining = Math.max(0, before - paid);
+              if (!bill.debtPayments) bill.debtPayments = [];
+              bill.debtPayments.push({ amount: paid, time: new Date().toLocaleString('th-TH') });
+              if (bill.debtRemaining === 0) bill.pay = bill._debtOriginalPay || 'cash';
+              saveHistory(history);
+              if (typeof renderHistory === 'function') renderHistory();
+              renderShiftBar();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                const mem = (bill.member && bill.member !== 'ทั่วไป') ? ` (${bill.member})` : '';
+                chip.textContent = bill.debtRemaining === 0
+                  ? `✅ ชำระหนี้ครบแล้ว${mem}: ฿${paid.toLocaleString()} — ปิดหนี้สะอาด!`
+                  : `💳 รับชำระ${mem}: ฿${paid.toLocaleString()} | ยังค้างอยู่ ฿${bill.debtRemaining.toLocaleString()}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ ไม่พบบิลค้างชำระ (index ${bIdx})`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
+          }
+
+          // --- 16. แก้เงินตั้งต้นกะ ---
+          else if (action.type === 'update_shift_float' && action.float >= 0) {
+            const shift = getShift();
+            if (shift && shift.open) {
+              const oldFloat = shift.float || 0;
+              shift.float = action.float;
+              saveShift(shift);
+              renderShiftBar();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `💰 แก้เงินตั้งต้นกะ: ฿${oldFloat.toLocaleString()} → ฿${action.float.toLocaleString()}`;
+                box.appendChild(chip);
+                box.scrollTop = box.scrollHeight;
+              }, 300);
+            } else {
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                chip.textContent = `⚠️ ไม่มีกะเปิดอยู่ — เปิดกะก่อนแล้วค่อยแก้เงินตั้งต้น`;
                 box.appendChild(chip);
                 box.scrollTop = box.scrollHeight;
               }, 300);
