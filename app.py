@@ -1,8 +1,5 @@
 """
 app_v5.py — ค้าสด (KAASOD) SaaS v5
-- Starter 199฿: AI 20 ข้อความ/วัน
-- Pro 399฿: AI ไม่จำกัด + วิเคราะห์ยอดขาย + ประวัติไม่จำกัด
-- Admin Panel: session-based, full CRUD
 """
 
 from flask import Flask, request, jsonify, session, redirect, Response
@@ -22,8 +19,7 @@ for d in [DATA_DIR, SHOPS_DIR]:
 ADMIN_KEY    = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
 GEMINI_KEY   = os.environ.get('GEMINI_API_KEY', '')
 GEMINI_MODEL = 'gemini-2.0-flash-lite'
-
-STARTER_DAILY_LIMIT = 20  # ข้อความ/วัน สำหรับ starter
+STARTER_DAILY_LIMIT = 20
 
 # ── helpers ────────────────────────────────────────────────
 
@@ -43,25 +39,17 @@ def shop_dir(sid):
     d.mkdir(exist_ok=True)
     return d
 
-def get_usage_file(shop_id):
-    return shop_dir(shop_id) / 'ai_usage.json'
-
 def get_today_usage(shop_id):
-    """นับจำนวน AI message วันนี้ของร้านนี้"""
-    f     = get_usage_file(shop_id)
+    f     = shop_dir(shop_id) / 'ai_usage.json'
     today = datetime.now().strftime('%Y-%m-%d')
-    if not f.exists():
-        return 0
-    data = json.loads(f.read_text(encoding='utf-8'))
-    return data.get(today, 0)
+    if not f.exists(): return 0
+    return json.loads(f.read_text(encoding='utf-8')).get(today, 0)
 
 def increment_usage(shop_id):
-    """เพิ่ม count AI message วันนี้"""
-    f     = get_usage_file(shop_id)
+    f     = shop_dir(shop_id) / 'ai_usage.json'
     today = datetime.now().strftime('%Y-%m-%d')
     data  = json.loads(f.read_text(encoding='utf-8')) if f.exists() else {}
     data[today] = data.get(today, 0) + 1
-    # เก็บแค่ 7 วันล่าสุด
     keys = sorted(data.keys(), reverse=True)[:7]
     data = {k: data[k] for k in keys}
     f.write_text(json.dumps(data), encoding='utf-8')
@@ -69,6 +57,9 @@ def increment_usage(shop_id):
 
 def is_admin():
     return session.get('is_admin') is True
+
+def esc(t):
+    return str(t).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('"','&quot;').replace("'","&#39;")
 
 # ── pages ──────────────────────────────────────────────────
 
@@ -94,73 +85,68 @@ def sw():
     f = Path('sw.js')
     return Response(f.read_text(), mimetype='application/javascript') if f.exists() else ('', 404)
 
-# ── auth (user) ─────────────────────────────────────────────
+# ── auth ───────────────────────────────────────────────────
 
 @app.route('/api/register', methods=['POST'])
 def register():
     d         = request.get_json(silent=True) or {}
-    shop_name = d.get('shop_name', '').strip()
-    username  = d.get('username', '').strip().lower()
-    password  = d.get('password', '').strip()
-    phone     = d.get('phone', '').strip()
-    plan      = d.get('plan', 'starter')
-    if plan not in ('starter', 'pro'):
-        plan = 'starter'
+    shop_name = d.get('shop_name','').strip()
+    username  = d.get('username','').strip().lower()
+    password  = d.get('password','').strip()
+    phone     = d.get('phone','').strip()
+    plan      = d.get('plan','starter')
+    if plan not in ('starter','pro'): plan = 'starter'
     if not all([shop_name, username, password, phone]):
-        return jsonify({'ok': False, 'msg': 'กรอกข้อมูลให้ครบครับ'}), 400
+        return jsonify({'ok':False,'msg':'กรอกข้อมูลให้ครบครับ'}), 400
     users = load_users()
     if username in users:
-        return jsonify({'ok': False, 'msg': 'ชื่อผู้ใช้นี้มีแล้วครับ'}), 400
+        return jsonify({'ok':False,'msg':'ชื่อผู้ใช้นี้มีแล้วครับ'}), 400
     price   = 199 if plan == 'starter' else 399
     shop_id = secrets.token_hex(6)
     users[username] = {
-        'shop_id': shop_id, 'shop_name': shop_name, 'phone': phone,
-        'password': hash_pw(password), 'plan': plan, 'price': price,
-        'status': 'pending', 'created_at': datetime.now().strftime('%Y-%m-%d %H:%M'),
+        'shop_id':shop_id,'shop_name':shop_name,'phone':phone,
+        'password':hash_pw(password),'plan':plan,'price':price,
+        'status':'pending','created_at':datetime.now().strftime('%Y-%m-%d %H:%M'),
     }
     save_users(users)
     shop_dir(shop_id)
-    return jsonify({'ok': True, 'plan': plan, 'price': price})
+    return jsonify({'ok':True,'plan':plan,'price':price})
 
 @app.route('/api/login', methods=['POST'])
 def login():
     d        = request.get_json(silent=True) or {}
-    username = d.get('username', '').strip().lower()
-    password = d.get('password', '').strip()
+    username = d.get('username','').strip().lower()
+    password = d.get('password','').strip()
     users    = load_users()
     user     = users.get(username)
     if not user or user['password'] != hash_pw(password):
-        return jsonify({'ok': False, 'msg': 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'}), 401
+        return jsonify({'ok':False,'msg':'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'}), 401
     if user['status'] == 'pending':
-        return jsonify({'ok': False, 'msg': 'รอยืนยันการโอนเงินก่อนนะครับ ติดต่อ Line: @kaasod'}), 403
+        return jsonify({'ok':False,'msg':'รอยืนยันการโอนเงินก่อนนะครับ ติดต่อ Line: @kaasod'}), 403
     session['shop_id']   = user['shop_id']
     session['shop_name'] = user['shop_name']
     session['username']  = username
     session['plan']      = user['plan']
-    return jsonify({'ok': True, 'shop_name': user['shop_name'], 'plan': user['plan']})
+    return jsonify({'ok':True,'shop_name':user['shop_name'],'plan':user['plan']})
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({'ok': True})
+    return jsonify({'ok':True})
 
 @app.route('/api/me')
 def me():
     if 'shop_id' not in session:
-        return jsonify({'ok': False}), 401
-    shop_id = session['shop_id']
-    plan    = session.get('plan', 'starter')
-    usage   = get_today_usage(shop_id)
+        return jsonify({'ok':False}), 401
+    shop_id   = session['shop_id']
+    plan      = session.get('plan','starter')
+    usage     = get_today_usage(shop_id)
     remaining = None if plan == 'pro' else max(0, STARTER_DAILY_LIMIT - usage)
     return jsonify({
-        'ok': True,
-        'shop_id':   shop_id,
-        'shop_name': session['shop_name'],
-        'username':  session['username'],
-        'plan':      plan,
-        'ai_usage_today':  usage,
-        'ai_remaining':    remaining,
-        'ai_daily_limit':  STARTER_DAILY_LIMIT if plan == 'starter' else None,
+        'ok':True,'shop_id':shop_id,'shop_name':session['shop_name'],
+        'username':session['username'],'plan':plan,
+        'ai_usage_today':usage,'ai_remaining':remaining,
+        'ai_daily_limit':STARTER_DAILY_LIMIT if plan == 'starter' else None,
     })
 
 # ── AI chat ────────────────────────────────────────────────
@@ -168,233 +154,390 @@ def me():
 @app.route('/api/chat', methods=['POST'])
 def chat():
     if 'shop_id' not in session:
-        return jsonify({'error': {'code': 401, 'message': 'ไม่ได้ login', 'status': 'UNAUTHORIZED'}}), 401
-
+        return jsonify({'error':{'code':401,'message':'ไม่ได้ login','status':'UNAUTHORIZED'}}), 401
     if not GEMINI_KEY:
-        return jsonify({'error': {'code': 500, 'message': 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY', 'status': 'NO_KEY'}}), 500
-
+        return jsonify({'error':{'code':500,'message':'ยังไม่ได้ตั้งค่า GEMINI_API_KEY','status':'NO_KEY'}}), 500
     shop_id = session['shop_id']
-    plan    = session.get('plan', 'starter')
-
+    plan    = session.get('plan','starter')
     if plan == 'starter':
         usage = get_today_usage(shop_id)
         if usage >= STARTER_DAILY_LIMIT:
-            return jsonify({'error': {
-                'code': 429,
-                'message': f'⚠️ ใช้ AI ครบ {STARTER_DAILY_LIMIT} ข้อความวันนี้แล้วครับ\n\n🚀 อัปเกรดเป็น Pro 399฿/เดือน ใช้ได้ไม่จำกัด!\nติดต่อ Line: @kaasod',
-                'status': 'QUOTA_EXCEEDED'
-            }}), 429
-
+            return jsonify({'error':{'code':429,
+                'message':f'⚠️ ใช้ AI ครบ {STARTER_DAILY_LIMIT} ข้อความวันนี้แล้วครับ\n\n🚀 อัปเกรดเป็น Pro 399฿/เดือน!\nติดต่อ Line: @kaasod',
+                'status':'QUOTA_EXCEEDED'}}), 429
     data     = request.get_json(silent=True) or {}
-    contents = data.get('contents', [])
-    gen_cfg  = data.get('generationConfig', {'maxOutputTokens': 1000, 'temperature': 0.7})
-
+    contents = data.get('contents',[])
+    gen_cfg  = data.get('generationConfig',{'maxOutputTokens':1000,'temperature':0.7})
     if not contents:
-        return jsonify({'error': {'code': 400, 'message': 'ไม่มีข้อความ', 'status': 'EMPTY'}}), 400
-
+        return jsonify({'error':{'code':400,'message':'ไม่มีข้อความ','status':'EMPTY'}}), 400
     url  = f'https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_KEY}'
-    body = json.dumps({'contents': contents, 'generationConfig': gen_cfg}).encode()
-    req  = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
-
+    body = json.dumps({'contents':contents,'generationConfig':gen_cfg}).encode()
+    req  = urllib.request.Request(url, data=body, headers={'Content-Type':'application/json'})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
-
         new_count = increment_usage(shop_id)
-
         if plan == 'starter':
             remaining = max(0, STARTER_DAILY_LIMIT - new_count)
-            resp['_quota'] = {
-                'used': new_count,
-                'remaining': remaining,
-                'limit': STARTER_DAILY_LIMIT,
-                'warn': remaining <= 5
-            }
-
+            resp['_quota'] = {'used':new_count,'remaining':remaining,
+                              'limit':STARTER_DAILY_LIMIT,'warn':remaining<=5}
         return jsonify(resp)
-
     except urllib.error.HTTPError as e:
-        err = json.loads(e.read().decode())
-        return jsonify(err), e.code
+        return jsonify(json.loads(e.read().decode())), e.code
     except Exception as e:
-        return jsonify({'error': {'code': 500, 'message': str(e), 'status': 'SERVER_ERROR'}}), 500
+        return jsonify({'error':{'code':500,'message':str(e),'status':'SERVER_ERROR'}}), 500
 
 @app.route('/api/chat/status')
 def chat_status():
     if 'shop_id' not in session:
-        return jsonify({'ai_ready': False})
+        return jsonify({'ai_ready':False})
     shop_id   = session['shop_id']
-    plan      = session.get('plan', 'starter')
+    plan      = session.get('plan','starter')
     usage     = get_today_usage(shop_id)
     remaining = None if plan == 'pro' else max(0, STARTER_DAILY_LIMIT - usage)
-    return jsonify({
-        'ai_ready':    bool(GEMINI_KEY),
-        'plan':        plan,
-        'usage_today': usage,
-        'remaining':   remaining,
-    })
+    return jsonify({'ai_ready':bool(GEMINI_KEY),'plan':plan,'usage_today':usage,'remaining':remaining})
 
-# ── sync/backup ────────────────────────────────────────────
+# ── sync ───────────────────────────────────────────────────
 
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
     if 'shop_id' not in session:
-        return jsonify({'error': 'ไม่ได้ login'}), 401
+        return jsonify({'error':'ไม่ได้ login'}), 401
     payload  = request.get_json(silent=True) or {}
     date_str = datetime.now().strftime('%Y-%m-%d')
     ts       = datetime.now().strftime('%Y%m%d_%H%M%S')
     d        = shop_dir(session['shop_id'])
     f        = d / f'backup_{date_str}.json'
-    f.write_text(json.dumps({'synced_at': ts, 'data': payload}, ensure_ascii=False, indent=2), encoding='utf-8')
-    return jsonify({'status': 'ok', 'synced_at': ts})
+    f.write_text(json.dumps({'synced_at':ts,'data':payload}, ensure_ascii=False, indent=2), encoding='utf-8')
+    return jsonify({'status':'ok','synced_at':ts})
 
 @app.route('/api/sync', methods=['GET'])
 def get_sync():
     if 'shop_id' not in session:
-        return jsonify({'status': 'empty', 'data': {}})
+        return jsonify({'status':'empty','data':{}})
     d     = shop_dir(session['shop_id'])
     files = sorted(d.glob('backup_*.json'), reverse=True)
     if not files:
-        return jsonify({'status': 'empty', 'data': {}})
-    return jsonify({'status': 'ok', **json.loads(files[0].read_text(encoding='utf-8'))})
+        return jsonify({'status':'empty','data':{}})
+    return jsonify({'status':'ok',**json.loads(files[0].read_text(encoding='utf-8'))})
 
-# ── admin auth ─────────────────────────────────────────────
+# ── admin session API ──────────────────────────────────────
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
     d   = request.get_json(silent=True) or {}
-    key = d.get('key', '').strip()
+    key = d.get('key','').strip()
     if key != ADMIN_KEY:
-        return jsonify({'ok': False, 'msg': 'รหัส Admin ไม่ถูกต้อง'}), 403
+        return jsonify({'ok':False,'msg':'รหัส Admin ไม่ถูกต้อง'}), 403
     session['is_admin'] = True
-    return jsonify({'ok': True})
+    return jsonify({'ok':True})
 
 @app.route('/api/admin/logout', methods=['POST'])
 def admin_logout():
     session.pop('is_admin', None)
-    return jsonify({'ok': True})
+    return jsonify({'ok':True})
 
 @app.route('/api/admin/me')
 def admin_me():
     if not is_admin():
-        return jsonify({'ok': False}), 401
-    return jsonify({'ok': True})
-
-# ── admin users ────────────────────────────────────────────
+        return jsonify({'ok':False}), 401
+    return jsonify({'ok':True})
 
 @app.route('/api/admin/users')
 def admin_users():
     if not is_admin():
-        return jsonify({'ok': False}), 401
+        return jsonify({'ok':False}), 401
     users = load_users()
     user_list = []
     for username, u in users.items():
-        shop_id = u.get('shop_id', '')
+        shop_id = u.get('shop_id','')
         user_list.append({
-            'username':   username,
-            'shop_id':    shop_id,
-            'shop_name':  u.get('shop_name', ''),
-            'phone':      u.get('phone', ''),
-            'plan':       u.get('plan', 'starter'),
-            'price':      u.get('price', 199),
-            'status':     u.get('status', 'pending'),
-            'created_at': u.get('created_at', ''),
-            'ai_today':   get_today_usage(shop_id) if shop_id else 0,
+            'username':username,'shop_id':shop_id,
+            'shop_name':u.get('shop_name',''),'phone':u.get('phone',''),
+            'plan':u.get('plan','starter'),'price':u.get('price',199),
+            'status':u.get('status','pending'),'created_at':u.get('created_at',''),
+            'ai_today':get_today_usage(shop_id) if shop_id else 0,
         })
-    # pending ขึ้นก่อน แล้วเรียงตาม created_at
-    user_list.sort(key=lambda x: (x['status'] != 'pending', x['created_at']), reverse=False)
-    active  = sum(1 for u in users.values() if u['status'] == 'active')
-    pending = sum(1 for u in users.values() if u['status'] == 'pending')
-    revenue = sum(u['price'] for u in users.values() if u['status'] == 'active')
-    return jsonify({
-        'ok': True,
-        'users': user_list,
-        'summary': {
-            'total':   len(users),
-            'active':  active,
-            'pending': pending,
-            'revenue': revenue,
-        }
-    })
+    user_list.sort(key=lambda x:(x['status']!='pending',x['created_at']))
+    active  = sum(1 for u in users.values() if u['status']=='active')
+    pending = sum(1 for u in users.values() if u['status']=='pending')
+    revenue = sum(u['price'] for u in users.values() if u['status']=='active')
+    return jsonify({'ok':True,'users':user_list,
+        'summary':{'total':len(users),'active':active,'pending':pending,'revenue':revenue}})
 
 @app.route('/api/admin/approve/<username>', methods=['POST'])
-def admin_approve(username):
-    if not is_admin():
-        return jsonify({'ok': False}), 401
+def api_admin_approve(username):
+    if not is_admin(): return jsonify({'ok':False}), 401
     users = load_users()
-    if username not in users:
-        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     users[username]['status'] = 'active'
     save_users(users)
-    u = users[username]
-    return jsonify({'ok': True, 'msg': f"อนุมัติ {username} ({u['shop_name']}) แล้ว"})
+    return jsonify({'ok':True,'msg':f"อนุมัติ {username} ({users[username]['shop_name']}) แล้ว"})
 
 @app.route('/api/admin/suspend/<username>', methods=['POST'])
-def admin_suspend(username):
-    if not is_admin():
-        return jsonify({'ok': False}), 401
+def api_admin_suspend(username):
+    if not is_admin(): return jsonify({'ok':False}), 401
     users = load_users()
-    if username not in users:
-        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     users[username]['status'] = 'pending'
     save_users(users)
-    u = users[username]
-    return jsonify({'ok': True, 'msg': f"ระงับ {username} ({u['shop_name']}) แล้ว"})
+    return jsonify({'ok':True,'msg':f"ระงับ {username} แล้ว"})
 
 @app.route('/api/admin/edit/<username>', methods=['POST'])
-def admin_edit(username):
-    if not is_admin():
-        return jsonify({'ok': False}), 401
+def api_admin_edit(username):
+    if not is_admin(): return jsonify({'ok':False}), 401
     users = load_users()
-    if username not in users:
-        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     d         = request.get_json(silent=True) or {}
-    shop_name = d.get('shop_name', '').strip()
-    phone     = d.get('phone', '').strip()
-    plan      = d.get('plan', '')
-    status    = d.get('status', '')
-    if not shop_name or not phone:
-        return jsonify({'ok': False, 'msg': 'กรอกข้อมูลให้ครบ'}), 400
-    if plan not in ('starter', 'pro'):
-        return jsonify({'ok': False, 'msg': 'แพ็กเกจไม่ถูกต้อง'}), 400
-    if status not in ('active', 'pending'):
-        return jsonify({'ok': False, 'msg': 'สถานะไม่ถูกต้อง'}), 400
-    users[username]['shop_name'] = shop_name
-    users[username]['phone']     = phone
-    users[username]['plan']      = plan
-    users[username]['price']     = 199 if plan == 'starter' else 399
-    users[username]['status']    = status
+    shop_name = d.get('shop_name','').strip()
+    phone     = d.get('phone','').strip()
+    plan      = d.get('plan','')
+    status    = d.get('status','')
+    if not shop_name or not phone: return jsonify({'ok':False,'msg':'กรอกข้อมูลให้ครบ'}), 400
+    if plan not in ('starter','pro'): return jsonify({'ok':False,'msg':'แพ็กเกจไม่ถูกต้อง'}), 400
+    if status not in ('active','pending'): return jsonify({'ok':False,'msg':'สถานะไม่ถูกต้อง'}), 400
+    users[username].update({'shop_name':shop_name,'phone':phone,'plan':plan,
+                            'price':199 if plan=='starter' else 399,'status':status})
     save_users(users)
-    return jsonify({'ok': True, 'msg': f'อัปเดต {username} แล้ว'})
+    return jsonify({'ok':True,'msg':f'อัปเดต {username} แล้ว'})
 
 @app.route('/api/admin/reset_password/<username>', methods=['POST'])
-def admin_reset_password(username):
-    if not is_admin():
-        return jsonify({'ok': False}), 401
+def api_admin_reset_password(username):
+    if not is_admin(): return jsonify({'ok':False}), 401
     users = load_users()
-    if username not in users:
-        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     d        = request.get_json(silent=True) or {}
-    password = d.get('password', '').strip()
-    if len(password) < 4:
-        return jsonify({'ok': False, 'msg': 'รหัสผ่านต้องมีอย่างน้อย 4 ตัว'}), 400
+    password = d.get('password','').strip()
+    if len(password) < 4: return jsonify({'ok':False,'msg':'รหัสผ่านต้องมีอย่างน้อย 4 ตัว'}), 400
     users[username]['password'] = hash_pw(password)
     save_users(users)
-    return jsonify({'ok': True, 'msg': f'รีเซ็ตรหัสผ่านของ {username} แล้ว'})
+    return jsonify({'ok':True,'msg':f'รีเซ็ตรหัสผ่านของ {username} แล้ว'})
 
 @app.route('/api/admin/delete/<username>', methods=['POST'])
-def admin_delete(username):
-    if not is_admin():
-        return jsonify({'ok': False}), 401
+def api_admin_delete(username):
+    if not is_admin(): return jsonify({'ok':False}), 401
     users = load_users()
-    if username not in users:
-        return jsonify({'ok': False, 'msg': f'ไม่พบ {username}'}), 404
+    if username not in users: return jsonify({'ok':False,'msg':f'ไม่พบ {username}'}), 404
     shop_name = users[username].get('shop_name', username)
     del users[username]
     save_users(users)
-    return jsonify({'ok': True, 'msg': f'ลบร้าน {shop_name} แล้ว'})
+    return jsonify({'ok':True,'msg':f'ลบร้าน {shop_name} แล้ว'})
 
-# ── legacy admin routes (backward compat) ──────────────────
+# ── admin/list — full HTML panel (key-based, no session needed) ──
+
+@app.route('/admin/list')
+def admin_list():
+    key = request.args.get('key','')
+    if key != ADMIN_KEY:
+        return 'ไม่มีสิทธิ์', 403
+
+    users   = load_users()
+    active  = sum(1 for u in users.values() if u['status']=='active')
+    pending = sum(1 for u in users.values() if u['status']=='pending')
+    revenue = sum(u['price'] for u in users.values() if u['status']=='active')
+
+    # action messages
+    msg = request.args.get('msg','')
+    msg_html = f'<div style="background:#1a3a1a;border:1px solid #5aaa6a;color:#5aaa6a;padding:10px 16px;border-radius:8px;margin-bottom:14px;">{esc(msg)}</div>' if msg else ''
+
+    rows = ''
+    for uname, u in sorted(users.items(), key=lambda x:(x[1]['status']!='pending', x[1].get('created_at',''))):
+        sid      = u.get('shop_id','')
+        usage    = get_today_usage(sid) if sid else 0
+        plan_lbl = '🤖 Pro 399฿' if u['plan']=='pro' else '📋 Starter 199฿'
+        st_color = '#5aaa6a' if u['status']=='active' else '#e07b3a'
+        pw_hash  = u.get('password','')[:16] + '...'
+
+        # backup files
+        backups = ''
+        if sid:
+            bfiles = sorted((SHOPS_DIR/sid).glob('backup_*.json'), reverse=True)[:3]
+            for bf in bfiles:
+                backups += f'<a href="/admin/backup/{esc(uname)}/{esc(bf.name)}?key={esc(key)}" style="color:#5b8db8;font-size:11px;display:block;margin-top:2px;">📄 {esc(bf.name)}</a>'
+        if not backups:
+            backups = '<span style="color:#6a5e50;font-size:11px;">ยังไม่มีข้อมูล</span>'
+
+        approve_btn = ''
+        if u['status'] == 'pending':
+            approve_btn = f'<a href="/admin/action?key={esc(key)}&act=approve&u={esc(uname)}" style="background:rgba(90,170,106,0.2);color:#5aaa6a;border:1px solid rgba(90,170,106,0.4);padding:4px 10px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;">✅ อนุมัติ</a>'
+        else:
+            approve_btn = f'<a href="/admin/action?key={esc(key)}&act=suspend&u={esc(uname)}" style="background:rgba(224,123,58,0.15);color:#e07b3a;border:1px solid rgba(224,123,58,0.4);padding:4px 10px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;">⏸ ระงับ</a>'
+
+        rows += f"""
+        <tr id="row-{esc(uname)}">
+          <td style="font-weight:700">{esc(uname)}</td>
+          <td>
+            <input name="shop_name" form="f-{esc(uname)}" value="{esc(u['shop_name'])}"
+              style="background:#2a2520;border:1px solid #3e342a;color:#f0e8dc;padding:5px 8px;border-radius:6px;width:130px;font-size:13px;">
+          </td>
+          <td>
+            <input name="phone" form="f-{esc(uname)}" value="{esc(u.get('phone',''))}"
+              style="background:#2a2520;border:1px solid #3e342a;color:#f0e8dc;padding:5px 8px;border-radius:6px;width:110px;font-size:13px;">
+          </td>
+          <td>
+            <select name="plan" form="f-{esc(uname)}" style="background:#2a2520;border:1px solid #3e342a;color:#c9a84c;padding:5px 6px;border-radius:6px;font-size:12px;">
+              <option value="starter" {'selected' if u['plan']=='starter' else ''}>Starter 199฿</option>
+              <option value="pro" {'selected' if u['plan']=='pro' else ''}>Pro 399฿</option>
+            </select>
+          </td>
+          <td>
+            <select name="status" form="f-{esc(uname)}" style="background:#2a2520;border:1px solid #3e342a;color:{st_color};padding:5px 6px;border-radius:6px;font-size:12px;">
+              <option value="active" {'selected' if u['status']=='active' else ''}>✅ Active</option>
+              <option value="pending" {'selected' if u['status']=='pending' else ''}>⏳ Pending</option>
+            </select>
+          </td>
+          <td style="font-size:11px;color:#a89880">{esc(pw_hash)}<br>
+            <input name="new_password" form="f-{esc(uname)}" placeholder="รหัสใหม่ (ถ้าจะเปลี่ยน)"
+              style="background:#2a2520;border:1px solid #3e342a;color:#f0e8dc;padding:4px 7px;border-radius:6px;width:130px;font-size:12px;margin-top:4px;">
+          </td>
+          <td style="color:#{'e07b3a' if usage>15 else '5aaa6a'};font-weight:700">{usage} msg</td>
+          <td style="font-size:11px;color:#a89880">{esc(u.get('created_at',''))}</td>
+          <td>{backups}</td>
+          <td style="white-space:nowrap">
+            <form id="f-{esc(uname)}" method="POST" action="/admin/action?key={esc(key)}&act=edit&u={esc(uname)}" style="display:inline">
+              <button type="submit" style="background:rgba(201,168,76,0.15);color:#c9a84c;border:1px solid rgba(201,168,76,0.4);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">💾 บันทึก</button>
+            </form>
+            &nbsp;
+            {approve_btn}
+          </td>
+        </tr>"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ค้าสด — Admin</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:'Sarabun',sans-serif;background:#0f0e0c;color:#f0e8dc;padding:16px;font-size:14px}}
+h2{{color:#c9a84c;font-size:20px;margin-bottom:14px}}
+.cards{{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}}
+.card{{background:#1a1815;border:1px solid #2e2820;border-radius:10px;padding:12px 18px;text-align:center;min-width:90px}}
+.card b{{display:block;font-size:22px;color:#c9a84c}}
+.card.g b{{color:#5aaa6a}}.card.o b{{color:#e07b3a}}.card.p b{{color:#9b6fd4}}
+.wrap{{overflow-x:auto}}
+table{{border-collapse:collapse;width:100%;min-width:900px}}
+th{{background:#1a1815;color:#c9a84c;padding:8px 10px;text-align:left;border:1px solid #2e2820;white-space:nowrap}}
+td{{border:1px solid #2e2820;padding:7px 10px;vertical-align:middle}}
+tr:hover td{{background:#1a1815}}
+input:focus,select:focus{{outline:2px solid #c9a84c;outline-offset:1px}}
+a{{color:#e07b3a;text-decoration:none}}
+</style>
+</head>
+<body>
+<h2>🌿 ค้าสด — Admin Panel</h2>
+{msg_html}
+<div class="cards">
+  <div class="card"><b>{len(users)}</b>ร้านทั้งหมด</div>
+  <div class="card g"><b>{active}</b>Active</div>
+  <div class="card o"><b>{pending}</b>รอยืนยัน</div>
+  <div class="card p"><b>{revenue:,}฿</b>รายได้/เดือน</div>
+</div>
+<div class="wrap">
+<table>
+<tr>
+  <th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th>
+  <th>แพ็กเกจ</th><th>สถานะ</th>
+  <th>Password hash / รีเซ็ต</th>
+  <th>AI วันนี้</th><th>สมัครเมื่อ</th>
+  <th>Backup JSON</th><th>Actions</th>
+</tr>
+{rows}
+</table>
+</div>
+</body>
+</html>"""
+    return html
+
+# ── admin actions (POST/GET redirect) ─────────────────────
+
+@app.route('/admin/action', methods=['GET','POST'])
+def admin_action():
+    key = request.args.get('key','')
+    if key != ADMIN_KEY:
+        return 'ไม่มีสิทธิ์', 403
+
+    act   = request.args.get('act','')
+    uname = request.args.get('u','')
+    users = load_users()
+
+    if uname not in users:
+        return redirect(f'/admin/list?key={key}&msg=ไม่พบ+user+{uname}')
+
+    if act == 'approve':
+        users[uname]['status'] = 'active'
+        save_users(users)
+        return redirect(f'/admin/list?key={key}&msg=✅+อนุมัติ+{uname}+แล้ว')
+
+    elif act == 'suspend':
+        users[uname]['status'] = 'pending'
+        save_users(users)
+        return redirect(f'/admin/list?key={key}&msg=⏸+ระงับ+{uname}+แล้ว')
+
+    elif act == 'edit':
+        d         = request.form
+        shop_name = d.get('shop_name','').strip()
+        phone     = d.get('phone','').strip()
+        plan      = d.get('plan','starter')
+        status    = d.get('status','pending')
+        new_pw    = d.get('new_password','').strip()
+        if shop_name: users[uname]['shop_name'] = shop_name
+        if phone:     users[uname]['phone']     = phone
+        if plan in ('starter','pro'):
+            users[uname]['plan']  = plan
+            users[uname]['price'] = 199 if plan=='starter' else 399
+        if status in ('active','pending'):
+            users[uname]['status'] = status
+        msg = f'💾+บันทึก+{uname}+แล้ว'
+        if new_pw:
+            if len(new_pw) >= 4:
+                users[uname]['password'] = hash_pw(new_pw)
+                msg = f'💾+บันทึก+และรีเซ็ต+password+ของ+{uname}+แล้ว'
+            else:
+                save_users(users)
+                return redirect(f'/admin/list?key={key}&msg=❌+รหัสผ่านต้องมีอย่างน้อย+4+ตัว')
+        save_users(users)
+        return redirect(f'/admin/list?key={key}&msg={msg}')
+
+    return redirect(f'/admin/list?key={key}')
+
+# ── admin/backup — view JSON file ─────────────────────────
+
+@app.route('/admin/backup/<username>/<filename>')
+def admin_backup(username, filename):
+    key = request.args.get('key','')
+    if key != ADMIN_KEY:
+        return 'ไม่มีสิทธิ์', 403
+    users = load_users()
+    if username not in users:
+        return 'ไม่พบ user', 404
+    sid = users[username].get('shop_id','')
+    if not sid:
+        return 'ไม่มี shop_id', 404
+    # sanitize filename
+    if '..' in filename or '/' in filename:
+        return 'invalid', 400
+    f = SHOPS_DIR / sid / filename
+    if not f.exists():
+        return 'ไม่พบไฟล์', 404
+    content = f.read_text(encoding='utf-8')
+    # pretty HTML view
+    html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Backup — {esc(username)} — {esc(filename)}</title>
+<style>body{{background:#0f0e0c;color:#f0e8dc;font-family:monospace;padding:20px}}
+h3{{color:#c9a84c;margin-bottom:12px}}
+a{{color:#e07b3a}}
+pre{{background:#1a1815;border:1px solid #2e2820;border-radius:10px;padding:16px;
+     overflow-x:auto;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all}}
+</style></head><body>
+<h3>📄 {esc(username)} / {esc(filename)}</h3>
+<a href="/admin/list?key={esc(key)}">← กลับหน้า Admin</a><br><br>
+<pre>{esc(content)}</pre>
+</body></html>"""
+    return html
+
+# ── legacy approve ─────────────────────────────────────────
 
 @app.route('/admin/approve/<username>')
 def approve(username):
@@ -414,16 +557,14 @@ def approve(username):
 def health():
     users = load_users()
     return jsonify({
-        'status':        'ok',
-        'version':       'v5',
-        'model':         GEMINI_MODEL,
-        'starter_limit': STARTER_DAILY_LIMIT,
-        'time':          datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'total':         len(users),
-        'active':        sum(1 for u in users.values() if u['status'] == 'active'),
-        'pro':           sum(1 for u in users.values() if u['plan'] == 'pro' and u['status'] == 'active'),
-        'starter':       sum(1 for u in users.values() if u['plan'] == 'starter' and u['status'] == 'active'),
-        'ai_key':        bool(GEMINI_KEY),
+        'status':'ok','version':'v5','model':GEMINI_MODEL,
+        'starter_limit':STARTER_DAILY_LIMIT,
+        'time':datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'total':len(users),
+        'active':sum(1 for u in users.values() if u['status']=='active'),
+        'pro':sum(1 for u in users.values() if u['plan']=='pro' and u['status']=='active'),
+        'starter':sum(1 for u in users.values() if u['plan']=='starter' and u['status']=='active'),
+        'ai_key':bool(GEMINI_KEY),
     })
 
 if __name__ == '__main__':
