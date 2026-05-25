@@ -2336,26 +2336,11 @@ ${prodLines}
 === ยอดขายวันนี้ ===
 - รวม ${billCount} บิล ยอด ฿${todaySales.toLocaleString()}
 
-=== ข้อมูลที่คุณได้รับในทุก message (ใช้ให้ครบ) ===
-1. สต็อกปัจจุบันรายสินค้า — ตอบได้ทันทีว่าเหลือเท่าไหร่
-2. ยอดขายรายสินค้า (Product Name + Quantity Sold) — ใช้จัดอันดับสินค้าขายดี
-3. บิลล่าสุด 8 รายการพร้อม item detail — ใช้คำนวณ Stock Movement และ trend
-4. สต็อกใกล้หมด — แจ้งเตือนและแนะนำสั่งของ
-5. ข้อมูล 7 วันย้อนหลัง — วิเคราะห์ภาพรวม payment breakdown, สมาชิก
-
 === สิ่งที่คุณทำได้ ===
 1. ตอบคำถามเรื่องสินค้า ราคา สต็อก
-2. สรุปและจัดอันดับสินค้าขายดี (product_name + quantity_sold + revenue)
-3. คำนวณ Stock Movement จากบิลล่าสุด — เช่น "ขายไปแล้วกี่ชิ้น สต็อกลดไปเท่าไหร่"
-4. รับคำสั่งลงของผ่านแชท (ดูรูปแบบด้านล่าง)
-5. วิเคราะห์วิธีชำระ สมาชิก และแนะนำโปรโมชั่น
-
-=== วิธีวิเคราะห์ Stock Movement ===
-เมื่อถูกถามเรื่องการเคลื่อนไหวสต็อก ให้ดูที่:
-- "ยอดขายรายสินค้า (กะนี้)" — quantity_sold แต่ละรายการ
-- "บิลล่าสุด 8 รายการ" — ดูว่าแต่ละบิลขายอะไร qty เท่าไหร่
-- เปรียบเทียบกับ "สต็อกปัจจุบัน" เพื่อประเมินว่าควรสั่งเพิ่มเมื่อไหร่
-- ถ้าสินค้าขายเร็ว (qty สูง) + สต็อกน้อย → แนะนำสั่งด่วน
+2. สรุปยอดขาย แยกตามสินค้า วิธีชำระ สมาชิก
+3. รับคำสั่งลงของผ่านแชท (ดูรูปแบบด้านล่าง)
+4. แนะนำการบริหารร้าน สต็อก การสั่งของ
 
 === รับคำสั่งลงของผ่านแชท ===
 เมื่อผู้ใช้บอกว่ามีของมาลง หรือสั่งให้เติมสต็อก ให้ทำตามนี้เสมอ:
@@ -3683,21 +3668,59 @@ async function popupSendChat() {
   document.getElementById('popup-chat-tips').style.display = 'none';
   popupAppendMsg('user', msg);
 
-  // Build context
+  // ─── Build full context ───────────────────────────────────
   const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
-  const stockSummary = getEffectiveProducts().filter(p=>!p.promoBase).map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
-  const history = loadHistory();
+  const stockSummary = getEffectiveProducts().filter(p => !p.promoBase)
+    .map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
+  const history   = loadHistory();
+  const loyaltyN  = getLoyaltyN();
+
+  // ── ยอดขายกะนี้ ──
   let todayCash = 0, todayTransfer = 0;
   history.forEach(h => {
-    if (h.pay === 'cash') todayCash += h.total;
+    if (h.pay === 'cash')     todayCash     += h.total;
     else if (h.pay === 'transfer') todayTransfer += h.total;
   });
-  const memberBills = history.filter(h => h.member && h.member !== 'ทั่วไป');
-  const freeCnt = history.filter(h => h.pay === 'free').length;
+  const freeCnt  = history.filter(h => h.pay === 'free').length;
   const lowItems = effProdsChat.filter(p => (stock[p.key]||0) <= LOW_THRESHOLD);
-  const lowStr = lowItems.length > 0 ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
+  const lowStr   = lowItems.length > 0
+    ? lowItems.map(p => `${p.name}(${stock[p.key]||0})`).join(', ') : 'ไม่มี';
 
-  // ── (1) Product Sales Summary — ยอดขายรายสินค้า กะนี้ ──
+  // ── (1) วันเวลาปัจจุบัน ──
+  const nowStr = new Date().toLocaleString('th-TH', {
+    year:'numeric', month:'short', day:'numeric',
+    hour:'2-digit', minute:'2-digit', weekday:'short'
+  });
+
+  // ── (2) กะการทำงาน ──
+  const shift = getShift();
+  let shiftStr = 'ยังไม่ได้เปิดกะ';
+  if (shift && shift.open) {
+    const petty       = loadPetty();
+    const pettyCash   = petty.reduce((s, p) => s + p.amount, 0);
+    const expectedCash = (shift.float || 0) + todayCash - pettyCash;
+    shiftStr = `เปิดกะตั้งแต่ ${shift.openTime} | เงินทอนตั้งต้น ฿${(shift.float||0).toLocaleString()}`
+      + `\n  ยอดขายสด ฿${todayCash.toLocaleString()} | รายจ่าย ฿${pettyCash.toLocaleString()}`
+      + `\n  เงินสดที่ควรมีในลิ้นชัก ฿${expectedCash.toLocaleString()}`;
+  }
+
+  // ── (3) Petty Cash — รายจ่ายกะนี้ ──
+  const pettyList = loadPetty();
+  const pettyStr  = pettyList.length > 0
+    ? pettyList.map(p => `  • ${p.desc}: ฿${p.amount} (${(p.time||'').split(' ')[1]||''})`).join('\n')
+    : '  ไม่มีรายจ่าย';
+  const pettyTotal = pettyList.reduce((s, p) => s + p.amount, 0);
+
+  // ── (4) Delivery Log — ลงของกะนี้ ──
+  const deliveries = loadDelivery();
+  const deliveryStr = deliveries.length > 0
+    ? deliveries.slice(0, 10).map(d =>
+        `  • รอบ${d.round} ${d.name} +${d.qty}${d.note ? ' ('+d.note+')' : ''} [${(d.time||'').split(' ')[1]||''}]`
+      ).join('\n')
+    : '  ยังไม่มีการลงของในกะนี้';
+  const deliveryTotalQty = deliveries.reduce((s, d) => s + (d.qty||0), 0);
+
+  // ── (5) ยอดขายรายสินค้า (กะนี้) ──
   const prodSalesMap = {};
   history.forEach(h => {
     (h.items || []).forEach(item => {
@@ -3707,28 +3730,80 @@ async function popupSendChat() {
       prodSalesMap[name].revenue += (item.price || 0) * (item.qty || 1);
     });
   });
-  const prodSalesLines = Object.entries(prodSalesMap)
-    .sort((a, b) => b[1].qty - a[1].qty)
-    .map(([name, d]) => `  • ${name}: ขาย ${d.qty} ชิ้น | รายได้ ฿${d.revenue.toLocaleString()}`)
-    .join('\n');
-  const prodSalesStr = prodSalesLines || '  (ยังไม่มียอดขายในกะนี้)';
+  const prodSalesStr = Object.entries(prodSalesMap).length > 0
+    ? Object.entries(prodSalesMap)
+        .sort((a, b) => b[1].qty - a[1].qty)
+        .map(([name, d]) => `  • ${name}: ขาย ${d.qty} ชิ้น | รายได้ ฿${d.revenue.toLocaleString()}`)
+        .join('\n')
+    : '  (ยังไม่มียอดขาย)';
 
-  // ── (2) Recent Bills Detail — รายการสินค้าในแต่ละบิลล่าสุด (stock movement) ──
+  // ── (6) บิลล่าสุด 8 รายการ (Stock Movement) ──
   const recentBillsStr = history.slice(0, 8).map((h, i) => {
-    const timeLabel = (h.time || '').split(' ')[1] || h.time || '';
-    const payLabel  = h.pay === 'cash' ? 'สด' : h.pay === 'transfer' ? 'โอน' : h.pay === 'free' ? 'ฟรี' : h.pay;
-    const memberTag = (h.member && h.member !== 'ทั่วไป') ? ` [${h.member}]` : '';
-    const itemsStr  = (h.items || []).map(it => `${it.name}×${it.qty}@฿${it.price}`).join(', ');
-    return `  บิล${i+1} ${timeLabel}${memberTag}(${payLabel}) → ${itemsStr} = ฿${h.total}`;
+    const timeLabel  = (h.time || '').split(' ')[1] || h.time || '';
+    const payLabel   = h.pay === 'cash' ? 'สด' : h.pay === 'transfer' ? 'โอน'
+                     : h.pay === 'free' ? 'ฟรี' : h.pay === 'debt' ? 'ค้าง' : h.pay;
+    const memberTag  = (h.member && h.member !== 'ทั่วไป') ? `[${h.member}]` : '';
+    const debtTag    = h.debtRemaining > 0 ? ` ⚠️ค้าง฿${h.debtRemaining}` : '';
+    const itemsStr   = (h.items || []).map(it => `${it.name}×${it.qty}@฿${it.price}`).join(', ');
+    return `  บิล${i+1} ${timeLabel}${memberTag}(${payLabel}): ${itemsStr} = ฿${h.total}${debtTag}`;
   }).join('\n') || '  (ยังไม่มีบิล)';
 
-  const contextNote = `\n\n=== ข้อมูลร้านตอนนี้ (Real-time) ===` +
-    `\nสต็อกปัจจุบัน: ${stockSummary}` +
-    `\nสต็อกใกล้หมด (≤${LOW_THRESHOLD}): ${lowStr}` +
-    `\nยอดขายกะนี้: เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer}` +
-    `\nบิลทั้งหมด: ${history.length} ใบ (แลกฟรี ${freeCnt} ใบ)` +
-    `\n\n=== ยอดขายรายสินค้า (กะนี้) ===\n${prodSalesStr}` +
-    `\n\n=== บิลล่าสุด 8 รายการ (Stock Movement) ===\n${recentBillsStr}`;
+  // ── (7) บิลค้างชำระ (Debt) ──
+  const debtBills   = history.filter(h => h.debtRemaining > 0);
+  const debtTotal   = debtBills.reduce((s, h) => s + (h.debtRemaining||0), 0);
+  const debtStr     = debtBills.length > 0
+    ? debtBills.map(h => {
+        const items = (h.items||[]).map(i => `${i.name}×${i.qty}`).join(', ');
+        const mem   = (h.member && h.member !== 'ทั่วไป') ? h.member : 'ลูกค้าทั่วไป';
+        return `  • ${mem} — ${items} ค้างอยู่ ฿${h.debtRemaining} (${h.time})`;
+      }).join('\n')
+    : '  ไม่มีบิลค้างชำระ';
+
+  // ── (8) สมาชิกทั้งหมด ──
+  const members  = getMembers();
+  const memberStr = members.length > 0
+    ? members
+        .sort((a, b) => (b.totalSpend||0) - (a.totalSpend||0))
+        .map(m => {
+          const pts       = m.points || 0;
+          const redeemable = Math.floor(pts / loyaltyN);
+          const progressPts = pts % loyaltyN;
+          const redeemTag  = redeemable > 0 ? ` 🎁แลกได้${redeemable}ครั้ง` : '';
+          return `  • ${m.name}(${m.phone}): ${m.totalBills||0}ครั้ง ฿${(m.totalSpend||0).toLocaleString()} แต้ม${pts}(${progressPts}/${loyaltyN})${redeemTag}`;
+        }).join('\n')
+    : '  ยังไม่มีสมาชิก';
+
+  // ── (9) สมาชิกที่มาในกะนี้ ──
+  const memberBills       = history.filter(h => h.member && h.member !== 'ทั่วไป');
+  const memberSessionMap  = {};
+  memberBills.forEach(h => {
+    if (!memberSessionMap[h.member]) memberSessionMap[h.member] = { bills: 0, spend: 0, redeemed: 0 };
+    memberSessionMap[h.member].bills++;
+    memberSessionMap[h.member].spend   += h.total;
+    if (h.pay === 'free') memberSessionMap[h.member].redeemed++;
+  });
+  const memberSessionStr = Object.keys(memberSessionMap).length > 0
+    ? Object.entries(memberSessionMap)
+        .map(([name, d]) => `  • ${name}: ${d.bills}บิล ฿${d.spend.toLocaleString()}${d.redeemed > 0 ? ' 🎁แลกฟรี'+d.redeemed+'ครั้ง' : ''}`)
+        .join('\n')
+    : '  ไม่มีสมาชิกมาในกะนี้';
+
+  // ── รวม contextNote ──
+  const contextNote =
+    `\n\n=== สถานะร้าน ณ ปัจจุบัน ===` +
+    `\nวันเวลา: ${nowStr}` +
+    `\n\n--- กะการทำงาน ---\n${shiftStr}` +
+    `\n\n--- รายจ่ายกะนี้ (Petty Cash รวม ฿${pettyTotal}) ---\n${pettyStr}` +
+    `\n\n--- ลงของกะนี้ (${deliveries.length} รายการ รวม ${deliveryTotalQty} ชิ้น) ---\n${deliveryStr}` +
+    `\n\n--- สต็อกปัจจุบัน ---\n  ${stockSummary}` +
+    `\n\n--- สต็อกใกล้หมด (≤${LOW_THRESHOLD}) ---\n  ${lowStr}` +
+    `\n\n--- ยอดขายกะนี้ ---` +
+    `\n  เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer} | บิล ${history.length} ใบ (ฟรี ${freeCnt} ใบ)` +
+    `\n\n--- ยอดขายรายสินค้า (กะนี้) ---\n${prodSalesStr}` +
+    `\n\n--- บิลล่าสุด 8 รายการ (Stock Movement) ---\n${recentBillsStr}` +
+    `\n\n--- บิลค้างชำระ (${debtBills.length} บิล รวม ฿${debtTotal}) ---\n${debtStr}` +
+    `\n\n--- สมาชิกที่มาในกะนี้ ---\n${memberSessionStr}` +
+    `\n\n--- ทะเบียนสมาชิกทั้งหมด (ซื้อครบ ${loyaltyN} ครั้ง ฟรี 1) ---\n${memberStr}`;
 
   const thinking = popupAppendThinking();
   popupChatHist.push({ role: 'user', content: msg });
