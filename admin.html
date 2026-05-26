@@ -2,1243 +2,1572 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KAASOD — Server Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🐕 ค้าสด — Real-time Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:       #0d0f0a;
-    --surface:  #141810;
-    --card:     #1a1f14;
-    --card2:    #1f2519;
-    --border:   rgba(201,162,39,0.15);
-    --border2:  rgba(201,162,39,0.30);
-    --accent:   #c9a227;
-    --accent2:  #e8c96a;
-    --text:     #e8e5d8;
-    --muted:    #7a7860;
-    --green:    #7ec47e;
-    --red:      #c0544a;
-    --blue:     #5a9fc8;
-    --purple:   #9b7ec8;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  /* ══ NEON MANTIS ADMIN ══ */
+  --bg:        #111408;
+  --bg2:       #1A1F0A;
+  --bg3:       #22290E;
+  --bg4:       #2E3415;
+  --border:    rgba(201,162,39,0.20);
+  --border2:   rgba(232,201,106,0.25);
+  --border-s:  #2E3415;
+  --gold:      #C9A227;
+  --gold2:     #E8C96A;
+  --green:     #7EC47E;
+  --green2:    #6AAA6A;
+  --orange:    #E8C96A;
+  --orange2:   #D4A832;
+  --blue:      #E8C96A;
+  --blue2:     #F0D882;
+  --purple:    #C9A227;
+  --red:       #FF3D5A;
+  --text:      #F0F4F8;
+  --text2:     #BFC8D4;
+  --text3:     #7A8896;
+  --pulse:     rgba(201,162,39,0.38);
+  --mono:      'Fira Code', monospace;
+  --glow-o:    rgba(201,162,39,0.35);
+  --glow-p:    rgba(232,201,106,0.28);
+  --glow-g:    rgba(126,196,126,0.22);
+}
 
-  body {
-    font-family: 'Sarabun', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── LOGIN ── */
-  #login-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(ellipse at 50% 30%, rgba(201,162,39,0.08) 0%, transparent 70%);
-  }
-  .login-box {
-    background: var(--card);
-    border: 1.5px solid var(--border2);
-    border-radius: 20px;
-    padding: 40px 36px;
-    width: 340px;
-    text-align: center;
-  }
-  .login-logo { font-size: 38px; margin-bottom: 8px; }
-  .login-title { font-size: 22px; font-weight: 800; color: var(--accent2); letter-spacing: 2px; }
-  .login-sub { font-size: 12px; color: var(--muted); margin-bottom: 28px; margin-top: 4px; }
-  .login-box input {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: var(--surface);
-    border: 1.5px solid var(--border2);
-    color: var(--text);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 15px;
-    margin-bottom: 14px;
-    outline: none;
-    transition: border-color .2s;
-    text-align: center;
-    letter-spacing: 2px;
-  }
-  .login-box input:focus { border-color: var(--accent); }
-  .login-btn {
-    width: 100%;
-    padding: 13px;
-    border-radius: 12px;
-    background: var(--accent);
-    border: none;
-    color: #0d0f0a;
-    font-family: 'Sarabun', sans-serif;
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: opacity .2s;
-    letter-spacing: 1px;
-  }
-  .login-btn:hover { opacity: .88; }
-  .login-err { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 18px; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
 
-  /* ── MAIN ── */
-  #main-screen { display: none; }
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.logo { color: var(--gold); font-size: 16px; font-weight: 800; font-family: 'Prompt', sans-serif; display: flex; align-items: center; gap: 8px; }
+.logo span { color: var(--text3); font-size: 12px; font-weight: 400; }
+.status-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 0 0 var(--pulse);
+  animation: pulse-ring 2s ease infinite;
+  display: inline-block;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--pulse); }
+  70%  { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.live-label { font-size: 11px; color: var(--green); font-weight: 600; letter-spacing: 1px; }
+.last-update { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--text3); }
+.refresh-btn {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--gold);
+  padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
+  font-family: inherit; font-weight: 600; transition: all .2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.refresh-btn:hover { background: var(--bg4); border-color: var(--gold); }
+.refresh-btn.spinning svg { animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.interval-select {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
+  padding: 5px 10px; border-radius: 8px; font-family: inherit; font-size: 12px;
+  cursor: pointer;
+}
+.interval-select:focus { outline: none; border-color: var(--gold); }
 
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(13,15,10,0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .topbar-logo { font-size: 20px; font-weight: 900; color: var(--accent2); letter-spacing: 2px; }
-  .topbar-badge {
-    background: rgba(201,162,39,0.12);
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 700;
-    font-family: 'IBM Plex Mono', monospace;
-  }
-  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-  .topbar-stat { font-size: 12px; color: var(--muted); }
-  .topbar-stat span { color: var(--accent2); font-weight: 700; }
-  .logout-btn {
-    padding: 6px 14px;
-    border-radius: 8px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all .2s;
-  }
-  .logout-btn:hover { border-color: var(--red); color: var(--red); }
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex; gap: 4px; padding: 12px 20px 0;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-tab {
+  padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--text3);
+  border: 1px solid transparent; border-bottom: none;
+  transition: all .2s; white-space: nowrap; background: transparent;
+  font-family: inherit;
+}
+.nav-tab:hover { color: var(--text2); background: var(--bg3); }
+.nav-tab.active {
+  color: var(--gold); background: var(--bg);
+  border-color: var(--border); border-bottom-color: var(--bg);
+  position: relative; top: 1px;
+}
 
-  /* ── NAV TABS ── */
-  .nav-tabs {
-    display: flex;
-    gap: 4px;
-    padding: 14px 20px 0;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tab {
-    padding: 8px 16px;
-    border-radius: 10px 10px 0 0;
-    border: 1px solid transparent;
-    border-bottom: none;
-    background: transparent;
-    color: var(--muted);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all .2s;
-    position: relative;
-    bottom: -1px;
-  }
-  .nav-tab:hover { color: var(--text); }
-  .nav-tab.active {
-    background: var(--card);
-    border-color: var(--border);
-    border-bottom-color: var(--card);
-    color: var(--accent2);
-  }
-  .nav-tab .badge {
-    display: inline-block;
-    background: var(--red);
-    color: #fff;
-    border-radius: 10px;
-    padding: 1px 6px;
-    font-size: 10px;
-    font-weight: 800;
-    margin-left: 5px;
-  }
+/* ── MAIN ── */
+main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-  /* ── CONTENT ── */
-  .tab-content { display: none; padding: 20px; max-width: 1100px; }
-  .tab-content.active { display: block; }
+/* ── GRID ── */
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 900px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: 1fr; }
+  main { padding: 12px; }
+}
 
-  /* ── SECTION CARDS ── */
-  .section-title {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    margin-top: 6px;
-  }
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px 14px;
-    text-align: center;
-  }
-  .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
-  .stat-value { font-size: 28px; font-weight: 800; color: var(--accent2); font-family: 'IBM Plex Mono', monospace; }
-  .stat-value.green { color: var(--green); }
-  .stat-value.red   { color: var(--red); }
-  .stat-value.blue  { color: var(--blue); }
+/* ── CARDS ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+}
+.stat-card { text-align: center; }
+.stat-card .val {
+  font-size: 28px; font-weight: 700;
+  font-family: 'Fira Code', monospace;
+  line-height: 1.1; display: block; margin: 4px 0;
+}
+.stat-card .lbl { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.stat-card .delta { font-size: 11px; margin-top: 4px; }
 
-  /* ── FILTER ROW ── */
-  .filter-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  .filter-row select, .filter-row input {
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: var(--card);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 13px;
-    outline: none;
-    cursor: pointer;
-  }
-  .btn {
-    padding: 8px 16px;
-    border-radius: 10px;
-    border: none;
-    font-family: 'Sarabun', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity .2s;
-  }
-  .btn:hover { opacity: .85; }
-  .btn-gold   { background: var(--accent); color: #0d0f0a; }
-  .btn-ghost  { background: transparent; border: 1px solid var(--border2); color: var(--text); }
-  .btn-red    { background: var(--red); color: #fff; }
-  .btn-green  { background: var(--green); color: #0d0f0a; }
-  .btn-sm     { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+.gold  .val { color: var(--accent2); }
+.green .val { color: var(--green2); }
+.orange .val { color: var(--orange2); }
+.blue  .val { color: var(--blue2); }
+.purple .val { color: var(--purple); }
+.red   .val { color: var(--red); }
 
-  /* ── DATA TABLE ── */
-  .data-table-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .data-table thead tr {
-    background: var(--card2);
-    border-bottom: 1px solid var(--border);
-  }
-  .data-table th {
-    padding: 11px 14px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: var(--muted);
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .data-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(201,162,39,0.07);
-    vertical-align: top;
-  }
-  .data-table tr:last-child td { border-bottom: none; }
-  .data-table tr:hover td { background: rgba(201,162,39,0.03); }
+/* ── SECTION HEADERS ── */
+.sec-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+}
+.sec-hdr h3 { font-size: 14px; font-weight: 700; color: var(--gold); }
+.sec-hdr .badge {
+  font-size: 11px; background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text3); padding: 3px 10px; border-radius: 20px;
+}
 
-  /* ── PILLS ── */
-  .pill {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-  .pill-green  { background: rgba(126,196,126,0.15); color: var(--green); }
-  .pill-red    { background: rgba(192,84,74,0.15);   color: var(--red); }
-  .pill-gold   { background: rgba(201,162,39,0.15);  color: var(--accent2); }
-  .pill-blue   { background: rgba(90,159,200,0.15);  color: var(--blue); }
-  .pill-muted  { background: rgba(122,120,96,0.15);  color: var(--muted); }
+/* ── TABLE ── */
+.tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; min-width: 600px; }
+th {
+  background: var(--bg3); color: var(--gold); padding: 9px 12px;
+  text-align: left; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  font-size: 13px; vertical-align: middle;
+  font-family: 'Sarabun', sans-serif;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
 
-  /* ── MONO TEXT ── */
-  .mono { font-family: 'IBM Plex Mono', monospace; }
+/* ── PILLS ── */
+.pill {
+  display: inline-block; padding: 2px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.pill-green { background: rgba(46,204,113,.15); color: var(--green2); border: 1px solid rgba(46,204,113,.3); }
+.pill-orange { background: rgba(224,123,58,.15); color: var(--orange2); border: 1px solid rgba(224,123,58,.3); }
+.pill-blue { background: rgba(91,141,184,.15); color: var(--blue2); border: 1px solid rgba(91,141,184,.3); }
+.pill-purple { background: rgba(155,111,212,.15); color: var(--purple); border: 1px solid rgba(155,111,212,.3); }
+.pill-red { background: rgba(212,90,90,.15); color: var(--red); border: 1px solid rgba(212,90,90,.3); }
 
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-  }
-  .empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; }
-  .empty-state .empty-text { font-size: 14px; }
+/* ── MONO ── */
+.mono { font-family: 'Fira Code', monospace; }
 
-  /* ── TOAST ── */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--card2);
-    border: 1px solid var(--border2);
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 14px;
-    color: var(--text);
-    transition: transform .3s;
-    z-index: 9999;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
+/* ── LOG PANEL ── */
+.log-panel {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px; line-height: 1.8;
+  height: 340px; overflow-y: auto;
+}
+.log-line { display: flex; gap: 10px; }
+.log-ts { color: var(--text3); white-space: nowrap; }
+.log-shop { color: var(--blue2); }
+.log-msg { color: var(--text2); }
+.log-msg.chat { color: var(--green2); }
+.log-msg.sale { color: var(--accent2); }
+.log-msg.login { color: var(--purple); }
+.log-msg.error { color: var(--red); }
+.log-msg.system { color: var(--text3); }
 
-  /* ── BILL DELETION SPECIFIC ── */
-  .deletion-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-  .shop-del-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    cursor: pointer;
-    transition: border-color .2s;
-  }
-  .shop-del-card:hover { border-color: var(--accent); }
-  .shop-del-card.selected { border-color: var(--accent2); background: var(--card2); }
-  .shop-del-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .shop-del-count { font-size: 22px; font-weight: 800; color: var(--red); font-family: 'IBM Plex Mono', monospace; }
-  .shop-del-amt { font-size: 12px; color: var(--muted); margin-top: 2px; }
+/* ── CHAT LOG ── */
+.chat-filters {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.chat-filter-btn {
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text3); padding: 5px 14px; border-radius: 8px;
+  cursor: pointer; font-size: 12px; font-family: inherit; transition: all .2s;
+}
+.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.12); }
+.chat-entries { display: flex; flex-direction: column; gap: 8px; }
+.chat-entry {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px;
+}
+.chat-entry-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px; gap: 8px; flex-wrap: wrap;
+}
+.chat-entry-shop { font-weight: 700; color: var(--gold); font-size: 13px; }
+.chat-entry-ts { font-size: 11px; color: var(--text3); font-family: 'Fira Code', monospace; }
+.chat-bubble-user {
+  background: rgba(91,141,184,.12); border: 1px solid rgba(91,141,184,.2);
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
+  font-size: 13px; line-height: 1.6;
+}
+.chat-bubble-user .role-lbl { font-size: 10px; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
+.chat-bubble-ai {
+  background: rgba(46,204,113,.08); border: 1px solid rgba(46,204,113,.15);
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 13px; line-height: 1.6;
+}
+.chat-bubble-ai .role-lbl { font-size: 10px; color: var(--green); font-weight: 700; margin-bottom: 4px; }
 
-  /* ── MENU TREND SPECIFIC ── */
-  .trend-bar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(201,162,39,0.07);
-  }
-  .trend-bar-row:last-child { border-bottom: none; }
-  .trend-rank {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--muted);
-    width: 22px;
-    text-align: center;
-    font-family: 'IBM Plex Mono', monospace;
-    flex-shrink: 0;
-  }
-  .trend-name { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
-  .trend-bar-wrap { flex: 2; min-width: 80px; }
-  .trend-bar-bg { height: 6px; background: rgba(201,162,39,0.1); border-radius: 3px; overflow: hidden; }
-  .trend-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width .5s; }
-  .trend-shops { font-size: 12px; color: var(--blue); width: 60px; text-align: right; flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; }
-  .trend-price { font-size: 12px; color: var(--muted); width: 60px; text-align: right; flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; }
+/* ── MINI BAR CHART ── */
+.bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-lbl { font-size: 12px; color: var(--text2); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track { flex: 1; height: 20px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+.bar-val { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text2); width: 60px; text-align: right; flex-shrink: 0; }
 
-  /* ── ITEMS TAG CLOUD ── */
-  .items-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-  .item-tag {
-    background: rgba(201,162,39,0.08);
-    border: 1px solid rgba(201,162,39,0.2);
-    border-radius: 6px;
-    padding: 2px 7px;
-    font-size: 11px;
-    color: var(--accent2);
-    white-space: nowrap;
-  }
+/* ── SERVER HEALTH ── */
+.health-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.health-item {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.health-item .h-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+.health-item .h-val { font-size: 18px; font-weight: 700; font-family: 'Fira Code', monospace; }
+.health-item .h-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+.health-item .h-bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
 
-  /* ── LOADING ── */
-  .loading-row {
-    text-align: center;
-    padding: 30px;
-    color: var(--muted);
-    font-size: 13px;
-  }
-  .spin {
-    display: inline-block;
-    animation: spin 1s linear infinite;
-    margin-right: 8px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text3); font-size: 13px;
+}
+.empty-state .icon { font-size: 32px; margin-bottom: 8px; }
 
-  /* ── USER LIST ── */
-  .user-status-pending { color: var(--red); }
-  .user-status-active  { color: var(--green); }
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text); padding: 12px 18px; border-radius: 10px;
+  font-size: 13px; box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  transform: translateY(100px); opacity: 0;
+  transition: all .3s; z-index: 999; max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
 
-  /* ── MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 500;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-box {
-    background: var(--card);
-    border: 1px solid var(--border2);
-    border-radius: 16px;
-    padding: 24px;
-    width: 100%;
-    max-width: 480px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-title { font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--accent2); }
-  .modal-field { margin-bottom: 12px; }
-  .modal-field label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; font-weight: 700; }
-  .modal-field input, .modal-field select {
-    width: 100%;
-    padding: 9px 12px;
-    border-radius: 10px;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    color: var(--text);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 14px;
-    outline: none;
-  }
-  .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+/* ── ACTION BTNS ── */
+.act-btn {
+  padding: 4px 12px; border-radius: 8px; font-size: 12px;
+  font-weight: 700; cursor: pointer; font-family: inherit;
+  border: 1px solid; transition: all .2s;
+}
+.act-btn-green { background: rgba(46,204,113,.15); color: var(--green2); border-color: rgba(46,204,113,.3); }
+.act-btn-green:hover { background: rgba(46,204,113,.25); }
+.act-btn-orange { background: rgba(224,123,58,.15); color: var(--orange2); border-color: rgba(224,123,58,.3); }
+.act-btn-orange:hover { background: rgba(224,123,58,.25); }
+.act-btn-blue { background: rgba(91,141,184,.15); color: var(--blue2); border-color: rgba(91,141,184,.3); }
+.act-btn-blue:hover { background: rgba(91,141,184,.25); }
+.act-btn-red { background: rgba(212,90,90,.15); color: var(--red); border-color: rgba(212,90,90,.3); }
+.act-btn-red:hover { background: rgba(212,90,90,.25); }
 
-  /* ── MOBILE USER CARD (replaces table on mobile) ── */
-  .user-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-  }
-  .user-card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    gap: 8px;
-  }
-  .user-card-name {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1.3;
-  }
-  .user-card-phone {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-  .user-card-pills {
-    display: flex;
-    gap: 5px;
-    flex-shrink: 0;
-    align-items: center;
-  }
-  .user-card-meta {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 14px;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-  .user-card-meta-item span {
-    color: var(--text);
-    font-weight: 600;
-  }
-  .user-card-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .user-card-actions .btn {
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-    padding: 9px 8px;
-    font-size: 13px;
-  }
+/* ── PROGRESS RING ── */
+.usage-ring { display: flex; align-items: center; gap: 6px; }
+.usage-track { width: 40px; height: 40px; }
+.usage-bg { fill: none; stroke: var(--border2); stroke-width: 4; }
+.usage-fill { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100.53; stroke-dashoffset: 100.53; transition: stroke-dashoffset .5s ease; transform: rotate(-90deg); transform-origin: center; }
 
-  @media (max-width: 700px) {
-    /* topbar compact */
-    .topbar { padding: 0 12px; height: auto; min-height: 52px; flex-wrap: wrap; gap: 6px; padding-top: 8px; padding-bottom: 8px; }
-    .topbar-logo { font-size: 17px; }
-    .topbar-badge { font-size: 10px; padding: 2px 6px; }
-    .topbar-stat { font-size: 11px; }
-    .logout-btn { padding: 5px 10px; font-size: 11px; }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
-    /* nav tabs */
-    .nav-tabs { padding: 10px 10px 0; gap: 3px; }
-    .nav-tab { padding: 7px 10px; font-size: 12px; }
+/* ── LOCK SCREEN ── */
+#lock-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; flex-direction: column; gap: 16px;
+}
+.lock-box {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 16px; padding: 32px; width: 320px; text-align: center;
+}
+.lock-box h2 { color: var(--gold); font-size: 18px; margin-bottom: 8px; }
+.lock-box p { color: var(--text3); font-size: 13px; margin-bottom: 20px; }
+.lock-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border2);
+  color: var(--text); padding: 10px 14px; border-radius: 10px;
+  font-family: inherit; font-size: 14px; margin-bottom: 12px;
+  outline: none;
+}
+.lock-input:focus { border-color: var(--gold); }
+.lock-btn {
+  width: 100%; background: var(--gold); color: var(--bg);
+  border: none; padding: 11px; border-radius: 10px;
+  font-weight: 700; font-size: 14px; cursor: pointer;
+  font-family: inherit; transition: background .2s;
+}
+.lock-btn:hover { background: var(--accent2); }
+.lock-err { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
 
-    /* content */
-    .tab-content { padding: 12px 10px; }
+/* 🐕 Cartoon Hero extras for admin */
+body {
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(201,162,39,0.05) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(201,162,39,0.15) 0%, transparent 45%);
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
+.card { border: 2px solid var(--border2) !important; border-radius: 16px !important; }
+.stat-card .val { font-family: 'JetBrains Mono', monospace !important; }
+.stat-card .lbl { font-family: 'Sarabun', sans-serif !important; }
+.topbar { border-bottom: 3px solid var(--gold) !important; box-shadow: 0 4px 20px rgba(201,162,39,0.18) !important; }
+.nav-tab.active { color: var(--gold) !important; }
+.nav-tab.active { border-bottom-color: var(--bg) !important; }
+.refresh-btn { border-radius: 12px !important; font-family: 'Prompt', sans-serif !important; }
+.refresh-btn:hover { border-color: var(--gold) !important; background: rgba(201,162,39,0.12) !important; }
+table thead th { font-family: 'Prompt', sans-serif !important; color: var(--gold) !important; }
 
-    /* stats */
-    .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-    .stat-value { font-size: 24px; }
-    .stat-card { padding: 12px 10px; border-radius: 12px; }
 
-    /* filter row */
-    .filter-row { gap: 7px; }
-    .filter-row select, .filter-row input { font-size: 13px; padding: 8px 10px; }
+/* ══ ADMIN ATMOSPHERE ══ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(201,162,39,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,162,39,0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 0% 0%,   rgba(201,162,39,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 55% at 100% 100%, rgba(201,162,39,0.15) 0%, transparent 55%);
+  pointer-events: none; z-index: 0;
+}
 
-    /* hide desktop table on mobile, show cards */
-    .desktop-table { display: none !important; }
-    .mobile-cards { display: block !important; }
+/* ── TOPBAR ── */
+.topbar {
+  background: rgba(7,5,26,0.97) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative;
+}
+.topbar::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--accent2), var(--gold), transparent);
+  background-size: 200% 100%;
+  animation: topbar-scan 4s linear infinite;
+  opacity: 0.55;
+}
+@keyframes topbar-scan { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-    /* deletion table — make scrollable */
-    .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
-    .data-table { font-size: 12px; min-width: 560px; }
-    .data-table th, .data-table td { padding: 8px 10px; white-space: nowrap; }
+.logo { font-family: 'Prompt', sans-serif !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: 0 0 12px var(--glow-o) !important; }
+.logo span { font-family: 'Fira Code', monospace !important; }
 
-    /* trend bars */
-    .trend-bar-wrap { min-width: 50px; }
-    .trend-name { font-size: 13px; }
-    .trend-shops, .trend-price { width: 50px; font-size: 11px; }
+/* ── NAV TABS ── */
+.nav-tabs { background: rgba(7,5,26,0.95) !important; border-bottom: 1px solid var(--border) !important; }
+.nav-tab { font-family: 'Fira Code', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; border-radius: 0 !important; }
+.nav-tab.active { color: var(--gold) !important; background: rgba(201,162,39,0.07) !important; border-color: var(--border) !important; text-shadow: 0 0 8px var(--glow-o) !important; }
 
-    /* deletion summary grid */
-    .deletion-summary-grid { grid-template-columns: 1fr 1fr; }
+/* ── CARDS ── */
+.card {
+  background: linear-gradient(135deg, rgba(13,10,40,0.92), rgba(7,5,26,0.96)) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 2px solid rgba(201,162,39,0.28) !important;
+  border-radius: 2px !important;
+}
+.stat-card .val { font-family: 'Fira Code', monospace !important; text-shadow: 0 0 15px currentColor !important; }
+.stat-card .lbl { font-family: 'Fira Code', monospace !important; letter-spacing: 1.5px !important; }
 
-    /* section title */
-    .section-title { font-size: 10px; }
-  }
+/* ── LIVE DOT ── */
+.live-dot { box-shadow: 0 0 0 0 var(--glow-g) !important; }
 
-  /* Desktop: hide cards, show table */
-  .mobile-cards { display: none; }
+/* ── REFRESH BTN ── */
+.refresh-btn {
+  background: rgba(7,5,26,0.8) !important;
+  border: 1px solid var(--border) !important;
+  font-family: 'Fira Code', monospace !important;
+  letter-spacing: 1px !important; font-size: 9px !important;
+  border-radius: 1px !important;
+  color: var(--gold) !important;
+}
+.refresh-btn:hover { border-color: var(--gold) !important; box-shadow: 0 0 12px var(--glow-o) !important; }
+
+/* ── TABLE ── */
+table { border-collapse: collapse !important; }
+th { font-family: 'Fira Code', monospace !important; font-size: 8px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--accent2) !important; border-bottom: 1px solid rgba(201,162,39,0.25) !important; }
+td { border-bottom: 1px solid rgba(201,162,39,0.07) !important; }
+tr:hover td { background: rgba(201,162,39,0.04) !important; }
+
+/* ── INPUT/SELECT ── */
+input, select, textarea {
+  background: rgba(0,0,0,0.5) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom-color: rgba(201,162,39,0.35) !important;
+  color: var(--text) !important;
+  font-family: 'Sarabun', sans-serif !important;
+  border-radius: 1px !important;
+}
+input:focus, select:focus { border-bottom-color: var(--gold) !important; outline: none !important; box-shadow: 0 2px 0 rgba(201,162,39,0.25) !important; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201,162,39,0.25); border-radius: 2px; }
+
+/* ── MAIN ── */
+main { position: relative; z-index: 1; }
+.tab-content { position: relative; z-index: 1; }
+
+
+/* ══ NEON MANTIS ADMIN OVERRIDES ══ */
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+.topbar {
+  background: var(--bg2) !important;
+  border-bottom: 2px solid var(--border) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.40) !important;
+}
+.logo { color: var(--gold) !important; font-family: 'Prompt', sans-serif !important; }
+.live-label { color: var(--green) !important; }
+.last-update { color: var(--text3) !important; font-family: 'Fira Code', monospace !important; }
+.refresh-btn {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--gold) !important;
+}
+.refresh-btn:hover { background: var(--bg4) !important; border-color: var(--gold) !important; }
+.interval-select { background: var(--bg3) !important; border: 1px solid var(--border2) !important; color: var(--text2) !important; }
+
+.nav-tabs { background: var(--bg2) !important; border-bottom: 1px solid var(--border) !important; }
+.nav-tab { color: var(--text3) !important; }
+.nav-tab:hover { background: var(--bg3) !important; color: var(--text2) !important; }
+.nav-tab.active { color: var(--gold) !important; background: var(--bg) !important; border-color: var(--border) !important; border-bottom-color: var(--bg) !important; }
+
+.card {
+  background: var(--bg2) !important;
+  border: 1.5px solid var(--border) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35) !important;
+}
+.stat-card .lbl { color: var(--text3) !important; }
+th { background: var(--bg3) !important; color: var(--gold) !important; border-bottom: 1px solid var(--border) !important; }
+td { border-bottom: 1px solid var(--border) !important; color: var(--text) !important; }
+tr:hover td { background: var(--bg3) !important; }
+.tbl-wrap { border: 1px solid var(--border) !important; }
+.sec-hdr h3 { color: var(--gold) !important; font-family: 'Prompt', sans-serif !important; }
+.sec-hdr .badge { background: var(--bg3) !important; border: 1px solid var(--border2) !important; color: var(--text3) !important; }
+.log-panel { background: var(--bg) !important; border: 1px solid var(--border) !important; }
+
+/* Pill colors stay the same but need dark borders to show on light bg */
+.pill-green { background: rgba(0,255,135,0.12) !important; color: var(--green) !important; border: 1px solid rgba(0,255,135,0.30) !important; }
+.pill-orange { background: rgba(201,162,39,0.14) !important; color: var(--orange) !important; border: 1px solid rgba(201,162,39,0.35) !important; }
+.pill-blue { background: rgba(232,201,106,0.14) !important; color: var(--blue) !important; border: 1px solid rgba(232,201,106,0.35) !important; }
+.pill-purple { background: rgba(201,162,39,0.1) !important; color: var(--purple) !important; border: 1px solid rgba(201,162,39,0.1) !important; }
+.pill-red { background: rgba(192,57,43,0.12) !important; color: var(--red) !important; border: 1px solid rgba(192,57,43,0.30) !important; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg3); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; opacity:0.6; }
 </style>
 </head>
 <body>
+<div class="pos-scan" style="position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),var(--accent2),var(--gold),transparent);opacity:0;animation:scan-pos 10s linear infinite;z-index:999;pointer-events:none;"></div>
+<style>@keyframes scan-pos{0%{top:0;opacity:0}3%{opacity:.5}97%{opacity:.2}100%{top:100vh;opacity:0}}</style>
 
-<!-- ═══════════ LOGIN ═══════════ -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">🔑</div>
-    <div class="login-title">KAASOD</div>
-    <div class="login-sub">Server Admin Panel</div>
-    <input type="password" id="admin-key-input" placeholder="Admin Key" autocomplete="off"
-           onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
-    <div id="login-err" class="login-err"></div>
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-box">
+    <div style="font-size:36px;margin-bottom:12px;">🌿</div>
+    <h2>ค้าสด Monitor</h2>
+    <p>กรอก Admin Key เพื่อเข้าใช้งาน</p>
+    <input type="password" class="lock-input" id="key-input" placeholder="Admin Key..." autocomplete="off">
+    <button class="lock-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="lock-err" id="lock-err">❌ Key ไม่ถูกต้อง</div>
   </div>
 </div>
 
-<!-- ═══════════ MAIN ═══════════ -->
-<div id="main-screen">
-  <div class="topbar">
-    <div class="topbar-logo">🏪 KAASOD</div>
-    <div class="topbar-badge">SERVER ADMIN</div>
-    <div class="topbar-right">
-      <div class="topbar-stat">ร้าน <span id="tb-active">—</span> | รายรับ <span id="tb-revenue">—</span>฿</div>
-      <button class="logout-btn" onclick="doLogout()">ออก</button>
-    </div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">🐕 ค้าสด <span>Real-time Monitor</span></div>
+  <div class="status-bar">
+    <span class="live-dot"></span>
+    <span class="live-label">LIVE</span>
+    <span class="last-update" id="last-update">--:--:--</span>
+    <select class="interval-select" id="interval-sel" onchange="changeInterval()">
+      <option value="10000">รีเฟรช 10 วิ</option>
+      <option value="30000" selected>รีเฟรช 30 วิ</option>
+      <option value="60000">รีเฟรช 1 นาที</option>
+      <option value="300000">รีเฟรช 5 นาที</option>
+    </select>
+    <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M1 4v6h6M23 20v-6h-6"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      รีเฟรช
+    </button>
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('overview')">📊 ภาพรวม</button>
+  <button class="nav-tab" onclick="switchTab('sales')">💰 ยอดขาย</button>
+  <button class="nav-tab" onclick="switchTab('users')">👥 ร้านค้า</button>
+  <button class="nav-tab" onclick="switchTab('chats')">💬 ประวัติ AI Chat</button>
+  <button class="nav-tab" onclick="switchTab('activity')">⚡ Activity Log</button>
+  <button class="nav-tab" onclick="switchTab('server')">🖥️ Server Health</button>
+</div>
+
+<main>
+
+<!-- ───── TAB: OVERVIEW ───── -->
+<div id="tab-overview" class="tab-content active">
+  <div class="grid-4" id="stat-cards">
+    <div class="card stat-card gold"><span class="lbl">ร้านทั้งหมด</span><span class="val" id="s-total">—</span></div>
+    <div class="card stat-card green"><span class="lbl">Active</span><span class="val" id="s-active">—</span></div>
+    <div class="card stat-card orange"><span class="lbl">รอยืนยัน</span><span class="val" id="s-pending">—</span></div>
+    <div class="card stat-card purple"><span class="lbl">รายได้/เดือน</span><span class="val" id="s-revenue">—</span><span class="delta" id="s-pro-count" style="color:var(--text3)"></span></div>
   </div>
 
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="switchTab('users')">👥 ร้านค้า</button>
-    <button class="nav-tab" onclick="switchTab('deletions')">🗑️ ลบบิล <span id="del-badge" class="badge" style="display:none"></span></button>
-    <button class="nav-tab" onclick="switchTab('menus')">🌟 เมนูใหม่</button>
-    <button class="nav-tab" onclick="switchTab('popular')">🔥 สินค้ายอดฮิต</button>
+  <div class="grid-3">
+    <div class="card stat-card blue"><span class="lbl">Pro</span><span class="val" id="s-pro">—</span></div>
+    <div class="card stat-card"><span class="lbl">Starter</span><span class="val" id="s-starter" style="color:var(--text2)">—</span></div>
+    <div class="card stat-card"><span class="lbl">AI Calls วันนี้</span><span class="val" id="s-ai" style="color:var(--green2)">—</span></div>
   </div>
 
-  <!-- ── TAB: USERS ── -->
-  <div id="tab-users" class="tab-content active">
-    <div class="section-title">ภาพรวมร้านค้าทั้งหมด</div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">ทั้งหมด</div><div class="stat-value" id="s-total">—</div></div>
-      <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value green" id="s-active">—</div></div>
-      <div class="stat-card"><div class="stat-label">รอ Approve</div><div class="stat-value red" id="s-pending">—</div></div>
-      <div class="stat-card"><div class="stat-label">รายรับ/เดือน</div><div class="stat-value" id="s-revenue">—</div></div>
-    </div>
-    <div class="filter-row">
-      <select id="user-filter-status" onchange="renderUsers()">
-        <option value="">ทุกสถานะ</option>
-        <option value="pending">รอ Approve</option>
-        <option value="active">Active</option>
-      </select>
-      <select id="user-filter-plan" onchange="renderUsers()">
-        <option value="">ทุกแพ็กเกจ</option>
-        <option value="starter">Starter</option>
-        <option value="pro">Pro</option>
-      </select>
-      <button class="btn btn-gold" onclick="loadUsers()">🔄 รีเฟรช</button>
-    </div>
-    <!-- Desktop table -->
-    <div class="data-table-wrap desktop-table">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ร้าน</th>
-            <th>Username</th>
-            <th>แพ็กเกจ</th>
-            <th>สถานะ</th>
-            <th>AI วันนี้</th>
-            <th>Sync ล่าสุด</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="users-tbody">
-          <tr><td colspan="7" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- Mobile cards -->
-    <div class="mobile-cards" id="users-cards">
-      <div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>
-    </div>
-  </div>
-
-  <!-- ── TAB: BILL DELETIONS ── -->
-  <div id="tab-deletions" class="tab-content">
-    <div class="section-title">การลบบิล — ติดตามทุกครั้งที่ร้านลบข้อมูลยอดขาย</div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">ลบบิลทั้งหมด</div><div class="stat-value red" id="del-total">—</div></div>
-      <div class="stat-card"><div class="stat-label">มูลค่ารวม</div><div class="stat-value" id="del-amount">—</div></div>
-      <div class="stat-card"><div class="stat-label">ร้านที่ลบ</div><div class="stat-value blue" id="del-shops">—</div></div>
-    </div>
-
-    <div class="filter-row">
-      <select id="del-days" onchange="loadDeletions()">
-        <option value="1">วันนี้</option>
-        <option value="7" selected>7 วัน</option>
-        <option value="30">30 วัน</option>
-        <option value="90">90 วัน</option>
-      </select>
-      <select id="del-shop-filter" onchange="filterDeletionLogs()">
-        <option value="">ทุกร้าน</option>
-      </select>
-      <button class="btn btn-ghost" onclick="loadDeletions()">🔄 รีเฟรช</button>
-    </div>
-
-    <!-- summary per shop -->
-    <div class="section-title" style="margin-top:4px;">สรุปรายร้าน</div>
-    <div id="del-shop-summary" class="deletion-summary-grid"></div>
-
-    <!-- detail log table -->
-    <div class="section-title">รายการที่ถูกลบ</div>
-    <div class="data-table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>เวลาที่ลบ</th>
-            <th>ร้าน</th>
-            <th>ผู้ใช้</th>
-            <th>เวลาบิล</th>
-            <th>มูลค่า</th>
-            <th>รายการสินค้า</th>
-            <th>ชำระ</th>
-          </tr>
-        </thead>
-        <tbody id="del-tbody">
-          <tr><td colspan="7" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ── TAB: NEW MENUS ── -->
-  <div id="tab-menus" class="tab-content">
-    <div class="section-title">เมนูใหม่ — วิเคราะห์แนวโน้มจากร้านที่ลงทะเบียน</div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-label">เมนูที่ติดตาม</div><div class="stat-value" id="menu-total">—</div></div>
-      <div class="stat-card"><div class="stat-label">เมนูที่ซ้ำกัน ≥2 ร้าน</div><div class="stat-value green" id="menu-overlap">—</div></div>
-    </div>
-
-    <div class="filter-row">
-      <select id="menu-days" onchange="loadMenuTrend()">
-        <option value="7">7 วัน</option>
-        <option value="30" selected>30 วัน</option>
-        <option value="90">90 วัน</option>
-      </select>
-      <button class="btn btn-ghost" onclick="loadMenuTrend()">🔄 รีเฟรช</button>
-    </div>
-
-    <div class="section-title" style="margin-top:4px;">
-      เมนูที่เพิ่มบ่อยที่สุดข้ามร้าน <span style="color:var(--muted);font-weight:400;">(เรียงตามจำนวนร้านที่เพิ่ม)</span>
-    </div>
-    <div class="data-table-wrap" style="padding: 6px 0;">
-      <div id="menu-trend-list">
-        <div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>🤖 AI Usage วันนี้ (Top Shops)</h3>
+        <span class="badge" id="ai-badge">—</span>
+      </div>
+      <div class="bar-wrap" id="ai-bar-wrap">
+        <div class="empty-state"><div class="icon">📊</div>กำลังโหลด...</div>
       </div>
     </div>
-
-    <div class="section-title" style="margin-top:20px;">ตารางรายละเอียด</div>
-    <div class="data-table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>ชื่อเมนู</th>
-            <th>ร้านที่เพิ่ม</th>
-            <th>ครั้งที่เพิ่ม</th>
-            <th>ราคาเฉลี่ย</th>
-            <th>ล่าสุด</th>
-          </tr>
-        </thead>
-        <tbody id="menu-tbody">
-          <tr><td colspan="6" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ── TAB: POPULAR ITEMS ── -->
-  <div id="tab-popular" class="tab-content">
-    <div class="section-title">สินค้ายอดนิยม — รวมยอดขายทุกร้าน</div>
-    <div class="filter-row">
-      <select id="pop-days" onchange="loadPopular()">
-        <option value="1">วันนี้</option>
-        <option value="7" selected>7 วัน</option>
-        <option value="30">30 วัน</option>
-      </select>
-      <button class="btn btn-ghost" onclick="loadPopular()">🔄 รีเฟรช</button>
-    </div>
-    <div id="pop-shop-count" style="font-size:12px;color:var(--muted);margin-bottom:14px;"></div>
-    <div class="section-title">Top 20 รายการขายดีสุด</div>
-    <div class="data-table-wrap" style="padding:6px 0;">
-      <div id="popular-list">
-        <div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>📋 แพ็กเกจ Distribution</h3>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--text2)">🤖 Pro 399฿</span>
+            <span class="mono" style="font-size:12px;color:var(--purple)" id="pro-pct">—%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="pro-bar" style="background:var(--purple);width:0%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--text2)">📋 Starter 199฿</span>
+            <span class="mono" style="font-size:12px;color:var(--blue2)" id="starter-pct">—%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="starter-bar" style="background:var(--blue);width:0%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:var(--text2)">⏳ Pending</span>
+            <span class="mono" style="font-size:12px;color:var(--orange2)" id="pending-pct">—%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="pending-bar" style="background:var(--orange);width:0%"></div></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ── EDIT USER MODAL ── -->
-<div id="edit-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">✏️ แก้ไขข้อมูลร้าน</div>
-    <input type="hidden" id="edit-username">
-    <div class="modal-field">
-      <label>ชื่อร้าน</label>
-      <input type="text" id="edit-shop-name">
+  <div class="card">
+    <div class="sec-hdr">
+      <h3>🆕 ร้านค้าสมัครใหม่ล่าสุด</h3>
+      <span class="badge" id="new-shops-count">—</span>
     </div>
-    <div class="modal-field">
-      <label>เบอร์โทร</label>
-      <input type="text" id="edit-phone">
-    </div>
-    <div class="modal-field">
-      <label>แพ็กเกจ</label>
-      <select id="edit-plan">
-        <option value="starter">Starter 199฿</option>
-        <option value="pro">Pro 399฿</option>
-      </select>
-    </div>
-    <div class="modal-field">
-      <label>สถานะ</label>
-      <select id="edit-status">
-        <option value="active">Active</option>
-        <option value="pending">Pending</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-gold" onclick="submitEdit()">💾 บันทึก</button>
-      <button class="btn btn-ghost" onclick="closeEditModal()">ยกเลิก</button>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Username</th><th>ชื่อร้าน</th><th>แพ็กเกจ</th>
+          <th>สถานะ</th><th>สมัครเมื่อ</th><th>Actions</th>
+        </tr>
+        <tbody id="new-shops-body">
+          <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- ── RESET PW MODAL ── -->
-<div id="reset-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">🔒 รีเซ็ตรหัสผ่าน</div>
-    <input type="hidden" id="reset-username">
-    <div class="modal-field">
-      <label id="reset-shop-label">ร้าน</label>
-      <input type="password" id="reset-pw" placeholder="รหัสผ่านใหม่ (อย่างน้อย 4 ตัว)">
+<!-- ───── TAB: SALES (ใหม่ v6) ───── -->
+<div id="tab-sales" class="tab-content">
+
+  <!-- filter bar -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="sec-hdr" style="flex-wrap:wrap;gap:10px;">
+      <h3>💰 ยอดขายจริง</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="sales-days" style="background:var(--bg3);border:1px solid var(--border);color:var(--text1);padding:6px 10px;border-radius:6px;font-size:12px;">
+          <option value="1">วันนี้</option>
+          <option value="7">7 วัน</option>
+          <option value="30">30 วัน</option>
+        </select>
+        <select id="sales-shop" style="background:var(--bg3);border:1px solid var(--border);color:var(--text1);padding:6px 10px;border-radius:6px;font-size:12px;">
+          <option value="">ทุกร้าน</option>
+        </select>
+        <button onclick="loadSales()" style="background:linear-gradient(135deg,#C9A227,#A07B18);color:#111408;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🔍 โหลด</button>
+        <button onclick="loadSales(true)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">🔄 Live</button>
+      </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-red" onclick="submitReset()">🔑 รีเซ็ต</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('reset-modal').classList.remove('open')">ยกเลิก</button>
+  </div>
+
+  <!-- summary cards -->
+  <div class="grid-4" style="margin-bottom:16px;">
+    <div class="card stat-card gold"><span class="lbl">ยอดรวม</span><span class="val" id="sale-total">—</span></div>
+    <div class="card stat-card green"><span class="lbl">จำนวนบิล</span><span class="val" id="sale-bills">—</span></div>
+    <div class="card stat-card blue"><span class="lbl">เงินสด</span><span class="val" id="sale-cash">—</span></div>
+    <div class="card stat-card orange"><span class="lbl">โอน</span><span class="val" id="sale-transfer">—</span></div>
+  </div>
+
+  <!-- per-shop breakdown -->
+  <div id="sales-shops-list"></div>
+
+  <!-- บิลล่าสุด -->
+  <div class="card" style="margin-top:16px;">
+    <div class="sec-hdr"><h3>🧾 บิลล่าสุด</h3><span class="badge" id="sales-bill-count">—</span></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr>
+          <th>เวลา</th><th>ร้าน</th><th>สินค้า</th>
+          <th>ยอด</th><th>ชำระ</th><th>สมาชิก</th>
+        </tr></thead>
+        <tbody id="sales-bill-tbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
+<!-- ───── TAB: USERS ───── -->
+<div id="tab-users" class="tab-content">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="sec-hdr">
+      <h3>👥 ร้านค้าทั้งหมด</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="user-search" placeholder="🔍 ค้นหา..." style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:6px 12px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;width:180px;" oninput="filterUsers()">
+        <select id="user-filter" style="background:var(--bg);border:1px solid var(--border2);color:var(--text2);padding:6px 10px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;" onchange="filterUsers()">
+          <option value="all">ทั้งหมด</option>
+          <option value="active">Active เท่านั้น</option>
+          <option value="pending">Pending เท่านั้น</option>
+          <option value="pro">Pro เท่านั้น</option>
+        </select>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th>
+          <th>แพ็กเกจ</th><th>สถานะ</th>
+          <th>AI วันนี้</th><th>สมัครเมื่อ</th>
+          <th>Backup</th><th>Export</th><th>Actions</th>
+        </tr>
+        <tbody id="users-body">
+          <tr><td colspan="10"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ───── TAB: CHATS ───── -->
+<div id="tab-chats" class="tab-content">
+  <div class="card" style="margin-bottom:16px;">
+    <div class="sec-hdr">
+      <h3>💬 ประวัติ AI Chat แต่ละร้าน</h3>
+      <span class="badge">จากข้อมูล Backup</span>
+    </div>
+    <div class="chat-filters" id="chat-shop-filters">
+      <button class="chat-filter-btn active" onclick="filterChats('all')" data-shop="all">ทุกร้าน</button>
+    </div>
+    <div id="chat-entries-wrap">
+      <div class="empty-state"><div class="icon">💬</div>ยังไม่มีข้อมูล Chat — กด Refresh เพื่อโหลด</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr">
+      <h3>📊 สถิติ AI Usage รายร้าน (7 วัน)</h3>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr>
+          <th>ร้าน</th><th>Username</th><th>แพ็กเกจ</th>
+          <th>ใช้วันนี้</th><th>เหลือวันนี้</th>
+          <th>Usage Bar</th>
+        </tr>
+        <tbody id="ai-usage-body">
+          <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ───── TAB: ACTIVITY ───── -->
+<div id="tab-activity" class="tab-content">
+  <div class="grid-2">
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>⚡ Activity Feed</h3>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span id="log-count" class="badge">0 events</span>
+          <button class="act-btn act-btn-orange" onclick="clearLog()">ล้าง</button>
+        </div>
+      </div>
+      <div class="log-panel" id="log-panel">
+        <div class="log-line"><span class="log-ts">--:--:--</span><span class="log-msg system">เริ่มต้น Monitor...</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>📦 Backup Files รายร้าน</h3>
+        <span class="badge" id="backup-count">—</span>
+      </div>
+      <div class="tbl-wrap" style="max-height:340px;overflow-y:auto;">
+        <table>
+          <tr><th>ร้าน</th><th>ไฟล์ล่าสุด</th><th>ขนาด</th><th>ดู</th></tr>
+          <tbody id="backup-body">
+            <tr><td colspan="4"><div class="empty-state"><div class="icon">📁</div>กำลังโหลด...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr">
+      <h3>🔄 Sync Timeline (7 วันล่าสุด)</h3>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>ร้าน</th><th>Username</th><th>วันที่ Sync ล่าสุด</th><th>จำนวนไฟล์</th><th>มี History</th><th>มี Members</th><th>มี Products</th></tr>
+        <tbody id="sync-body">
+          <tr><td colspan="7"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ───── TAB: SERVER ───── -->
+<div id="tab-server" class="tab-content">
+  <div class="grid-4">
+    <div class="card stat-card green"><span class="lbl">Server Status</span><span class="val" id="srv-status">—</span></div>
+    <div class="card stat-card blue"><span class="lbl">Version</span><span class="val" id="srv-version" style="font-size:20px">—</span></div>
+    <div class="card stat-card"><span class="lbl">Gemini Model</span><span class="val" id="srv-model" style="font-size:14px;color:var(--accent2)">—</span></div>
+    <div class="card stat-card"><span class="lbl">AI Key</span><span class="val" id="srv-aikey">—</span></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="sec-hdr"><h3>🕐 Server Time</h3></div>
+      <div class="mono" id="srv-time" style="font-size:28px;color:var(--accent2);margin:8px 0;">--:--:--</div>
+      <div style="font-size:12px;color:var(--text3)" id="srv-date">-- / -- / ----</div>
+      <div style="margin-top:16px;font-size:12px;color:var(--text3)">Starter Daily Limit</div>
+      <div class="mono" style="font-size:24px;color:var(--blue2);margin-top:4px;" id="srv-limit">—</div>
+    </div>
+    <div class="card">
+      <div class="sec-hdr"><h3>📡 API Health Check</h3></div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;" id="api-checks">
+        <div class="health-item">
+          <span class="h-lbl">Last Health Check</span>
+          <span class="h-val" id="last-health" style="color:var(--green2)">—</span>
+        </div>
+        <div class="health-item">
+          <span class="h-lbl">Response Time</span>
+          <span class="h-val" id="resp-time" style="color:var(--blue2)">— ms</span>
+        </div>
+        <div class="health-item">
+          <span class="h-lbl">Total API Calls (session)</span>
+          <span class="h-val" id="total-calls" style="color:var(--accent2)">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-hdr"><h3>📈 Uptime Stats (session)</h3></div>
+    <div class="bar-wrap" id="uptime-bars">
+      <div class="empty-state"><div class="icon">📡</div>กำลังตรวจสอบ...</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════
+// ──────────────────────────────────────
 // STATE
-// ══════════════════════════════════════════════════════
-let allUsers    = [];
-let allDelLogs  = [];
-let delSummary  = [];
+// ──────────────────────────────────────
+let ADMIN_KEY = '';
+let BASE_URL  = '';
+let refreshTimer = null;
+let allUsersData  = [];
+let sessionCalls  = 0;
+let sessionErrors = 0;
+let sessionStart  = Date.now();
+let logLines      = [];
+let chatData      = {};
+let currentChatShop = 'all';
 
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
-function toast(msg, err = false) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.background = err ? 'rgba(192,84,74,0.95)' : '';
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-async function api(path, opts = {}) {
-  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
-  return res.json();
-}
-
-function fmt(n) {
-  if (n == null) return '—';
-  return Number(n).toLocaleString('th-TH');
-}
-
-function timeAgo(ts) {
-  if (!ts) return '—';
-  const d = new Date(ts);
-  const diff = (Date.now() - d) / 1000;
-  if (diff < 60)  return `${Math.floor(diff)}s ที่แล้ว`;
-  if (diff < 3600) return `${Math.floor(diff/60)}m ที่แล้ว`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ที่แล้ว`;
-  return `${Math.floor(diff/86400)}d ที่แล้ว`;
-}
-
-// ══════════════════════════════════════════════════════
+// ──────────────────────────────────────
 // LOGIN
-// ══════════════════════════════════════════════════════
-async function doLogin() {
-  const key = document.getElementById('admin-key-input').value.trim();
-  const err = document.getElementById('login-err');
-  if (!key) { err.textContent = 'กรุณาใส่ Admin Key'; return; }
-  err.textContent = '';
-  try {
-    const d = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ key }) });
-    if (d.ok) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-screen').style.display = 'block';
-      loadAll();
-    } else {
-      err.textContent = d.msg || 'รหัสไม่ถูกต้อง';
-    }
-  } catch (e) {
-    err.textContent = 'เชื่อมต่อ server ไม่ได้';
-  }
-}
-
-async function doLogout() {
-  await api('/api/admin/logout', { method: 'POST' });
-  location.reload();
-}
-
-// ══════════════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════════════
-function switchTab(name) {
-  document.querySelectorAll('.nav-tab').forEach((b, i) => {
-    const tabs = ['users','deletions','menus','popular'];
-    b.classList.toggle('active', tabs[i] === name);
-  });
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  if (name === 'deletions' && allDelLogs.length === 0) loadDeletions();
-  if (name === 'menus')   loadMenuTrend();
-  if (name === 'popular') loadPopular();
-}
-
-// ══════════════════════════════════════════════════════
-// LOAD ALL
-// ══════════════════════════════════════════════════════
-function loadAll() {
-  loadUsers();
-}
-
-// ══════════════════════════════════════════════════════
-// USERS
-// ══════════════════════════════════════════════════════
-async function loadUsers() {
-  const d = await api('/api/admin/users');
-  if (!d.ok) { toast('โหลด users ไม่ได้', true); return; }
-  allUsers = d.users;
-  const s  = d.summary;
-  document.getElementById('s-total').textContent   = s.total;
-  document.getElementById('s-active').textContent  = s.active;
-  document.getElementById('s-pending').textContent = s.pending;
-  document.getElementById('s-revenue').textContent = fmt(s.revenue);
-  document.getElementById('tb-active').textContent  = s.active;
-  document.getElementById('tb-revenue').textContent = fmt(s.revenue);
-  if (s.pending > 0) {
-    // mark pending badge on users tab — optional
-  }
-  renderUsers();
-}
-
-function renderUsers() {
-  const statusFilter = document.getElementById('user-filter-status').value;
-  const planFilter   = document.getElementById('user-filter-plan').value;
-  const list = allUsers.filter(u =>
-    (!statusFilter || u.status === statusFilter) &&
-    (!planFilter   || u.plan   === planFilter)
-  );
-
-  const emptyHTML = `<div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-text">ไม่พบร้านค้า</div></div>`;
-
-  // ── Desktop table ──
-  const tbody = document.getElementById('users-tbody');
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7">${emptyHTML}</td></tr>`;
-  } else {
-    tbody.innerHTML = list.map(u => `
-      <tr>
-        <td><strong>${u.shop_name || '—'}</strong><br><span style="font-size:11px;color:var(--muted);">${u.phone || ''}</span></td>
-        <td><span class="mono" style="font-size:12px;">${u.username}</span></td>
-        <td><span class="pill ${u.plan === 'pro' ? 'pill-gold' : 'pill-muted'}">${u.plan.toUpperCase()}</span></td>
-        <td><span class="pill ${u.status === 'active' ? 'pill-green' : 'pill-red'}">${u.status === 'active' ? 'Active' : 'รอ'}</span></td>
-        <td><span class="mono" style="font-size:12px;">${u.ai_today ?? 0}</span></td>
-        <td style="font-size:12px;color:var(--muted);">${timeAgo(u.last_sync)}</td>
-        <td>
-          <div style="display:flex;gap:5px;flex-wrap:wrap;">
-            ${u.status === 'pending'
-              ? `<button class="btn btn-green btn-sm" onclick="approve('${u.username}')">✅ อนุมัติ</button>`
-              : `<button class="btn btn-ghost btn-sm" onclick="suspend('${u.username}')">⏸ ระงับ</button>`}
-            <button class="btn btn-ghost btn-sm" onclick="openEdit('${u.username}')">✏️ แก้ไข</button>
-            <button class="btn btn-ghost btn-sm" onclick="openReset('${u.username}','${(u.shop_name||'').replace(/'/g,"\\'")}'  )">🔒</button>
-            <button class="btn btn-red btn-sm" onclick="deleteUser('${u.username}')">🗑️</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  // ── Mobile cards ──
-  const cardsEl = document.getElementById('users-cards');
-  if (!list.length) {
-    cardsEl.innerHTML = emptyHTML;
-    return;
-  }
-  cardsEl.innerHTML = list.map(u => `
-    <div class="user-card">
-      <div class="user-card-header">
-        <div>
-          <div class="user-card-name">${u.shop_name || '—'}</div>
-          <div class="user-card-phone">${u.phone || ''} · <span class="mono" style="font-size:11px;">${u.username}</span></div>
-        </div>
-        <div class="user-card-pills">
-          <span class="pill ${u.plan === 'pro' ? 'pill-gold' : 'pill-muted'}">${u.plan.toUpperCase()}</span>
-          <span class="pill ${u.status === 'active' ? 'pill-green' : 'pill-red'}">${u.status === 'active' ? 'Active' : 'รอ'}</span>
-        </div>
-      </div>
-      <div class="user-card-meta">
-        <div class="user-card-meta-item">AI วันนี้ <span>${u.ai_today ?? 0}</span></div>
-        <div class="user-card-meta-item">Sync <span>${timeAgo(u.last_sync)}</span></div>
-      </div>
-      <div class="user-card-actions">
-        ${u.status === 'pending'
-          ? `<button class="btn btn-green" onclick="approve('${u.username}')">✅ อนุมัติ</button>`
-          : `<button class="btn btn-ghost" onclick="suspend('${u.username}')">⏸ ระงับ</button>`}
-        <button class="btn btn-gold" onclick="openEdit('${u.username}')">✏️ แก้ไข</button>
-        <button class="btn btn-ghost" onclick="openReset('${u.username}','${(u.shop_name||'').replace(/'/g,"\\'")}'  )">🔒 รหัส</button>
-        <button class="btn btn-red" onclick="deleteUser('${u.username}')">🗑️ ลบ</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function approve(username) {
-  if (!confirm(`อนุมัติ ${username}?`)) return;
-  const d = await api(`/api/admin/approve/${username}`, { method: 'POST' });
-  toast(d.msg || (d.ok ? 'อนุมัติแล้ว ✅' : 'ผิดพลาด'), !d.ok);
-  if (d.ok) loadUsers();
-}
-
-async function suspend(username) {
-  if (!confirm(`ระงับ ${username}?`)) return;
-  const d = await api(`/api/admin/suspend/${username}`, { method: 'POST' });
-  toast(d.msg || (d.ok ? 'ระงับแล้ว' : 'ผิดพลาด'), !d.ok);
-  if (d.ok) loadUsers();
-}
-
-async function deleteUser(username) {
-  if (!confirm(`⚠️ ลบร้าน "${username}" ออกจากระบบถาวร?\nข้อมูลทั้งหมดจะหายไป`)) return;
-  const d = await api(`/api/admin/delete/${username}`, { method: 'POST' });
-  toast(d.msg || (d.ok ? 'ลบแล้ว' : 'ผิดพลาด'), !d.ok);
-  if (d.ok) loadUsers();
-}
-
-function openEdit(username) {
-  const u = allUsers.find(x => x.username === username);
-  if (!u) return;
-  document.getElementById('edit-username').value  = username;
-  document.getElementById('edit-shop-name').value = u.shop_name;
-  document.getElementById('edit-phone').value     = u.phone;
-  document.getElementById('edit-plan').value      = u.plan;
-  document.getElementById('edit-status').value    = u.status;
-  document.getElementById('edit-modal').classList.add('open');
-}
-function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
-
-async function submitEdit() {
-  const username  = document.getElementById('edit-username').value;
-  const shop_name = document.getElementById('edit-shop-name').value.trim();
-  const phone     = document.getElementById('edit-phone').value.trim();
-  const plan      = document.getElementById('edit-plan').value;
-  const status    = document.getElementById('edit-status').value;
-  const d = await api(`/api/admin/edit/${username}`, {
+// ──────────────────────────────────────
+function doLogin() {
+  const k = document.getElementById('key-input').value.trim();
+  if (!k) return;
+  BASE_URL = window.location.origin;
+  // ตรวจสอบ key จริงๆ กับ server — ไม่ใช่แค่เช็ค health
+  fetch(`${BASE_URL}/api/admin/login`, {
     method: 'POST',
-    body: JSON.stringify({ shop_name, phone, plan, status }),
-  });
-  toast(d.msg || (d.ok ? 'บันทึกแล้ว ✅' : 'ผิดพลาด'), !d.ok);
-  if (d.ok) { closeEditModal(); loadUsers(); }
-}
-
-function openReset(username, shop_name) {
-  document.getElementById('reset-username').value      = username;
-  document.getElementById('reset-shop-label').textContent = `ร้าน: ${shop_name} (${username})`;
-  document.getElementById('reset-pw').value            = '';
-  document.getElementById('reset-modal').classList.add('open');
-}
-
-async function submitReset() {
-  const username = document.getElementById('reset-username').value;
-  const password = document.getElementById('reset-pw').value.trim();
-  if (password.length < 4) { toast('รหัสผ่านต้องมีอย่างน้อย 4 ตัว', true); return; }
-  const d = await api(`/api/admin/reset_password/${username}`, {
-    method: 'POST',
-    body: JSON.stringify({ password }),
-  });
-  toast(d.msg || (d.ok ? 'รีเซ็ตรหัสผ่านแล้ว ✅' : 'ผิดพลาด'), !d.ok);
-  if (d.ok) document.getElementById('reset-modal').classList.remove('open');
-}
-
-// ══════════════════════════════════════════════════════
-// BILL DELETIONS
-// ══════════════════════════════════════════════════════
-async function loadDeletions() {
-  const days = document.getElementById('del-days').value;
-  document.getElementById('del-tbody').innerHTML =
-    `<tr><td colspan="7" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>`;
-  document.getElementById('del-shop-summary').innerHTML = '';
-
-  const d = await api(`/api/admin/bill-deletions?days=${days}&limit=500`);
-  if (!d.ok) { toast('โหลดข้อมูลไม่ได้', true); return; }
-
-  allDelLogs = d.logs || [];
-  delSummary = d.shops_summary || [];
-
-  // stats
-  const totalAmt = allDelLogs.reduce((s, r) => s + (parseInt(r.bill_total) || 0), 0);
-  document.getElementById('del-total').textContent  = fmt(d.total_deletions);
-  document.getElementById('del-amount').textContent = fmt(totalAmt) + '฿';
-  document.getElementById('del-shops').textContent  = delSummary.length;
-
-  // badge on tab
-  if (d.total_deletions > 0) {
-    const b = document.getElementById('del-badge');
-    b.textContent = d.total_deletions > 99 ? '99+' : d.total_deletions;
-    b.style.display = 'inline-block';
-  }
-
-  // shop summary cards
-  const shopSel = document.getElementById('del-shop-filter');
-  shopSel.innerHTML = '<option value="">ทุกร้าน</option>' +
-    delSummary.map(s => `<option value="${s.shop_id}">${s.shop_name}</option>`).join('');
-
-  const grid = document.getElementById('del-shop-summary');
-  if (!delSummary.length) {
-    grid.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:10px 0;">ไม่พบการลบบิลในช่วงนี้ ✅</div>`;
-  } else {
-    grid.innerHTML = delSummary.map(s => `
-      <div class="shop-del-card" onclick="filterByShop('${s.shop_id}')">
-        <div class="shop-del-name">${s.shop_name}</div>
-        <div class="shop-del-count">${s.count}</div>
-        <div class="shop-del-amt">มูลค่า ${fmt(s.total_amt)}฿</div>
-      </div>
-    `).join('');
-  }
-
-  filterDeletionLogs();
-}
-
-function filterByShop(shopId) {
-  document.getElementById('del-shop-filter').value = shopId;
-  // highlight card
-  document.querySelectorAll('.shop-del-card').forEach(c => {
-    c.classList.toggle('selected', c.onclick.toString().includes(`'${shopId}'`));
-  });
-  filterDeletionLogs();
-}
-
-function filterDeletionLogs() {
-  const shopFilter = document.getElementById('del-shop-filter').value;
-  const logs = shopFilter
-    ? allDelLogs.filter(r => r.shop_id === shopFilter)
-    : allDelLogs;
-
-  const tbody = document.getElementById('del-tbody');
-  if (!logs.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">ไม่พบการลบบิล</div></div></td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = logs.map(r => {
-    let itemsHtml = '—';
-    try {
-      const items = typeof r.bill_items === 'string' ? JSON.parse(r.bill_items) : (r.bill_items || []);
-      if (items.length) {
-        itemsHtml = `<div class="items-tags">${items.map(i =>
-          `<span class="item-tag">${i.name} ×${i.qty}</span>`
-        ).join('')}</div>`;
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: k }),
+    credentials: 'include'
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok) {
+        ADMIN_KEY = k;
+        document.getElementById('lock-screen').style.display = 'none';
+        init();
+      } else {
+        showLockError();
       }
-    } catch(e) {}
+    })
+    .catch(() => showLockError());
+}
+document.getElementById('key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+function showLockError() {
+  const el = document.getElementById('lock-err');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
 
-    const deletedAt = r.deleted_at ? new Date(r.deleted_at).toLocaleString('th-TH') : '—';
-    const billTime  = r.bill_time  ? String(r.bill_time).replace('T', ' ').slice(0, 16) : '—';
+// ──────────────────────────────────────
+// INIT
+// ──────────────────────────────────────
+function init() {
+  addLog('system', '', 'Monitor เริ่มต้นแล้ว 🌿');
+  refreshAll();
+  const iv = parseInt(document.getElementById('interval-sel').value);
+  refreshTimer = setInterval(refreshAll, iv);
+}
 
-    return `
-      <tr>
-        <td><span class="mono" style="font-size:11px;">${deletedAt}</span></td>
-        <td><strong>${r.shop_name || r.shop_id || '—'}</strong></td>
-        <td><span class="mono" style="font-size:12px;">${r.username || '—'}</span></td>
-        <td style="font-size:12px;color:var(--muted);">${billTime}</td>
-        <td><span class="mono" style="color:var(--red);">฿${fmt(r.bill_total)}</span></td>
-        <td>${itemsHtml}</td>
-        <td><span class="pill ${r.bill_pay === 'cash' ? 'pill-green' : 'pill-blue'}">${r.bill_pay || '—'}</span></td>
-      </tr>`;
-  }).join('');
+function changeInterval() {
+  clearInterval(refreshTimer);
+  const iv = parseInt(document.getElementById('interval-sel').value);
+  refreshTimer = setInterval(refreshAll, iv);
+  addLog('system', '', `เปลี่ยน interval เป็น ${iv/1000}s`);
+}
+
+// ──────────────────────────────────────
+// TABS
+// ──────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'sales') loadSales();
 }
 
 // ══════════════════════════════════════════════════════
-// MENU TREND
+// ★ LOAD SALES — ยอดขายจริง v6
 // ══════════════════════════════════════════════════════
-async function loadMenuTrend() {
-  const days = document.getElementById('menu-days').value;
-  document.getElementById('menu-trend-list').innerHTML =
-    `<div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>`;
-  document.getElementById('menu-tbody').innerHTML =
-    `<tr><td colspan="6" class="loading-row"><span class="spin">⟳</span></td></tr>`;
+async function loadSales(live = false) {
+  const days     = document.getElementById('sales-days')?.value || 1;
+  const shopSel  = document.getElementById('sales-shop')?.value || '';
+  let url        = `${BASE_URL}/api/admin/sales?days=${days}`;
+  if (shopSel)   url += `&username=${encodeURIComponent(shopSel)}`;
 
-  const d = await api(`/api/admin/new-menus?days=${days}&limit=50`);
-  if (!d.ok) { toast('โหลดเมนูไม่ได้', true); return; }
-
-  const trend = d.trend || [];
-  const overlap = trend.filter(r => r.shop_count >= 2).length;
-
-  document.getElementById('menu-total').textContent   = trend.length;
-  document.getElementById('menu-overlap').textContent = overlap;
-
-  // bar chart
-  const maxShops = trend.length ? Math.max(...trend.map(r => r.shop_count)) : 1;
-  const listEl = document.getElementById('menu-trend-list');
-  if (!trend.length) {
-    listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">🌱</div><div class="empty-text">ยังไม่มีข้อมูลเมนูใหม่ในช่วงนี้</div></div>`;
-  } else {
-    listEl.innerHTML = trend.slice(0, 30).map((r, i) => `
-      <div class="trend-bar-row">
-        <div class="trend-rank">${i + 1}</div>
-        <div class="trend-name">${r.item_name}</div>
-        <div class="trend-bar-wrap">
-          <div class="trend-bar-bg">
-            <div class="trend-bar-fill" style="width:${Math.round(r.shop_count / maxShops * 100)}%"></div>
-          </div>
-        </div>
-        <div class="trend-shops">${r.shop_count} ร้าน</div>
-        <div class="trend-price">${r.avg_price ? fmt(r.avg_price) + '฿' : '—'}</div>
-      </div>
-    `).join('');
-  }
-
-  // table
-  const tbody = document.getElementById('menu-tbody');
-  if (!trend.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🌱</div><div class="empty-text">ไม่มีข้อมูล</div></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = trend.map((r, i) => `
-    <tr>
-      <td><span class="mono" style="font-size:12px;">${i + 1}</span></td>
-      <td>
-        <strong>${r.item_name}</strong>
-        ${r.shop_count >= 3 ? '<span class="pill pill-gold" style="margin-left:6px;">🔥 มาแรง</span>' : ''}
-        ${r.shop_count === 2 ? '<span class="pill pill-blue" style="margin-left:6px;">👀 น่าจับตา</span>' : ''}
-      </td>
-      <td><span class="mono" style="color:var(--blue);">${r.shop_count}</span></td>
-      <td><span class="mono">${r.total_additions}</span></td>
-      <td><span class="mono">${r.avg_price ? fmt(r.avg_price) + '฿' : '—'}</span></td>
-      <td style="font-size:11px;color:var(--muted);">${r.last_seen || '—'}</td>
-    </tr>
-  `).join('');
-}
-
-// ══════════════════════════════════════════════════════
-// POPULAR ITEMS
-// ══════════════════════════════════════════════════════
-async function loadPopular() {
-  const days = document.getElementById('pop-days').value;
-  document.getElementById('popular-list').innerHTML =
-    `<div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>`;
-
-  const d = await api(`/api/admin/popular-items?days=${days}&limit=20`);
-  if (!d.ok) { toast('โหลดไม่ได้', true); return; }
-
-  document.getElementById('pop-shop-count').textContent =
-    `ข้อมูลจาก ${d.shop_count} ร้าน | ${d.date_from} → ${d.date_to}`;
-
-  const items = d.global_top || [];
-  const maxQty = items.length ? items[0].qty : 1;
-  const listEl = document.getElementById('popular-list');
-
-  if (!items.length) {
-    listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">ไม่มีข้อมูลยอดขายในช่วงนี้</div></div>`;
-    return;
-  }
-
-  listEl.innerHTML = items.map(item => `
-    <div class="trend-bar-row">
-      <div class="trend-rank">${item.rank}</div>
-      <div class="trend-name">${item.name}</div>
-      <div class="trend-bar-wrap">
-        <div class="trend-bar-bg">
-          <div class="trend-bar-fill" style="width:${Math.round(item.qty / maxQty * 100)}%;background:linear-gradient(90deg,var(--green),#a8d8a8)"></div>
-        </div>
-      </div>
-      <div class="trend-shops" style="color:var(--green);">${fmt(item.qty)} ชิ้น</div>
-    </div>
-  `).join('');
-}
-
-// ══════════════════════════════════════════════════════
-// AUTO CHECK SESSION
-// ══════════════════════════════════════════════════════
-(async function() {
   try {
-    const d = await api('/api/admin/me');
-    if (d.ok) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-screen').style.display = 'block';
-      loadAll();
+    const r    = await fetch(url);
+    const data = await r.json();
+    if (!data.ok) return;
+
+    // summary cards
+    const s = data.summary;
+    document.getElementById('sale-total').textContent    = '฿' + (s.total || 0).toLocaleString();
+    document.getElementById('sale-bills').textContent    = (s.bills || 0).toLocaleString() + ' บิล';
+    document.getElementById('sale-cash').textContent     = '฿' + (s.cash || 0).toLocaleString();
+    document.getElementById('sale-transfer').textContent = '฿' + (s.transfer || 0).toLocaleString();
+
+    // populate shop filter dropdown once
+    const shopSel2 = document.getElementById('sales-shop');
+    if (shopSel2 && shopSel2.options.length <= 1) {
+      Object.entries(data.shops).forEach(([uname, sh]) => {
+        const opt   = document.createElement('option');
+        opt.value   = uname;
+        opt.textContent = sh.shop_name;
+        shopSel2.appendChild(opt);
+      });
     }
-  } catch(e) {}
-})();
+
+    // per-shop cards
+    const container = document.getElementById('sales-shops-list');
+    container.innerHTML = '';
+    if (Object.keys(data.shops).length === 0) {
+      container.innerHTML = '<div class="card" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีข้อมูลยอดขายในช่วงนี้</div>';
+    }
+    Object.entries(data.shops).forEach(([uname, sh]) => {
+      const topHtml = sh.top_items.map(it =>
+        `<span style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:11px;">${it.name} ×${it.qty}</span>`
+      ).join(' ');
+      container.innerHTML += `
+        <div class="card" style="margin-bottom:12px;">
+          <div class="sec-hdr">
+            <h3>🏪 ${sh.shop_name} <span style="font-size:11px;color:var(--text3);">(${uname})</span></h3>
+            <span class="badge ${sh.plan === 'pro' ? 'green' : ''}">${sh.plan.toUpperCase()}</span>
+          </div>
+          <div class="grid-4" style="margin-bottom:10px;">
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">ยอดรวม</div>
+              <div style="font-size:18px;font-weight:700;color:var(--gold);">฿${sh.total.toLocaleString()}</div></div>
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">บิล</div>
+              <div style="font-size:18px;font-weight:700;">${sh.bills}</div></div>
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">เงินสด</div>
+              <div style="font-size:16px;font-weight:600;color:var(--green);">฿${sh.cash.toLocaleString()}</div></div>
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">โอน</div>
+              <div style="font-size:16px;font-weight:600;color:var(--blue);">฿${sh.transfer.toLocaleString()}</div></div>
+          </div>
+          ${topHtml ? `<div style="display:flex;flex-wrap:wrap;gap:4px;"><span style="font-size:10px;color:var(--text3);margin-right:4px;">ขายดี:</span>${topHtml}</div>` : ''}
+        </div>`;
+    });
+
+    // bills table
+    const tbody = document.getElementById('sales-bill-tbody');
+    tbody.innerHTML = '';
+    let billCount = 0;
+    Object.entries(data.shops).forEach(([uname, sh]) => {
+      (sh.sales || []).slice().reverse().forEach(sale => {
+        const itemNames = (sale.items || [])
+          .filter(it => it.key !== '_promo_')
+          .map(it => `${it.name}×${it.qty}`)
+          .join(', ');
+        const payIcon = sale.pay === 'cash' ? '💵' : sale.pay === 'transfer' ? '📱' : sale.pay === 'free' ? '🎁' : '📝';
+        tbody.innerHTML += `<tr>
+          <td style="white-space:nowrap;font-size:11px;">${sale._ts || sale.time || '—'}</td>
+          <td style="font-size:11px;">${sh.shop_name}</td>
+          <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${itemNames}</td>
+          <td style="color:var(--gold);font-weight:700;">฿${(sale.total||0).toLocaleString()}</td>
+          <td>${payIcon} ${sale.pay || '—'}</td>
+          <td style="font-size:11px;color:var(--text3);">${sale.member || 'ทั่วไป'}</td>
+        </tr>`;
+        billCount++;
+      });
+    });
+    document.getElementById('sales-bill-count').textContent = billCount + ' บิล';
+
+    if (live) addLog('sale', '', `โหลดยอดขาย ${days} วัน: ${s.bills} บิล ฿${s.total.toLocaleString()}`);
+
+  } catch (e) {
+    addLog('error', '', `loadSales error: ${e.message}`);
+  }
+}
+
+// ──────────────────────────────────────
+// REFRESH ALL
+// ──────────────────────────────────────
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  sessionCalls++;
+  document.getElementById('total-calls').textContent = sessionCalls;
+
+  try {
+    await Promise.all([
+      loadHealth(),
+      loadUsers(),
+    ]);
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      now.toLocaleTimeString('th-TH');
+    addLog('system', '', `รีเฟรชข้อมูลสำเร็จ ✓`);
+  } catch(e) {
+    sessionErrors++;
+    addLog('error', '', `รีเฟรชล้มเหลว: ${e.message}`);
+  }
+  btn.classList.remove('spinning');
+}
+
+// ──────────────────────────────────────
+// HEALTH
+// ──────────────────────────────────────
+async function loadHealth() {
+  const t0 = Date.now();
+  const r   = await fetch(`${BASE_URL}/api/health`);
+  const d   = await r.json();
+  const ms  = Date.now() - t0;
+
+  document.getElementById('srv-status').textContent  = d.status === 'ok' ? '✅ OK' : '❌ ERROR';
+  document.getElementById('srv-version').textContent = d.version || '—';
+  document.getElementById('srv-model').textContent   = d.model || '—';
+  document.getElementById('srv-aikey').textContent   = d.ai_key ? '✅ พร้อม' : '❌ ไม่มี';
+  document.getElementById('srv-limit').textContent   = d.starter_limit || '—';
+  document.getElementById('resp-time').textContent   = `${ms} ms`;
+  document.getElementById('last-health').textContent = new Date().toLocaleTimeString('th-TH');
+
+  if (d.time) {
+    const parts = d.time.split(' ');
+    document.getElementById('srv-time').textContent = parts[1] || d.time;
+    document.getElementById('srv-date').textContent = parts[0] || '';
+  }
+
+  // uptime bars
+  const uptime = Math.floor((Date.now() - sessionStart) / 1000);
+  const errPct = sessionCalls > 0 ? Math.round(sessionErrors / sessionCalls * 100) : 0;
+  document.getElementById('uptime-bars').innerHTML = `
+    <div class="bar-row">
+      <span class="bar-lbl">Uptime (session)</span>
+      <div class="bar-track"><div class="bar-fill" style="background:var(--green);width:100%"></div></div>
+      <span class="bar-val">${fmtUptime(uptime)}</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">Response Time</span>
+      <div class="bar-track"><div class="bar-fill" style="background:${ms<300?'var(--green)':ms<800?'var(--gold)':'var(--red)'};width:${Math.min(ms/10,100)}%"></div></div>
+      <span class="bar-val">${ms}ms</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">API Calls</span>
+      <div class="bar-track"><div class="bar-fill" style="background:var(--blue);width:${Math.min(sessionCalls*5,100)}%"></div></div>
+      <span class="bar-val">${sessionCalls}</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-lbl">Error Rate</span>
+      <div class="bar-track"><div class="bar-fill" style="background:${errPct>10?'var(--red)':'var(--green)'};width:${errPct}%"></div></div>
+      <span class="bar-val">${errPct}%</span>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────
+// USERS + ALL DATA
+// ──────────────────────────────────────
+async function loadUsers() {
+  const r = await fetch(`${BASE_URL}/api/admin/users`, {
+    headers: { 'X-Admin-Key': ADMIN_KEY },
+    credentials: 'include'
+  });
+
+  // Try session-based admin endpoint
+  let d;
+  if (r.status === 401) {
+    // Login session first
+    await fetch(`${BASE_URL}/api/admin/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({key: ADMIN_KEY}),
+      credentials: 'include'
+    });
+    const r2 = await fetch(`${BASE_URL}/api/admin/users`, { credentials: 'include' });
+    d = await r2.json();
+  } else {
+    d = await r.json();
+  }
+
+  if (!d.ok) {
+    // Fallback: use admin/list page data via key param
+    await loadFromListPage();
+    return;
+  }
+
+  const users   = d.users || [];
+  const summary = d.summary || {};
+  allUsersData  = users;
+
+  // Overview stats
+  document.getElementById('s-total').textContent   = summary.total || users.length;
+  document.getElementById('s-active').textContent  = summary.active || 0;
+  document.getElementById('s-pending').textContent = summary.pending || 0;
+  document.getElementById('s-revenue').textContent = `${(summary.revenue||0).toLocaleString()}฿`;
+
+  const pro     = users.filter(u => u.plan === 'pro' && u.status === 'active').length;
+  const starter = users.filter(u => u.plan === 'starter' && u.status === 'active').length;
+  const pending = users.filter(u => u.status === 'pending').length;
+  const total   = users.length;
+
+  document.getElementById('s-pro').textContent     = pro;
+  document.getElementById('s-starter').textContent = starter;
+  document.getElementById('s-pro-count').textContent = `${pro} Pro / ${starter} Starter`;
+
+  // Total AI today
+  const totalAI = users.reduce((a, u) => a + (u.ai_today || 0), 0);
+  document.getElementById('s-ai').textContent = totalAI;
+
+  // Plan distribution bars
+  if (total > 0) {
+    const pp = Math.round(pro/total*100);
+    const sp = Math.round(starter/total*100);
+    const pep= Math.round(pending/total*100);
+    document.getElementById('pro-pct').textContent     = pp + '%';
+    document.getElementById('starter-pct').textContent = sp + '%';
+    document.getElementById('pending-pct').textContent  = pep + '%';
+    document.getElementById('pro-bar').style.width     = pp + '%';
+    document.getElementById('starter-bar').style.width = sp + '%';
+    document.getElementById('pending-bar').style.width  = pep + '%';
+  }
+
+  // AI Usage bars
+  const aiUsers = [...users].sort((a, b) => (b.ai_today||0) - (a.ai_today||0)).slice(0, 8);
+  const maxAI   = Math.max(...aiUsers.map(u => u.ai_today||0), 1);
+  document.getElementById('ai-badge').textContent = `${totalAI} calls วันนี้`;
+  document.getElementById('ai-bar-wrap').innerHTML = aiUsers.length
+    ? aiUsers.map(u => `
+      <div class="bar-row">
+        <span class="bar-lbl" title="${u.shop_name}">${u.shop_name||u.username}</span>
+        <div class="bar-track"><div class="bar-fill" style="background:${(u.ai_today||0)>15?'var(--orange)':'var(--green)'};width:${Math.round((u.ai_today||0)/maxAI*100)}%"></div></div>
+        <span class="bar-val">${u.ai_today||0}</span>
+      </div>`).join('')
+    : '<div class="empty-state"><div class="icon">📊</div>ยังไม่มี AI Usage</div>';
+
+  // New shops
+  const sorted5 = [...users].sort((a, b) => b.created_at > a.created_at ? 1 : -1).slice(0, 5);
+  document.getElementById('new-shops-count').textContent = `${users.length} ร้าน`;
+  document.getElementById('new-shops-body').innerHTML = sorted5.map(u => `
+    <tr>
+      <td class="mono" style="color:var(--accent2)">${esc(u.username)}</td>
+      <td>${esc(u.shop_name)}</td>
+      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro':'📋 Starter'}</span></td>
+      <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
+      <td class="mono" style="font-size:12px;color:var(--text3)">${u.created_at||'—'}</td>
+      <td>
+        ${u.status==='pending'
+          ? `<button class="act-btn act-btn-green" onclick="approveUser('${esc(u.username)}')">✅ อนุมัติ</button>`
+          : `<button class="act-btn act-btn-orange" onclick="suspendUser('${esc(u.username)}')">⏸ ระงับ</button>`}
+      </td>
+    </tr>`).join('');
+
+  // Full users table
+  renderUsersTable(users);
+
+  // AI usage table (chats tab)
+  renderAIUsageTable(users);
+
+  // Activity log - detect new pending
+  const newPending = users.filter(u => u.status === 'pending');
+  if (newPending.length > 0) {
+    newPending.forEach(u => {
+      const key = `pending-${u.username}`;
+      if (!window._loggedPending) window._loggedPending = {};
+      if (!window._loggedPending[key]) {
+        window._loggedPending[key] = true;
+        addLog('login', u.shop_name, `🆕 สมัครใหม่รอยืนยัน: ${u.username} (${u.plan})`);
+      }
+    });
+  }
+
+  // Load backup data for each shop (chat history)
+  loadShopBackups(users);
+}
+
+// ──────────────────────────────────────
+// FALLBACK: load from admin/list page
+// ──────────────────────────────────────
+async function loadFromListPage() {
+  addLog('system', '', 'ใช้ key-based fallback...');
+  // Parse data from health endpoint which is public
+  const r = await fetch(`${BASE_URL}/api/health`);
+  const d = await r.json();
+  document.getElementById('s-total').textContent  = d.total || '—';
+  document.getElementById('s-active').textContent = d.active || '—';
+}
+
+// ──────────────────────────────────────
+// RENDER USERS TABLE
+// ──────────────────────────────────────
+function renderUsersTable(users) {
+  if (!users.length) {
+    document.getElementById('users-body').innerHTML =
+      '<tr><td colspan="10"><div class="empty-state"><div class="icon">👥</div>ยังไม่มีร้านค้า</div></td></tr>';
+    return;
+  }
+  document.getElementById('users-body').innerHTML = users.map(u => `
+    <tr id="urow-${esc(u.username)}">
+      <td class="mono" style="color:var(--accent2);font-size:13px">${esc(u.username)}</td>
+      <td style="font-weight:600">${esc(u.shop_name)}</td>
+      <td class="mono" style="font-size:12px;color:var(--text2)">${esc(u.phone||'—')}</td>
+      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro 399฿':'📋 Starter 199฿'}</span></td>
+      <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
+      <td style="color:${(u.ai_today||0)>15?'var(--orange2)':'var(--green2)'};font-weight:700" class="mono">${u.ai_today||0}</td>
+      <td class="mono" style="font-size:11px;color:var(--text3)">${u.created_at||'—'}</td>
+      <td>
+        <a href="${BASE_URL}/admin/backup/${esc(u.username)}/?key=${ADMIN_KEY}" target="_blank"
+           style="font-size:11px;color:var(--blue2)">📄 ดู JSON</a>
+      </td>
+      <td style="font-size:11px;">
+        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=sales" style="color:var(--blue2);display:block;">⬇️ ยอดขาย</a>
+        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=members" style="color:var(--blue2);display:block;margin-top:2px;">⬇️ สมาชิก</a>
+        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=products" style="color:var(--blue2);display:block;margin-top:2px;">⬇️ สินค้า</a>
+        <a href="${BASE_URL}/admin/analyze/${esc(u.username)}?key=${ADMIN_KEY}" target="_blank" style="color:var(--gold);display:block;margin-top:2px;font-weight:700;">🤖 AI วิเคราะห์</a>
+      </td>
+      <td style="white-space:nowrap;">
+        ${u.status==='pending'
+          ? `<button class="act-btn act-btn-green" onclick="approveUser('${esc(u.username)}')">✅ อนุมัติ</button> `
+          : `<button class="act-btn act-btn-orange" onclick="suspendUser('${esc(u.username)}')">⏸ ระงับ</button> `}
+        <button class="act-btn act-btn-red" onclick="deleteUser('${esc(u.username)}','${esc(u.shop_name)}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ──────────────────────────────────────
+// FILTER USERS
+// ──────────────────────────────────────
+function filterUsers() {
+  const q  = document.getElementById('user-search').value.toLowerCase();
+  const f  = document.getElementById('user-filter').value;
+  let filtered = allUsersData;
+  if (q) filtered = filtered.filter(u =>
+    u.username.toLowerCase().includes(q) ||
+    (u.shop_name||'').toLowerCase().includes(q) ||
+    (u.phone||'').includes(q)
+  );
+  if (f === 'active')  filtered = filtered.filter(u => u.status === 'active');
+  if (f === 'pending') filtered = filtered.filter(u => u.status === 'pending');
+  if (f === 'pro')     filtered = filtered.filter(u => u.plan === 'pro');
+  renderUsersTable(filtered);
+}
+
+// ──────────────────────────────────────
+// AI USAGE TABLE
+// ──────────────────────────────────────
+function renderAIUsageTable(users) {
+  const limit = 20;
+  document.getElementById('ai-usage-body').innerHTML = users.map(u => {
+    const used = u.ai_today || 0;
+    const isPro = u.plan === 'pro';
+    const rem   = isPro ? '∞' : Math.max(0, limit - used);
+    const pct   = isPro ? 0 : Math.min(used / limit * 100, 100);
+    return `
+    <tr>
+      <td style="font-weight:600">${esc(u.shop_name)}</td>
+      <td class="mono" style="font-size:12px;color:var(--accent2)">${esc(u.username)}</td>
+      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan}</span></td>
+      <td class="mono" style="color:${used>15?'var(--orange2)':'var(--text)'}">${used}</td>
+      <td class="mono" style="color:${isPro?'var(--purple)':used>15?'var(--red)':'var(--green2)'}">${rem}</td>
+      <td style="min-width:120px;">
+        <div class="bar-track"><div class="bar-fill" style="background:${pct>75?'var(--red)':pct>50?'var(--orange)':'var(--green)'};width:${isPro?0:pct}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6"><div class="empty-state"><div class="icon">📊</div>ไม่มีข้อมูล</div></td></tr>';
+}
+
+// ──────────────────────────────────────
+// SHOP BACKUPS + CHAT HISTORY
+// ──────────────────────────────────────
+async function loadShopBackups(users) {
+  const backupRows = [];
+  const syncRows   = [];
+
+  for (const u of users.slice(0, 10)) {
+    // Get backup list via admin/list page key link
+    try {
+      // We can infer backup from the backup endpoint
+      const url = `${BASE_URL}/admin/backup/${encodeURIComponent(u.username)}/?key=${ADMIN_KEY}`;
+      // Can't fetch HTML directly due to structure — use the known pattern
+      // Fetch the latest backup JSON if possible
+      const bUrl = `${BASE_URL}/admin/export/${encodeURIComponent(u.username)}?key=${ADMIN_KEY}&mode=sales`;
+
+      backupRows.push(`
+        <tr>
+          <td style="font-weight:600">${esc(u.shop_name)}</td>
+          <td><a href="${BASE_URL}/admin/list?key=${ADMIN_KEY}" target="_blank" style="color:var(--blue2);font-size:12px;">📂 ดูรายการ</a></td>
+          <td class="mono" style="font-size:11px;color:var(--text3)">—</td>
+          <td><a href="${BASE_URL}/admin/analyze/${encodeURIComponent(u.username)}?key=${ADMIN_KEY}" target="_blank" class="act-btn act-btn-blue" style="text-decoration:none;">🤖 วิเคราะห์</a></td>
+        </tr>`);
+
+      syncRows.push(`
+        <tr>
+          <td style="font-weight:600">${esc(u.shop_name)}</td>
+          <td class="mono" style="font-size:12px;color:var(--accent2)">${esc(u.username)}</td>
+          <td class="mono" style="font-size:12px;color:var(--text3)">${u.created_at||'—'}</td>
+          <td class="mono">—</td>
+          <td><span class="pill pill-blue">—</span></td>
+          <td><span class="pill pill-blue">—</span></td>
+          <td><span class="pill pill-blue">—</span></td>
+        </tr>`);
+    } catch(e) {}
+  }
+
+  document.getElementById('backup-count').textContent = `${users.length} ร้าน`;
+  document.getElementById('backup-body').innerHTML = backupRows.join('') ||
+    '<tr><td colspan="4"><div class="empty-state"><div class="icon">📁</div>ไม่มีข้อมูล Backup</div></td></tr>';
+  document.getElementById('sync-body').innerHTML = syncRows.join('') ||
+    '<tr><td colspan="7"><div class="empty-state"><div class="icon">🔄</div>ไม่มีข้อมูล</div></td></tr>';
+
+  // Build chat shop filter buttons
+  buildChatFilters(users);
+  // Build chat entries from real /api/admin/chat-logs
+  await buildChatEntries(users);
+}
+
+// ──────────────────────────────────────
+// CHAT HISTORY (from AI usage data + simulated from backup)
+// ──────────────────────────────────────
+function buildChatFilters(users) {
+  const wrap = document.getElementById('chat-shop-filters');
+  const existing = Array.from(wrap.querySelectorAll('[data-shop]')).map(b => b.dataset.shop);
+  users.forEach(u => {
+    if (!existing.includes(u.username)) {
+      const btn = document.createElement('button');
+      btn.className = 'chat-filter-btn';
+      btn.dataset.shop = u.username;
+      btn.textContent = u.shop_name || u.username;
+      btn.onclick = () => filterChats(u.username);
+      wrap.appendChild(btn);
+    }
+  });
+}
+
+function filterChats(shop) {
+  currentChatShop = shop;
+  document.querySelectorAll('.chat-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.shop === shop);
+  });
+  renderChatEntries();
+}
+
+async function buildChatEntries(users) {
+  // Fetch real chat logs from /api/admin/chat-logs
+  const wrap = document.getElementById('chat-entries-wrap');
+  wrap.innerHTML = '<div class="empty-state"><div class="icon">⏳</div>กำลังโหลด Chat Log...</div>';
+
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/chat-logs`, {
+      headers: { 'X-Admin-Key': ADMIN_KEY },
+      credentials: 'include'
+    });
+    const d = await r.json();
+
+    if (!d.ok) {
+      wrap.innerHTML = '<div class="empty-state"><div class="icon">❌</div>ไม่มีสิทธิ์เข้าถึง Chat Log</div>';
+      return;
+    }
+
+    // d.data = { username: { shop_name, plan, status, logs: [...] } }
+    const allEntries = [];
+    for (const [uname, info] of Object.entries(d.data || {})) {
+      const logs = info.logs || [];
+      logs.forEach(log => {
+        allEntries.push({
+          shop:      uname,
+          shop_name: info.shop_name || uname,
+          plan:      info.plan || 'starter',
+          status:    info.status || 'active',
+          ts:        log.ts || '',
+          username:  log.username || uname,
+          user_msg:  log.user_msg || '',
+          ai_reply:  log.ai_reply || '',
+        });
+      });
+    }
+
+    // Sort newest first
+    allEntries.sort((a, b) => b.ts.localeCompare(a.ts));
+
+    // Update filter buttons to match real data
+    buildChatFilters(users);
+
+    chatData._all = allEntries;
+
+    const total = allEntries.length;
+    if (total > 0) {
+      addLog('chat', '', `โหลด Chat Log สำเร็จ: ${total} รายการ`);
+    }
+
+    renderChatEntries();
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">❌</div>โหลด Chat Log ไม่สำเร็จ: ' + esc(e.message) + '</div>';
+    addLog('error', '', `Chat Log error: ${e.message}`);
+  }
+}
+
+function renderChatEntries() {
+  const entries = chatData._all || [];
+  const filtered = currentChatShop === 'all'
+    ? entries
+    : entries.filter(e => e.shop === currentChatShop);
+
+  const wrap = document.getElementById('chat-entries-wrap');
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="icon">💬</div>ไม่พบประวัติ AI Chat<br><small style="color:var(--text3)">ยังไม่มีการใช้งาน AI หรือยังไม่มีข้อมูล</small></div>';
+    return;
+  }
+
+  wrap.innerHTML = '<div class="chat-entries">' + filtered.map(e => `
+    <div class="chat-entry">
+      <div class="chat-entry-hdr">
+        <span class="chat-entry-shop">🏪 ${esc(e.shop_name)} <span style="color:var(--text3);font-weight:400;font-size:12px">@${esc(e.shop)}</span></span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="pill ${e.plan==='pro'?'pill-purple':'pill-blue'}">${e.plan}</span>
+          <span class="chat-entry-ts">${esc(e.ts)}</span>
+        </div>
+      </div>
+      ${e.user_msg ? `
+      <div class="chat-bubble-user">
+        <div class="role-lbl">👤 USER</div>
+        ${esc(e.user_msg)}
+      </div>` : ''}
+      ${e.ai_reply ? `
+      <div class="chat-bubble-ai">
+        <div class="role-lbl">🤖 AI</div>
+        ${esc(e.ai_reply)}
+      </div>` : ''}
+    </div>`).join('') + '</div>';
+}
+
+// ──────────────────────────────────────
+// ACTIONS
+// ──────────────────────────────────────
+async function approveUser(username) {
+  if (!confirm(`อนุมัติ ${username}?`)) return;
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/approve/${encodeURIComponent(username)}`, {
+      method: 'POST', credentials: 'include'
+    });
+    const d = await r.json();
+    showToast(d.msg || `✅ อนุมัติ ${username} แล้ว`);
+    addLog('login', username, `✅ อนุมัติแล้ว`);
+    setTimeout(loadUsers, 500);
+  } catch(e) {
+    // Fallback to URL-based approve
+    window.open(`${BASE_URL}/admin/action?key=${ADMIN_KEY}&act=approve&u=${encodeURIComponent(username)}`,'_blank');
+  }
+}
+
+async function suspendUser(username) {
+  if (!confirm(`ระงับ ${username}?`)) return;
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/suspend/${encodeURIComponent(username)}`, {
+      method: 'POST', credentials: 'include'
+    });
+    const d = await r.json();
+    showToast(d.msg || `⏸ ระงับ ${username} แล้ว`);
+    addLog('login', username, `⏸ ระงับแล้ว`);
+    setTimeout(loadUsers, 500);
+  } catch(e) {
+    window.open(`${BASE_URL}/admin/action?key=${ADMIN_KEY}&act=suspend&u=${encodeURIComponent(username)}`,'_blank');
+  }
+}
+
+async function deleteUser(username, shopName) {
+  if (!confirm(`⚠️ ลบร้าน ${shopName} (@${username}) ออกจากระบบ?\nไม่สามารถกู้คืนได้!`)) return;
+  try {
+    const r = await fetch(`${BASE_URL}/api/admin/delete/${encodeURIComponent(username)}`, {
+      method: 'POST', credentials: 'include'
+    });
+    const d = await r.json();
+    showToast(d.msg || `🗑️ ลบ ${username} แล้ว`);
+    addLog('error', username, `🗑️ ลบออกจากระบบ`);
+    setTimeout(loadUsers, 500);
+  } catch(e) {
+    showToast('❌ ไม่สามารถลบได้ ลองอีกครั้ง');
+  }
+}
+
+// ──────────────────────────────────────
+// LOG
+// ──────────────────────────────────────
+function addLog(type, shop, msg) {
+  const ts   = new Date().toLocaleTimeString('th-TH');
+  const line = { type, shop, msg, ts };
+  logLines.unshift(line);
+  if (logLines.length > 200) logLines.pop();
+
+  const panel = document.getElementById('log-panel');
+  const div   = document.createElement('div');
+  div.className = 'log-line';
+  div.innerHTML = `
+    <span class="log-ts">${ts}</span>
+    ${shop ? `<span class="log-shop">[${esc(shop)}]</span>` : ''}
+    <span class="log-msg ${type}">${esc(msg)}</span>`;
+  panel.insertBefore(div, panel.firstChild);
+
+  // keep max 100 DOM lines
+  while (panel.children.length > 100) panel.removeChild(panel.lastChild);
+
+  document.getElementById('log-count').textContent = `${logLines.length} events`;
+}
+
+function clearLog() {
+  logLines = [];
+  document.getElementById('log-panel').innerHTML =
+    '<div class="log-line"><span class="log-ts">--:--:--</span><span class="log-msg system">ล้าง log แล้ว</span></div>';
+  document.getElementById('log-count').textContent = '0 events';
+}
+
+// ──────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtUptime(s) {
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s/60)}m`;
+  return `${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m`;
+}
+
+function showToast(msg, duration=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ──────────────────────────────────────
+// TIP: CHAT LOG ENDPOINT (shown in UI)
+// ──────────────────────────────────────
+window.addEventListener('load', () => {
+  // Monitor is ready
+});
 </script>
+
 </body>
 </html>
