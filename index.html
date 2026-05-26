@@ -5198,11 +5198,8 @@ async function popupSendChat() {
   document.getElementById('popup-chat-tips').style.display = 'none';
   popupAppendMsg('user', msg);
 
-  // ─── Build full context (wrapped ทั้งหมดใน try เพื่อกัน silent error) ───────
-  let contextNote = '', effProdsChat = [], thinking;
-  try {
   // ─── Build full context ───────────────────────────────────
-  effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
+  const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
   const stockSummary = getEffectiveProducts().filter(p => !p.promoBase)
     .map(p => `${p.name}: ${formatStock(p, stock[p.key]||0)}`).join(', ');
   const history   = loadHistory();
@@ -5351,13 +5348,7 @@ async function popupSendChat() {
     `\n\n--- สมาชิกที่มาในกะนี้ ---\n${memberSessionStr}` +
     `\n\n--- ทะเบียนสมาชิกทั้งหมด (ซื้อครบ ${loyaltyN} ครั้ง ฟรี 1) ---\n${memberStr}`;
 
-  } catch (ctxErr) {
-    // context build พัง → ใช้ context เปล่า แต่ยังส่งได้
-    console.warn('[KAASOD] context build error:', ctxErr);
-    contextNote = '\n\n(ไม่สามารถโหลดข้อมูลร้านได้ชั่วคราว)';
-  }
-
-  thinking = popupAppendThinking();
+  const thinking = popupAppendThinking();
   popupChatHist.push({ role: 'user', content: msg });
 
   const msgs = popupChatHist.slice(-10);
@@ -6408,18 +6399,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ★ ทุก login ดึงข้อมูลจาก server เสมอ — server คือ source of truth
   //   account ใหม่:  server ตอบ has_data: false → ไม่ทำอะไร (template เปล่า)
   //   account เก่า:  server ตอบ has_data: true  → เขียนทับ localStorage ด้วยข้อมูลล่าสุด
-  //   ★ non-blocking: ใช้ setTimeout เพื่อไม่กีดขวางการ init หน้าหลัก
-  setTimeout(async () => {
-    try {
-      const synced = await restoreFromCloud();
-      if (synced) {
-        renderStock();
-        if (typeof renderProducts === 'function') renderProducts();
-      }
-    } catch (e) {
-      console.warn('[KAASOD] cloud sync failed:', e);
-    }
-  }, 300);
+  await restoreFromCloud();
+  renderStock();
+  if (typeof renderProducts === 'function') renderProducts();
 });
 </script>
 </body>
