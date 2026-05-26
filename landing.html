@@ -3,41 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🐕 ค้าสด — POS สำหรับร้านค้าไทย</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&family=Kanit:wght@700;800;900&family=Mitr:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>🏪 ค้าสด — POS สำหรับร้านค้าไทย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════
    🐕 ค้าสด — THAI HERO POS · LANDING v4.0
    ══════════════════════════════════════════════════════ */
 :root {
-  --void:    #07051a;
-  --deep:    #0d0a28;
-  --shadow:  #110e33;
-  --blade:   #17143d;
-  --smoke:   #1f1b4e;
-  --surface: #261f5e;
+  --void:    #141618;
+  --deep:    #1E2124;
+  --shadow:  #252A2F;
+  --blade:   #2D3339;
+  --smoke:   #3A4248;
+  --surface: #4A5560;
 
-  --gold:    #ff6b35;
-  --gold2:   #ffb347;
-  --jade:    #1a8c6a;
-  --jade2:   #2ecc8a;
-  --purple:  #c77dff;
-  --purple2: #9b4dff;
-  --blood:   #c0392b;
-  --blood2:  #e74c3c;
+  --gold:    #B8FF00;
+  --gold2:   #00E5FF;
+  --jade:    #00FF87;
+  --jade2:   #00E57A;
+  --purple:  #FFE500;
+  --purple2: #FFD000;
+  --blood:   #FF3D5A;
+  --blood2:  #FF6080;
 
-  --text:    #f5f0ff;
-  --text2:   #c8b8f0;
-  --muted:   #7a6aa8;
-  --mono:    'Share Tech Mono', monospace;
-  --thai:    'Noto Sans Thai', sans-serif;
-  --display: 'Kanit', sans-serif;
+  --text:    #F0F4F8;
+  --text2:   #BFC8D4;
+  --muted:   #7A8896;
+  --mono:    'Fira Code', monospace;
+  --thai:    'Sarabun', sans-serif;
+  --display: 'Prompt', sans-serif;
 
-  --glow-o:  rgba(255,107,53,0.4);
-  --glow-p:  rgba(199,125,255,0.3);
-  --glow-g:  rgba(46,204,138,0.3);
-  --border:  rgba(255,107,53,0.14);
-  --border2: rgba(199,125,255,0.14);
+  --glow-o:  rgba(184,255,0,0.30);
+  --glow-p:  rgba(0,229,255,0.25);
+  --glow-g:  rgba(0,255,135,0.20);
+  --border:  rgba(184,255,0,0.14);
+  --border2: rgba(0,229,255,0.18);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,8 +58,8 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(255,107,53,0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,107,53,0.022) 1px, transparent 1px);
+    linear-gradient(rgba(184,255,0,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,255,0,0.05) 1px, transparent 1px);
   background-size: 44px 44px;
   pointer-events: none; z-index: 0;
 }
@@ -67,9 +67,9 @@ body::after {
   content: '';
   position: fixed; inset: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 0% 0%,   rgba(255,107,53,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 70% at 100% 100%, rgba(199,125,255,0.06) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 40% at 50% 50%, rgba(7,5,26,0.6) 0%, transparent 70%);
+    radial-gradient(ellipse 70% 50% at 0% 0%,   rgba(184,255,0,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 100% 100%, rgba(255,229,0,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 40% at 50% 50%, rgba(184,255,0,0.06) 0%, transparent 70%);
   pointer-events: none; z-index: 0;
 }
 
@@ -78,13 +78,13 @@ body::after {
   position: fixed;
   font-family: var(--display);
   font-weight: 900;
-  color: rgba(255,107,53,0.025);
+  color: rgba(184,255,0,0.025);
   pointer-events: none; z-index: 0; user-select: none;
   animation: thai-float 30s ease-in-out infinite;
   line-height: 1;
 }
 .thai-bg:nth-child(1) { font-size: 280px; top: -80px; left: -60px; }
-.thai-bg:nth-child(2) { font-size: 200px; top: 38%; right: -50px; animation-delay: -10s; color: rgba(199,125,255,0.025); }
+.thai-bg:nth-child(2) { font-size: 200px; top: 38%; right: -50px; animation-delay: -10s; color: rgba(255,229,0,0.07); }
 .thai-bg:nth-child(3) { font-size: 240px; bottom: -80px; left: 25%; animation-delay: -20s; }
 @keyframes thai-float {
   0%,100% { transform: translateY(0) rotate(-1.5deg); }
@@ -118,7 +118,7 @@ body::after {
   content: '';
   position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
   width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, rgba(199,125,255,0.04) 40%, transparent 65%);
+  background: radial-gradient(circle, rgba(184,255,0,0.1) 0%, rgba(199,125,255,0.04) 40%, transparent 65%);
   animation: pulse-glow 4s ease-in-out infinite;
 }
 @keyframes pulse-glow {
@@ -128,7 +128,7 @@ body::after {
 .hero::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(7,5,26,0) 60%, var(--void) 100%);
+  background: linear-gradient(180deg, rgba(184,255,0,0) 60%, var(--void) 100%);
   pointer-events: none;
 }
 
@@ -138,8 +138,8 @@ body::after {
   border-radius: 50%;
   border: 1.5px solid var(--gold);
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 30% 30%, rgba(255,107,53,0.2), rgba(7,5,26,0.95));
-  box-shadow: 0 0 18px var(--glow-o), inset 0 0 12px rgba(255,107,53,0.05);
+  background: radial-gradient(circle at 30% 30%, rgba(184,255,0,0.2), rgba(184,255,0,0.95));
+  box-shadow: 0 0 18px var(--glow-o), inset 0 0 12px rgba(184,255,0,0.05);
   animation: ring-pulse 3.5s ease-in-out infinite;
   margin: 0 auto 20px;
   position: relative; overflow: hidden;
@@ -148,7 +148,7 @@ body::after {
   content: '';
   position: absolute; top: -50%; left: -50%;
   width: 200%; height: 200%;
-  background: conic-gradient(transparent 270deg, rgba(255,107,53,0.45) 360deg);
+  background: conic-gradient(transparent 270deg, rgba(184,255,0,0.45) 360deg);
   animation: ring-spin 4s linear infinite;
 }
 @keyframes ring-pulse { 0%,100% { box-shadow: 0 0 18px var(--glow-o); } 50% { box-shadow: 0 0 35px var(--glow-o); } }
@@ -162,7 +162,7 @@ body::after {
   font-size: 56px; font-weight: 900;
   color: var(--gold);
   letter-spacing: -1px; line-height: 1;
-  text-shadow: 0 0 40px var(--glow-o), 0 0 80px rgba(255,107,53,0.2);
+  text-shadow: 0 0 40px var(--glow-o), 0 0 80px rgba(184,255,0,0.2);
   animation: logo-in .6s cubic-bezier(.34,1.56,.64,1) both;
 }
 .app-name span { color: var(--gold2); }
@@ -186,7 +186,7 @@ body::after {
 .hero-status {
   display: inline-flex; align-items: center; gap: 8px;
   margin-top: 18px;
-  background: rgba(46,204,138,0.07);
+  background: rgba(0,255,135,0.07);
   border: 1px solid rgba(46,204,138,0.25);
   padding: 7px 18px; border-radius: 2px;
   font-family: var(--mono); font-size: 10px; font-weight: 700;
@@ -222,9 +222,9 @@ body::after {
 .pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .pkg-card {
-  background: linear-gradient(135deg, rgba(23,20,61,0.95) 0%, rgba(13,10,40,0.98) 100%);
+  background: linear-gradient(135deg, rgba(30,33,36,0.97) 0%, rgba(20,22,24,0.98) 100%);
   border: 1px solid var(--border);
-  border-top: 2px solid rgba(255,107,53,0.35);
+  border-top: 2px solid rgba(184,255,0,0.35);
   border-radius: 2px; padding: 18px 14px 16px;
   cursor: pointer; position: relative; overflow: hidden;
   text-align: center;
@@ -232,7 +232,7 @@ body::after {
 }
 .pkg-card::before {
   content: ''; position: absolute; inset: 0; opacity: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(255,107,53,0.08), transparent 65%);
+  background: radial-gradient(circle at 50% 0%, rgba(184,255,0,0.08), transparent 65%);
   transition: opacity .3s;
 }
 .pkg-card.selected::before { opacity: 1; }
@@ -240,7 +240,7 @@ body::after {
   border-color: var(--gold);
   border-top-color: var(--gold);
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(255,107,53,0.2), 0 0 0 1px rgba(255,107,53,0.15);
+  box-shadow: 0 12px 40px rgba(184,255,0,0.2), 0 0 0 1px rgba(184,255,0,0.15);
 }
 .pkg-card.pro-card { border-top-color: rgba(199,125,255,0.45); }
 .pkg-card.pro-card::before { background: radial-gradient(circle at 50% 0%, rgba(199,125,255,0.1), transparent 65%); }
@@ -288,7 +288,7 @@ body::after {
 .pkg-features li { display: flex; align-items: baseline; gap: 5px; }
 .pkg-features li::before { content: '▸'; color: var(--jade2); font-size: 9px; flex-shrink: 0; }
 .pkg-features li.ai::before { content: '⚡'; font-size: 8px; }
-.pkg-features li.limit { color: rgba(255,107,53,0.65); font-size: 10px; }
+.pkg-features li.limit { color: rgba(184,255,0,0.65); font-size: 10px; }
 .pkg-features li.limit::before { content: '·'; color: var(--muted); }
 
 /* ── COMPARE BOX ── */
@@ -306,13 +306,13 @@ body::after {
 .features { position: relative; z-index: 2; padding: 14px 16px 0; display: flex; flex-direction: column; gap: 8px; max-width: 480px; margin: 0 auto; }
 .feat {
   background: linear-gradient(135deg, rgba(23,20,61,0.9) 0%, rgba(13,10,40,0.95) 100%);
-  border: 1px solid var(--border); border-left: 2px solid rgba(255,107,53,0.4);
+  border: 1px solid var(--border); border-left: 2px solid rgba(184,255,0,0.4);
   padding: 12px 14px;
   display: flex; align-items: center; gap: 13px;
   animation: feat-in .4s both;
   transition: border-left-color .2s, box-shadow .2s;
 }
-.feat:hover { border-left-color: var(--gold); box-shadow: 0 0 0 1px var(--border), inset 3px 0 0 rgba(255,107,53,0.08); }
+.feat:hover { border-left-color: var(--gold); box-shadow: 0 0 0 1px var(--border), inset 3px 0 0 rgba(184,255,0,0.08); }
 @keyframes feat-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
 .feat-icon { font-size: 22px; flex-shrink: 0; width: 30px; text-align: center; }
 .feat-text { font-size: 12px; line-height: 1.6; }
@@ -343,7 +343,7 @@ body::after {
 
 /* ── FORM ── */
 .form-card {
-  background: linear-gradient(135deg, rgba(17,14,51,0.97) 0%, rgba(7,5,26,0.99) 100%);
+  background: linear-gradient(135deg, rgba(17,14,51,0.97) 0%, rgba(184,255,0,0.99) 100%);
   border: 1px solid var(--border);
   border-top: 2px solid var(--gold);
   padding: 22px 18px;
@@ -371,19 +371,19 @@ body::after {
 .field input {
   width: 100%; padding: 11px 12px;
   background: rgba(0,0,0,0.5); border: 1px solid var(--border);
-  border-bottom-color: rgba(255,107,53,0.3);
+  border-bottom-color: rgba(184,255,0,0.3);
   color: var(--text); font-family: var(--thai); font-size: 15px;
   border-radius: 1px; outline: none;
   transition: border-bottom-color .2s, box-shadow .2s;
 }
 .field input:focus {
   border-bottom-color: var(--gold);
-  box-shadow: 0 2px 0 rgba(255,107,53,0.2);
+  box-shadow: 0 2px 0 rgba(184,255,0,0.2);
 }
 .field input::placeholder { color: var(--muted); font-size: 13px; }
 
 .plan-info {
-  background: rgba(255,107,53,0.06); border: 1px solid rgba(255,107,53,0.18);
+  background: rgba(184,255,0,0.06); border: 1px solid rgba(184,255,0,0.18);
   border-left: 2px solid var(--gold);
   padding: 9px 12px; margin-bottom: 14px;
   font-size: 12px; color: var(--text2);
@@ -452,9 +452,59 @@ body::after {
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,107,53,0.25); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(184,255,0,0.25); border-radius: 2px; }
 
 .hidden { display: none !important; }
+
+/* ══ NEON MANTIS LANDING OVERRIDES ══ */
+body { background: var(--void); color: var(--text); }
+.hero { border-bottom: 1px solid var(--border); }
+.app-name { 
+  color: var(--gold); 
+  text-shadow: 0 0 30px var(--glow-o), 0 2px 0 rgba(180,100,0,0.15);
+}
+.app-name span { color: var(--gold2); }
+.app-sub { color: var(--muted); font-family: 'Fira Code', monospace; }
+.tagline { color: var(--text2); }
+.hero-status {
+  background: rgba(0,255,135,0.07);
+  border: 1px solid rgba(0,255,135,0.25);
+  color: var(--jade2);
+}
+.status-dot { background: var(--jade2); box-shadow: 0 0 8px var(--jade2); }
+.mascot-ring {
+  border: 1.5px solid var(--gold);
+  background: radial-gradient(circle at 30% 30%, rgba(184,255,0,0.15), rgba(245,240,232,0.95));
+  box-shadow: 0 0 18px var(--glow-o), inset 0 0 12px rgba(184,255,0,0.05);
+}
+.sec-label { color: var(--muted); font-family: 'Fira Code', monospace; }
+.sec-label::after { background: linear-gradient(90deg, var(--border), transparent); }
+.pkg-card {
+  background: linear-gradient(135deg, rgba(30,33,36,0.97) 0%, rgba(30,33,36,0.98) 100%);
+  border: 1.5px solid var(--border);
+  border-top: 2px solid rgba(184,255,0,0.35);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+.pkg-card.selected {
+  border-color: var(--gold);
+  border-top-color: var(--gold);
+  box-shadow: 0 12px 40px rgba(184,255,0,0.18), 0 0 0 1px rgba(184,255,0,0.15);
+}
+.pkg-card.pro-card { border-top-color: rgba(255,229,0,0.45); }
+.pkg-card.pro-card.selected { border-color: var(--purple); border-top-color: var(--purple); }
+.pkg-name { color: var(--text); font-family: 'Prompt', sans-serif; }
+.pro-card .pkg-name { color: var(--purple); }
+.pkg-price { color: var(--gold); text-shadow: 0 0 15px var(--glow-o); }
+.pro-card .pkg-price { color: var(--purple); }
+.pkg-features { color: var(--text2); }
+.pkg-features li::before { color: var(--jade2); }
+.pkg-badge { background: linear-gradient(135deg, var(--purple2), #5B2486); color: white; }
+.compare-box { background: rgba(255,229,0,0.05); border: 1px solid rgba(255,229,0,0.18); border-left: 2px solid var(--purple); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--smoke); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
+/* Scan line color */
+.scan-line { background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--gold2) 50%, var(--gold) 70%, transparent 100%); }
 </style>
 </head>
 <body>
@@ -462,7 +512,7 @@ body::after {
 <!-- FLOATING THAI CHARS -->
 <div class="thai-bg">ค้า</div>
 <div class="thai-bg">สด</div>
-<div class="thai-bg">🐕</div>
+<div class="thai-bg">🏪</div>
 
 <!-- SCAN LINE -->
 <div class="scan-line"></div>
@@ -470,7 +520,7 @@ body::after {
 <!-- ─── HERO ─────────────────────────────── -->
 <section class="hero">
   <div class="mascot-ring">
-    <span class="mascot-char">🐕</span>
+    <span class="mascot-char">🏪</span>
   </div>
   <div class="app-name">ค้า<span>สด</span></div>
   <div class="app-sub">KAASOD POS · ระบบ POS สำหรับร้านค้าไทย · v2.0</div>
@@ -659,7 +709,7 @@ function selectPlan(plan) {
     btn.style.boxShadow  = '0 4px 20px rgba(199,125,255,0.3)';
   } else {
     btn.style.background = 'linear-gradient(135deg, #ff6b35, #ffb347)';
-    btn.style.boxShadow  = '0 4px 20px rgba(255,107,53,0.3)';
+    btn.style.boxShadow  = '0 4px 20px rgba(184,255,0,0.3)';
   }
 }
 

@@ -5,50 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>POS Template v12</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&family=Kanit:wght@700;800;900&family=Share+Tech+Mono&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500&display=swap');
 
   :root {
-    /* === "หมาน้อยผู้กล้าหาญ" — Thai Cartoon Hero === */
-    --bg:       #1a1035;      /* deep thai midnight indigo */
-    --card:     #231545;      /* rich purple night */
-    --card2:    #2d1a55;      /* grape twilight */
-    --surface:  #382263;      /* soft violet surface */
+    /* ══ NEON MANTIS — High-contrast กลางแจ้ง, ย้อนแสงได้ ══
+       ไม่ใช้ส้ม/ม่วง/น้ำเงิน — ต่างจาก POS ทุกแบรนด์ในตลาด    */
+    --bg:       #141618;
+    --card:     #1E2124;
+    --card2:    #252A2F;
+    --surface:  #2D3339;
 
-    --accent:   #ff6b35;      /* thai sunset orange (หมาส้ม) */
-    --accent2:  #ffb347;      /* golden mango (ทอง) */
-    --accent-glow: rgba(255,107,53,0.3);
+    --accent:   #B8FF00;      /* Electric Lime — primary action */
+    --accent2:  #00E5FF;      /* Cyan Ice — secondary / prices */
+    --accent-glow: rgba(184,255,0,0.18);
 
-    --green:    #2ecc71;      /* bold cartoon green */
-    --red:      #e74c3c;      /* cartoon alarm red */
-    --blue:     #5bc0de;      /* bright sky blue */
-    --purple:   #c77dff;      /* lavender glow */
+    --green:    #00FF87;      /* Neon Mint — สต็อก ok */
+    --red:      #FF3D5A;      /* Hot Coral */
+    --blue:     #00E5FF;      /* reuse cyan */
+    --purple:   #B8FF00;      /* reuse lime for consistency */
 
-    --text:     #fff9f0;      /* bright warm white */
-    --text2:    #d4c5f0;      /* soft lavender */
-    --muted:    #8b7ba8;      /* muted purple grey */
+    --text:     #F0F4F8;
+    --text2:    #BFC8D4;
+    --muted:    #7A8896;
 
-    --border:   #3d2870;      /* purple border */
-    --border2:  #4e3585;      /* lighter purple border */
+    --border:   #2D3339;
+    --border2:  rgba(184,255,0,0.22);
 
-    --shadow-sm:  0 2px 8px rgba(0,0,0,0.5);
-    --shadow-md:  0 4px 20px rgba(0,0,0,0.6);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.08);
+    --shadow-sm:  0 2px 8px rgba(0,0,0,0.55);
+    --shadow-md:  0 4px 20px rgba(0,0,0,0.65);
+    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.05);
 
-    --chat-accent: #ff6b35;   /* orange pop */
+    --chat-accent: #B8FF00;
 
     --radius-sm: 12px;
     --radius-md: 16px;
     --radius-lg: 22px;
 
-    /* cartoon extras */
-    --stroke: #1a1035;
-    --shine: rgba(255,255,255,0.15);
+    --stroke: #2D3339;
+    --shine: rgba(184,255,0,0.10);
+
+    --glow-o:  rgba(184,255,0,0.30);
+    --glow-g:  rgba(0,229,255,0.25);
+    --glow-p:  rgba(0,255,135,0.20);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   body {
-    font-family: 'Noto Sans Thai', sans-serif;
+    font-family: 'Sarabun', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -62,8 +66,8 @@
     content: '';
     position: fixed; inset: 0;
     background-image:
-      linear-gradient(rgba(255,107,53,0.020) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,107,53,0.020) 1px, transparent 1px);
+      linear-gradient(rgba(184,255,0,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(184,255,0,0.07) 1px, transparent 1px);
     background-size: 44px 44px;
     pointer-events: none; z-index: 0;
   }
@@ -73,9 +77,9 @@
     content: '';
     position: fixed; inset: 0;
     background:
-      radial-gradient(ellipse 65% 45% at 0% 0%,   rgba(255,107,53,0.07) 0%, transparent 55%),
-      radial-gradient(ellipse 55% 65% at 100% 100%, rgba(199,125,255,0.06) 0%, transparent 55%),
-      radial-gradient(ellipse 85% 35% at 50% 50%, rgba(7,5,26,0.55) 0%, transparent 70%);
+      radial-gradient(ellipse 65% 45% at 0% 0%,   rgba(184,255,0,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 65% at 100% 100%, rgba(255,229,0,0.04) 0%, transparent 55%),
+      radial-gradient(ellipse 85% 35% at 50% 50%, rgba(253,250,245,0.55) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
 
@@ -104,7 +108,7 @@
   }
   .tab-btn {
     flex: 1; padding: 13px 4px 11px; background: none; border: none;
-    color: var(--muted); font-family: 'Kanit', sans-serif;
+    color: var(--muted); font-family: 'Prompt', sans-serif;
     font-size: 12px; font-weight: 700; cursor: pointer;
     border-bottom: 3px solid transparent; transition: all .18s;
     letter-spacing: 0.5px;
@@ -146,7 +150,7 @@
   }
   .otb-amount {
     font-size: 22px; font-weight: 800; color: var(--accent);
-    white-space: nowrap; font-family: 'Kanit', sans-serif;
+    white-space: nowrap; font-family: 'Prompt', sans-serif;
   }
 
   .tab-pane { display: none; padding: 14px; }
@@ -174,11 +178,11 @@
     border: 2.5px solid var(--border2);
     border-radius: var(--radius-md);
     padding: 12px 8px 10px;
-    color: var(--text); font-family: 'Mitr', sans-serif;
+    color: var(--text); font-family: 'Sarabun', sans-serif;
     font-size: 14px; font-weight: 600; cursor: pointer;
     text-align: center; user-select: none;
     position: relative; overflow: hidden;
-    box-shadow: 0 4px 0 #0d0820, var(--shadow-sm), var(--shadow-inset);
+    box-shadow: 0 4px 0 #2D3339, var(--shadow-sm), var(--shadow-inset);
     transform: translateY(0);
     transition: transform .08s ease, box-shadow .08s ease, background .08s ease, border-color .08s ease;
     -webkit-tap-highlight-color: transparent;
@@ -195,15 +199,15 @@
   }
   .prod-btn.pressed {
     transform: translateY(4px);
-    box-shadow: 0 0 0 #0d0820, 0 1px 3px rgba(0,0,0,0.5);
+    box-shadow: 0 0 0 #2D3339, 0 1px 3px rgba(0,0,0,0.5);
     background: var(--accent);
-    color: #1a1035;
+    color: #141618;
     border-color: var(--accent);
   }
   .prod-btn.pressed::after { background: rgba(255,255,255,0.1); }
   .prod-btn .price {
     display: block; font-size: 12px; font-weight: 600;
-    color: var(--accent); margin-top: 3px; font-family: 'Kanit', sans-serif;
+    color: var(--accent); margin-top: 3px; font-family: 'Prompt', sans-serif;
   }
   .prod-btn.pressed .price { color: rgba(28,21,16,0.7); }
   .prod-btn .stock-badge {
@@ -248,7 +252,7 @@
     color: #fff; font-size: 11px; font-weight: 800;
     border-radius: 9px; padding: 0 5px;
     display: flex; align-items: center; justify-content: center;
-    line-height: 1; font-family: 'Kanit', sans-serif;
+    line-height: 1; font-family: 'Prompt', sans-serif;
     box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     pointer-events: none;
   }
@@ -265,14 +269,14 @@
     color: var(--text); font-size: 17px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; user-select: none;
-    box-shadow: 0 2px 0 #0d0820;
+    box-shadow: 0 2px 0 #2D3339;
     transform: translateY(0);
     transition: transform .08s, box-shadow .08s, background .08s;
     -webkit-tap-highlight-color: transparent;
   }
   .qty-btn.pressed, .stock-qty-btn.pressed {
     transform: translateY(2px);
-    box-shadow: 0 0 0 #0d0820;
+    box-shadow: 0 0 0 #2D3339;
     background: var(--border2);
   }
   .stock-qty-btn { width: 32px; height: 32px; }
@@ -291,7 +295,7 @@
   }
   .cart-clear {
     background: none; border: none; color: var(--red); font-size: 12px;
-    cursor: pointer; font-family: 'Noto Sans Thai', sans-serif; font-weight: 700;
+    cursor: pointer; font-family: 'Sarabun', sans-serif; font-weight: 700;
     padding: 4px 8px; border-radius: 6px;
     border: 1px solid rgba(192,84,74,0.3);
   }
@@ -305,7 +309,7 @@
   .cart-item-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .qty-ctrl { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
   .qty-num { min-width: 24px; text-align: center; font-weight: 800; font-size: 15px; color: var(--text); }
-  .cart-item-price { font-size: 14px; color: var(--accent); font-weight: 700; min-width: 56px; text-align: right; font-family: 'Kanit', sans-serif; flex-shrink: 0; }
+  .cart-item-price { font-size: 14px; color: var(--accent); font-weight: 700; min-width: 56px; text-align: right; font-family: 'Prompt', sans-serif; flex-shrink: 0; }
   .cart-del { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 6px; }
   .cart-del:active { color: var(--red); }
 
@@ -319,14 +323,14 @@
     box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,107,53,0.1);
   }
   .total-label { font-size: 14px; font-weight: 700; color: var(--text2); }
-  .total-amount { font-size: 28px; font-weight: 800; color: var(--accent); font-family: 'Kanit', sans-serif; }
+  .total-amount { font-size: 28px; font-weight: 800; color: var(--accent); font-family: 'Prompt', sans-serif; }
 
   /* ===== PAYMENT ===== */
   .pay-row { display: flex; gap: 8px; margin-bottom: 10px; }
   .pay-btn {
     flex: 1; padding: 13px 8px; border-radius: var(--radius-sm);
     border: 1.5px solid var(--border2); background: var(--card2);
-    color: var(--text2); font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text2); font-family: 'Sarabun', sans-serif;
     font-size: 14px; font-weight: 700; cursor: pointer; transition: all .15s;
   }
   .pay-btn.selected-cash { border-color: var(--green); background: rgba(106,170,114,0.15); color: var(--green); }
@@ -334,11 +338,11 @@
 
   .confirm-btn {
     width: 100%; padding: 16px; border-radius: var(--radius-md);
-    background: linear-gradient(135deg, #d4a84e, #ff6b35 50%, #b8942a);
-    border: none; color: #1a1035;
-    font-family: 'Kanit', sans-serif; font-size: 16px; font-weight: 800;
+    background: linear-gradient(135deg, #00E5FF, #B8FF00 50%, #8ACC00);
+    border: none; color: #141618;
+    font-family: 'Prompt', sans-serif; font-size: 16px; font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 5px 0 #7a5c1a, var(--shadow-md);
+    box-shadow: 0 5px 0 #6A9900, var(--shadow-md);
     transform: translateY(0);
     transition: transform .08s, box-shadow .08s;
     letter-spacing: 0.5px;
@@ -369,7 +373,7 @@
     min-width: 40px; text-align: center; font-weight: 800; font-size: 15px;
     background: var(--surface); border: 1px solid var(--border2);
     border-radius: 6px; padding: 4px 4px; color: var(--text);
-    font-family: 'Kanit', sans-serif;
+    font-family: 'Prompt', sans-serif;
   }
   .stock-qty-num.low { color: var(--red); }
   .stock-qty-num.ok { color: var(--green); }
@@ -378,14 +382,14 @@
     padding: 5px 12px; border-radius: 7px;
     background: var(--surface); border: 1px solid var(--border2);
     color: var(--accent); font-size: 12px; font-weight: 700;
-    cursor: pointer; font-family: 'Noto Sans Thai', sans-serif;
-    box-shadow: 0 2px 0 #0d0820;
+    cursor: pointer; font-family: 'Sarabun', sans-serif;
+    box-shadow: 0 2px 0 #2D3339;
     transform: translateY(0);
     transition: transform .08s, box-shadow .08s;
     -webkit-tap-highlight-color: transparent;
     flex-shrink: 0;
   }
-  .stock-set-btn:active { transform: translateY(2px); box-shadow: 0 0 0 #0d0820; }
+  .stock-set-btn:active { transform: translateY(2px); box-shadow: 0 0 0 #2D3339; }
 
   /* ===== HISTORY TAB ===== */
   .history-item {
@@ -399,17 +403,17 @@
     flex-wrap: wrap; gap: 4px; background: var(--surface);
   }
   .history-time { font-size: 11px; color: var(--muted); }
-  .history-total { font-size: 15px; font-weight: 800; color: var(--accent); font-family: 'Kanit', sans-serif; }
+  .history-total { font-size: 15px; font-weight: 800; color: var(--accent); font-family: 'Prompt', sans-serif; }
   .history-items { padding: 9px 14px; font-size: 13px; color: var(--text2); line-height: 1.6; }
   .history-actions { display: flex; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--border); }
   .hist-edit-btn {
     flex: 1; padding: 7px; border-radius: 7px; font-size: 12px; font-weight: 700;
-    cursor: pointer; font-family: 'Noto Sans Thai', sans-serif; border: 1px solid var(--border2);
+    cursor: pointer; font-family: 'Sarabun', sans-serif; border: 1px solid var(--border2);
     background: var(--surface); color: var(--accent);
   }
   .hist-del-btn {
     flex: 1; padding: 7px; border-radius: 7px; font-size: 12px; font-weight: 700;
-    cursor: pointer; font-family: 'Noto Sans Thai', sans-serif; border: 1px solid rgba(192,84,74,0.4);
+    cursor: pointer; font-family: 'Sarabun', sans-serif; border: 1px solid rgba(192,84,74,0.4);
     background: rgba(192,84,74,0.08); color: var(--red);
   }
   .history-pay-badge {
@@ -423,14 +427,14 @@
   .edit-item-qty {
     width: 52px; text-align: center; padding: 5px; border-radius: 6px;
     background: var(--card2); border: 1px solid var(--border2);
-    color: var(--text); font-size: 14px; font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
     inputmode: numeric;
   }
   .edit-item-del { background: none; border: none; color: var(--red); font-size: 18px; cursor: pointer; padding: 0 4px; }
   .edit-pay-row { display: flex; gap: 6px; margin: 10px 0 6px; }
   .edit-pay-opt {
     flex: 1; padding: 8px 4px; border-radius: 8px; font-size: 12px; font-weight: 700;
-    cursor: pointer; font-family: 'Noto Sans Thai', sans-serif;
+    cursor: pointer; font-family: 'Sarabun', sans-serif;
     border: 1.5px solid var(--border2); background: var(--card2); color: var(--text2);
   }
   .edit-pay-opt.sel-cash { border-color: var(--green); background: rgba(106,170,114,0.15); color: var(--green); }
@@ -439,7 +443,7 @@
   .edit-member-input {
     width: 100%; padding: 9px 12px; border-radius: 8px; margin-bottom: 8px;
     background: var(--card2); border: 1.5px solid var(--border2);
-    color: var(--text); font-size: 14px; font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
   }
 
   /* Edit Member Modal */
@@ -451,13 +455,13 @@
   .edit-member-field {
     width: 100%; padding: 9px 12px; border-radius: 8px; margin-bottom: 4px;
     background: var(--card2); border: 1.5px solid var(--border2);
-    color: var(--text); font-size: 14px; font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
   }
   .edit-member-field:focus { border-color: var(--accent); }
   .edit-member-tier-row { display: flex; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
   .edit-tier-opt {
     flex: 1; min-width: 60px; padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 800;
-    cursor: pointer; font-family: 'Noto Sans Thai', sans-serif; text-align: center;
+    cursor: pointer; font-family: 'Sarabun', sans-serif; text-align: center;
     border: 1.5px solid var(--border2); background: var(--card2); color: var(--text2);
     transition: all .15s;
   }
@@ -470,7 +474,7 @@
   .crm-edit-btn {
     background: none; border: 1px solid rgba(255,107,53,0.35);
     color: var(--accent); font-size: 13px; cursor: pointer;
-    padding: 2px 8px; border-radius: 7px; font-family: 'Noto Sans Thai', sans-serif;
+    padding: 2px 8px; border-radius: 7px; font-family: 'Sarabun', sans-serif;
     font-weight: 700; transition: all .15s;
   }
   .crm-edit-btn:active { background: rgba(255,107,53,0.12); }
@@ -486,7 +490,7 @@
     border-bottom: 1px solid var(--border);
   }
   .summary-row:last-child { border-bottom: none; }
-  .summary-row .val { font-weight: 800; font-family: 'Kanit', sans-serif; }
+  .summary-row .val { font-weight: 800; font-family: 'Prompt', sans-serif; }
   .summary-row .val.cash { color: var(--green); }
   .summary-row .val.transfer { color: var(--blue); }
   .summary-row .val.total { color: var(--accent); font-size: 18px; }
@@ -494,14 +498,14 @@
   .export-btn {
     width: 100%; padding: 13px; border-radius: var(--radius-sm);
     background: var(--card2); border: 1.5px solid var(--accent);
-    color: var(--accent); font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--accent); font-family: 'Sarabun', sans-serif;
     font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 6px;
   }
 
   .clear-history-btn {
     width: 100%; padding: 12px; border-radius: var(--radius-sm);
     background: none; border: 1.5px solid rgba(192,84,74,0.4);
-    color: var(--red); font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--red); font-family: 'Sarabun', sans-serif;
     font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px;
   }
 
@@ -534,17 +538,17 @@
   .modal input[type=number], .modal input[type=text] {
     width: 100%; padding: 11px 12px; border-radius: var(--radius-sm);
     background: var(--card2); border: 1.5px solid var(--border2);
-    color: var(--text); font-size: 16px; font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text); font-size: 16px; font-family: 'Sarabun', sans-serif;
     margin-bottom: 12px;
   }
   .modal-btns { display: flex; gap: 8px; }
   .modal-btns button {
     flex: 1; padding: 12px; border-radius: var(--radius-sm);
-    font-family: 'Noto Sans Thai', sans-serif; font-size: 14px; font-weight: 700;
+    font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 700;
     cursor: pointer; border: none;
   }
   .modal-cancel { background: var(--surface); color: var(--text2); border: 1px solid var(--border2) !important; }
-  .modal-ok { background: linear-gradient(135deg, #d4a84e, #ff6b35); color: #1a1035; }
+  .modal-ok { background: linear-gradient(135deg, #d4a84e, #ff6b35); color: #141618; }
 
   .divider { height: 1px; background: var(--border); margin: 12px 0; }
 
@@ -610,15 +614,15 @@
 
   .chat-msg.user {
     align-self: flex-end;
-    background: rgba(255,107,53,0.1);
-    border: 1px solid rgba(255,107,53,0.25);
-    color: #e8d47a;
+    background: rgba(184,255,0,0.09);
+    border: 1px solid rgba(184,255,0,0.28);
+    color: #F0F4F8;
     border-radius: var(--radius-md) var(--radius-md) 2px var(--radius-md);
   }
   .chat-msg.bot {
     align-self: flex-start;
-    background: rgba(143,212,192,0.06);
-    border: 1px solid rgba(143,212,192,0.16);
+    background: rgba(0,255,135,0.06);
+    border: 1px solid rgba(0,255,135,0.20);
     color: var(--text);
     border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 2px;
     position: relative;
@@ -639,15 +643,15 @@
     align-self: flex-start;
     background: rgba(192,84,74,0.1);
     border: 1px solid rgba(192,84,74,0.3);
-    color: #d87070; font-size: 13px;
+    color: #FF3D5A; font-size: 13px;
     border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 2px;
   }
 
   .thinking-dots {
     display: flex; gap: 5px; align-items: center;
     padding: 10px 14px;
-    background: rgba(143,212,192,0.05);
-    border: 1px solid rgba(143,212,192,0.12);
+    background: rgba(0,255,135,0.05);
+    border: 1px solid rgba(0,255,135,0.15);
     border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 2px;
     align-self: flex-start;
   }
@@ -687,12 +691,12 @@
   .api-key-input {
     flex: 1; padding: 8px 10px; border-radius: var(--radius-sm);
     background: var(--bg); border: 1.5px solid var(--border2);
-    color: var(--text); font-size: 12px; font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text); font-size: 12px; font-family: 'Sarabun', sans-serif;
   }
   .api-save-btn {
     padding: 8px 13px; border-radius: var(--radius-sm);
-    background: var(--chat-accent); border: none; color: #1a1035;
-    font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--chat-accent); border: none; color: #141618;
+    font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Sarabun', sans-serif;
     box-shadow: 0 3px 0 rgba(0,0,0,0.3);
     transform: translateY(0); transition: transform .08s, box-shadow .08s;
     -webkit-tap-highlight-color: transparent; white-space: nowrap;
@@ -709,13 +713,13 @@
   .chat-textarea {
     flex: 1; padding: 10px 12px; border-radius: var(--radius-sm);
     background: var(--card2); border: 1.5px solid var(--border2);
-    color: var(--text); font-size: 14px; font-family: 'Noto Sans Thai', sans-serif;
+    color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif;
     resize: none; max-height: 100px;
     transition: border-color .2s;
   }
   .chat-send-btn {
     width: 44px; height: 44px; border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, #9fd4c2, var(--chat-accent)); border: none; color: #1a1035;
+    background: linear-gradient(135deg, #00E57A, var(--chat-accent)); border: none; color: #141618;
     font-size: 18px; cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 4px 0 rgba(0,0,0,0.4);
@@ -733,9 +737,9 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #9fd4c2, var(--chat-accent));
+    background: linear-gradient(135deg, #00E57A, var(--chat-accent));
     border: none;
-    color: #1a1035;
+    color: #141618;
     font-size: 22px;
     cursor: pointer;
     box-shadow: 0 4px 16px rgba(143,212,192,0.4), 0 2px 8px rgba(0,0,0,0.5);
@@ -751,7 +755,7 @@
   .ai-popup-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0,0,0,0.65);
     z-index: 950;
     display: none;
     align-items: flex-end;
@@ -812,7 +816,7 @@
     background: var(--surface);
     border: 1px solid var(--border2);
     color: var(--text2);
-    font-family: 'Noto Sans Thai', sans-serif;
+    font-family: 'Sarabun', sans-serif;
     font-size: 12px;
     font-weight: 600;
     padding: 5px 12px;
@@ -827,7 +831,7 @@
     border: 1px solid var(--border2);
     color: var(--muted);
     font-size: 11px;
-    font-family: 'Noto Sans Thai', sans-serif;
+    font-family: 'Sarabun', sans-serif;
     padding: 5px 10px;
     border-radius: 20px;
     cursor: pointer;
@@ -916,7 +920,7 @@
 
   .chat-msg strong { color: var(--accent); }
   .chat-msg code {
-    background: rgba(0,0,0,0.3); border-radius: 4px;
+    background: rgba(0,0,0,0.35); border-radius: 4px;
     padding: 1px 5px; font-size: 12px; color: var(--chat-accent);
   }
   .chat-msg ul, .chat-msg ol { padding-left: 18px; }
@@ -926,32 +930,32 @@
   #pin-screen {
     position: fixed; inset: 0;
     background: var(--bg);
-    background-image: radial-gradient(ellipse at 50% 0%, rgba(255,107,53,0.07) 0%, transparent 60%);
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(184,255,0,0.07) 0%, transparent 60%);
     z-index: 1000; display: flex; flex-direction: column;
     align-items: center; justify-content: center; padding: 24px;
   }
   .pin-logo { font-size: 52px; margin-bottom: 6px; filter: drop-shadow(0 0 12px rgba(255,107,53,0.3)); }
   .pin-shop-name {
     font-size: 22px; font-weight: 800; color: var(--accent);
-    margin-bottom: 4px; font-family: 'Kanit', sans-serif;
+    margin-bottom: 4px; font-family: 'Prompt', sans-serif;
     letter-spacing: 0.5px;
   }
   .pin-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
   .pin-role-tabs { display: flex; gap: 8px; margin-bottom: 20px; width: 100%; max-width: 300px; }
   .pin-role-btn {
     flex: 1; padding: 10px 8px; border-radius: var(--radius-sm); border: 1.5px solid var(--border2);
-    background: var(--card2); color: var(--muted); font-family: 'Noto Sans Thai', sans-serif;
+    background: var(--card2); color: var(--muted); font-family: 'Sarabun', sans-serif;
     font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .pin-role-btn.active { border-color: var(--accent); background: rgba(255,107,53,0.1); color: var(--accent); }
+  .pin-role-btn.active { border-color: var(--accent); background: rgba(184,255,0,0.09); color: var(--accent); }
   .pin-display {
     width: 100%; max-width: 300px; background: var(--card2); border: 1.5px solid var(--border2);
     border-radius: var(--radius-md); padding: 16px; text-align: center; font-size: 32px;
     font-weight: 800; letter-spacing: 10px; color: var(--accent);
     margin-bottom: 16px; min-height: 64px; display: flex; align-items: center; justify-content: center;
     box-shadow: var(--shadow-inset), var(--shadow-sm);
-    font-family: 'Kanit', sans-serif;
+    font-family: 'Prompt', sans-serif;
   }
   .pin-grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -960,7 +964,7 @@
   .pin-key {
     padding: 18px; border-radius: var(--radius-md); background: var(--card);
     border: 1px solid var(--border2); color: var(--text);
-    font-family: 'Kanit', sans-serif; font-size: 20px; font-weight: 700;
+    font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 700;
     cursor: pointer; text-align: center;
     box-shadow: 0 4px 0 #0f0b08, var(--shadow-sm);
     transform: translateY(0); transition: transform .08s, box-shadow .08s, background .08s;
@@ -968,7 +972,7 @@
   }
   .pin-key:active { transform: translateY(4px); box-shadow: 0 0 0 #0f0b08; background: var(--card2); }
   .pin-key.del { color: var(--red); }
-  .pin-key.ok { background: linear-gradient(135deg, #d4a84e, #ff6b35); color: #1a1035; border-color: var(--accent); box-shadow: 0 4px 0 #7a5c1a; }
+  .pin-key.ok { background: linear-gradient(135deg, #d4a84e, #ff6b35); color: #141618; border-color: var(--accent); box-shadow: 0 4px 0 #7a5c1a; }
   .pin-key.ok:active { box-shadow: 0 0 0 #7a5c1a; }
   .pin-error { color: var(--red); font-size: 13px; font-weight: 700; min-height: 20px; margin-top: 4px; }
   .pin-hint { font-size: 10px; color: var(--muted); margin-top: 8px; text-align: center; }
@@ -985,7 +989,7 @@
   .shift-time { font-size: 10px; color: var(--muted); }
   .shift-close-btn {
     padding: 6px 14px; border-radius: 8px; background: rgba(192,84,74,0.85); border: none;
-    color: #fff; font-family: 'Noto Sans Thai', sans-serif; font-size: 12px; font-weight: 700;
+    color: #fff; font-family: 'Sarabun', sans-serif; font-size: 12px; font-weight: 700;
     cursor: pointer; flex-shrink: 0; white-space: nowrap;
   }
   .shift-cash-badge {
@@ -1015,13 +1019,13 @@
   .admin-pin-input {
     width: 96px; padding: 7px 10px; border-radius: 8px; text-align: center;
     background: var(--card2); border: 1.5px solid var(--border2); color: var(--text);
-    font-size: 16px; font-family: 'Noto Sans Thai', sans-serif; letter-spacing: 4px;
+    font-size: 16px; font-family: 'Sarabun', sans-serif; letter-spacing: 4px;
     flex-shrink: 0;
   }
   .admin-btn {
     width: 100%; padding: 12px; border-radius: var(--radius-sm); background: var(--surface);
     border: 1.5px solid var(--accent); color: var(--accent);
-    font-family: 'Noto Sans Thai', sans-serif; font-size: 14px; font-weight: 700;
+    font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 700;
     cursor: pointer; margin-bottom: 8px;
   }
   .admin-btn:last-child { margin-bottom: 0; }
@@ -1045,7 +1049,7 @@
   }
   .petty-item:last-child { border-bottom: none; }
   .petty-desc { flex: 1; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-  .petty-amt { color: var(--red); font-weight: 800; min-width: 56px; text-align: right; font-family: 'Kanit', sans-serif; flex-shrink: 0; }
+  .petty-amt { color: var(--red); font-weight: 800; min-width: 56px; text-align: right; font-family: 'Prompt', sans-serif; flex-shrink: 0; }
   .petty-time { font-size: 10px; color: var(--muted); flex-shrink: 0; }
 
   /* ===== CRM / MEMBER ===== */
@@ -1066,7 +1070,7 @@
   .crm-point-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 8px; transition: width .3s; }
   .crm-stats { display: flex; gap: 8px; flex-wrap: wrap; }
   .crm-stat { flex: 1; min-width: 72px; background: var(--surface); border-radius: var(--radius-sm); padding: 8px 10px; text-align: center; border: 1px solid var(--border); }
-  .crm-stat-val { font-size: 18px; font-weight: 800; color: var(--accent); font-family: 'Kanit', sans-serif; }
+  .crm-stat-val { font-size: 18px; font-weight: 800; color: var(--accent); font-family: 'Prompt', sans-serif; }
   .crm-stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
   /* shift close summary */
@@ -1075,7 +1079,7 @@
     border-bottom: 1px solid var(--border); font-size: 14px;
   }
   .shift-summary-row:last-child { border-bottom: none; }
-  .shift-summary-row .sv { font-weight: 800; font-family: 'Kanit', sans-serif; }
+  .shift-summary-row .sv { font-weight: 800; font-family: 'Prompt', sans-serif; }
 
   /* low stock alert banner */
   .low-stock-alert {
@@ -1089,26 +1093,26 @@
   .low-stock-item-chip { display: inline-block; background: rgba(231,76,60,0.2); color: #ff8a80; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 700; margin: 2px 3px 2px 0; }
   .low-thresh-row { display: flex; align-items: center; gap: 8px; background: var(--card2); border-radius: 9px; padding: 8px 12px; margin-bottom: 12px; border: 1px solid var(--border); }
   .low-thresh-row label { flex: 1; font-size: 13px; color: var(--muted); }
-  .low-thresh-quick-input { width: 54px; text-align: center; padding: 5px 6px; border-radius: 7px; background: var(--card); border: 1.5px solid var(--border); color: var(--accent); font-size: 14px; font-weight: 800; font-family: 'Noto Sans Thai', sans-serif; }
+  .low-thresh-quick-input { width: 54px; text-align: center; padding: 5px 6px; border-radius: 7px; background: var(--card); border: 1.5px solid var(--border); color: var(--accent); font-size: 14px; font-weight: 800; font-family: 'Sarabun', sans-serif; }
   /* egg smart */
   .egg-smart-box { background: rgba(245,200,66,0.06); border: 1.5px solid rgba(245,200,66,0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
   .egg-smart-title { font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 1px; margin-bottom: 10px; }
   .egg-smart-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: var(--card2); border-radius: 9px; padding: 8px 10px; border: 1px solid var(--border); }
   .egg-smart-label { font-size: 13px; font-weight: 700; min-width: 58px; }
-  .egg-smart-input { width: 48px; text-align: center; padding: 5px; border-radius: 7px; background: var(--card); border: 1.5px solid var(--border); color: var(--text); font-size: 14px; font-family: 'Noto Sans Thai', sans-serif; }
+  .egg-smart-input { width: 48px; text-align: center; padding: 5px; border-radius: 7px; background: var(--card); border: 1.5px solid var(--border); color: var(--text); font-size: 14px; font-family: 'Sarabun', sans-serif; }
   .egg-smart-sep { color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .egg-smart-price { color: var(--accent); font-weight: 800; font-size: 13px; min-width: 44px; text-align: right; font-family: 'Kanit', sans-serif; }
-  .egg-smart-add-btn { padding: 5px 10px; border-radius: 8px; background: var(--accent); border: none; color: #111; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'Noto Sans Thai', sans-serif; white-space: nowrap; box-shadow: 0 2px 0 #8a6000; }
+  .egg-smart-price { color: var(--accent); font-weight: 800; font-size: 13px; min-width: 44px; text-align: right; font-family: 'Prompt', sans-serif; }
+  .egg-smart-add-btn { padding: 5px 10px; border-radius: 8px; background: var(--accent); border: none; color: #111; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'Sarabun', sans-serif; white-space: nowrap; box-shadow: 0 2px 0 #8a6000; }
   /* shift */
   .shift-tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
-  .shift-tab-btn { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--border); background: var(--card2); color: var(--muted); cursor: pointer; font-family: 'Noto Sans Thai', sans-serif; transition: all .15s; }
-  .shift-tab-btn.active { background: var(--accent); color: #111; border-color: var(--accent); }
+  .shift-tab-btn { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--border); background: var(--card2); color: var(--muted); cursor: pointer; font-family: 'Sarabun', sans-serif; transition: all .15s; }
+  .shift-tab-btn.active { background: var(--accent); color: #141618; border-color: var(--accent); }
   /* member dash */
   .member-dash { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
   .member-dash-title { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
   .member-dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   .member-stat-card { background: var(--card2); border-radius: 9px; padding: 10px; border: 1px solid var(--border); text-align: center; }
-  .member-stat-num { font-size: 22px; font-weight: 800; color: var(--accent); font-family: 'Kanit', sans-serif; }
+  .member-stat-num { font-size: 22px; font-weight: 800; color: var(--accent); font-family: 'Prompt', sans-serif; }
   .member-stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .member-stat-num.blue { color: var(--blue); } .member-stat-num.green { color: var(--green); } .member-stat-num.purple { color: #c39bd3; }
   .member-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
@@ -1154,7 +1158,7 @@
     font-size: 13px; color: var(--accent2);
   }
   .cart-promo-label { font-weight: 700; display: flex; align-items: center; gap: 6px; }
-  .cart-promo-savings { font-weight: 800; font-family: 'Kanit', sans-serif; }
+  .cart-promo-savings { font-weight: 800; font-family: 'Prompt', sans-serif; }
   .total-original-row {
     display: flex; justify-content: space-between;
     padding: 4px 14px 0; font-size: 12px; color: var(--muted);
@@ -1177,7 +1181,7 @@
 
   /* Section titles get cartoon style */
   .sec-title {
-    font-family: 'Kanit', sans-serif !important;
+    font-family: 'Prompt', sans-serif !important;
     font-size: 12px !important;
     color: var(--accent2) !important;
   }
@@ -1189,7 +1193,7 @@
 
   /* Total amount - big cartoon number */
   .total-val, .grand-total {
-    font-family: 'Kanit', sans-serif !important;
+    font-family: 'Prompt', sans-serif !important;
     color: var(--accent) !important;
     text-shadow: 0 0 20px rgba(255,107,53,0.3);
   }
@@ -1197,7 +1201,7 @@
   /* Pay buttons cartoon */
   .pay-btn, .action-btn {
     border-radius: var(--radius-md) !important;
-    font-family: 'Kanit', sans-serif !important;
+    font-family: 'Prompt', sans-serif !important;
     font-weight: 800 !important;
     letter-spacing: 0.5px;
     border: 2.5px solid transparent !important;
@@ -1215,7 +1219,7 @@
   }
   .chat-msg.user {
     background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
-    color: #1a1035 !important;
+    color: #141618 !important;
     border-radius: 18px 18px 4px 18px !important;
     font-weight: 700;
   }
@@ -1238,12 +1242,12 @@
     font-weight: 800 !important;
     transition: background .1s, transform .1s !important;
   }
-  .qty-btn:active { background: var(--accent) !important; color: #1a1035 !important; transform: scale(0.9) !important; }
+  .qty-btn:active { background: var(--accent) !important; color: #141618 !important; transform: scale(0.9) !important; }
 
   /* Member/CRM section */
   .member-badge, .tier-badge {
     border-radius: 99px !important;
-    font-family: 'Kanit', sans-serif !important;
+    font-family: 'Prompt', sans-serif !important;
   }
 
   /* Input fields cartoon */
@@ -1252,7 +1256,7 @@
     border: 2px solid var(--border2) !important;
     background: var(--card) !important;
     color: var(--text) !important;
-    font-family: 'Noto Sans Thai', sans-serif !important;
+    font-family: 'Sarabun', sans-serif !important;
   }
   input:focus, textarea:focus, select:focus {
     border-color: var(--accent) !important;
@@ -1270,7 +1274,7 @@
   /* Popup/Modal */
   .popup-overlay, .modal-overlay {
     backdrop-filter: blur(8px) !important;
-    background: rgba(10,8,30,0.85) !important;
+    background: rgba(50,30,10,0.50) !important;
   }
   .popup-card, .modal-card {
     border: 3px solid var(--accent) !important;
@@ -1317,7 +1321,7 @@
 
   /* ── TAB BAR ── */
   .tab-bar {
-    background: rgba(7,5,26,0.97) !important;
+    background: rgba(20,22,24,0.97) !important;
     border-bottom: 1px solid var(--border) !important;
     box-shadow: 0 2px 20px rgba(0,0,0,0.8) !important;
     backdrop-filter: blur(12px);
@@ -1333,7 +1337,7 @@
   @keyframes tab-scan { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
   .tab-btn {
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Fira Code', monospace !important;
     font-size: 9px !important; letter-spacing: 1.5px !important;
     text-transform: uppercase !important;
     color: var(--muted) !important;
@@ -1344,13 +1348,13 @@
   .tab-btn.active {
     color: var(--accent) !important;
     border-bottom-color: var(--accent) !important;
-    background: rgba(255,107,53,0.06) !important;
+    background: rgba(184,255,0,0.06) !important;
     text-shadow: 0 0 10px var(--glow-o);
   }
 
   /* ── SECTION TITLES ── */
   .sec-title {
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Fira Code', monospace !important;
     font-size: 8px !important;
     color: var(--accent2) !important;
     letter-spacing: 3px !important;
@@ -1364,19 +1368,19 @@
 
   /* ── PRODUCT BUTTONS — atmospheric ── */
   .prod-btn {
-    background: linear-gradient(135deg, rgba(17,14,51,0.95) 0%, rgba(7,5,26,0.98) 100%) !important;
+    background: linear-gradient(135deg, rgba(237,232,220,0.95) 0%, rgba(20,22,24,0.98) 100%) !important;
     border: 1px solid rgba(255,107,53,0.14) !important;
     border-bottom: 2px solid rgba(255,107,53,0.08) !important;
     border-left: 2px solid rgba(255,107,53,0.2) !important;
     border-radius: var(--radius-sm) !important;
     box-shadow: 0 3px 0 rgba(0,0,0,0.7), 0 0 0 0 rgba(255,107,53,0) !important;
     color: var(--text) !important;
-    font-family: 'Noto Sans Thai', sans-serif !important;
+    font-family: 'Sarabun', sans-serif !important;
     transition: all .08s ease !important;
   }
   .prod-btn:hover { border-left-color: rgba(255,107,53,0.5) !important; }
   .prod-btn .price { 
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Fira Code', monospace !important;
     font-size: 11px !important;
     color: var(--accent2) !important;
     text-shadow: 0 0 8px rgba(255,179,71,0.4) !important;
@@ -1387,23 +1391,23 @@
     color: var(--bg) !important;
     box-shadow: 0 0 0 rgba(0,0,0,0.7), 0 0 15px var(--glow-o) !important;
   }
-  .prod-btn.pressed .price { color: rgba(7,5,26,0.7) !important; text-shadow: none !important; }
+  .prod-btn.pressed .price { color: rgba(253,250,245,0.7) !important; text-shadow: none !important; }
 
   /* ── CART AREA ── */
   .cart-total-row, .cart-footer {
-    background: rgba(7,5,26,0.9) !important;
+    background: rgba(253,250,245,0.9) !important;
     border-top: 1px solid var(--border) !important;
   }
-  .total-label { font-family: 'Share Tech Mono', monospace !important; font-size: 9px !important; color: var(--muted) !important; letter-spacing: 2px !important; text-transform: uppercase !important; }
+  .total-label { font-family: 'Fira Code', monospace !important; font-size: 9px !important; color: var(--muted) !important; letter-spacing: 2px !important; text-transform: uppercase !important; }
   .total-val, .grand-val, [class*="total"] {
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Fira Code', monospace !important;
     color: var(--accent) !important;
     text-shadow: 0 0 15px var(--glow-o) !important;
   }
 
   /* ── CART ITEMS ── */
   .cart-item {
-    border-bottom: 1px solid rgba(255,107,53,0.08) !important;
+    border-bottom: 1px solid rgba(184,255,0,0.18) !important;
     position: relative;
   }
   .cart-item::before {
@@ -1414,17 +1418,17 @@
 
   /* ── PAY BUTTONS ── */
   [class*="pay-btn"], [class*="checkout"] {
-    font-family: 'Noto Sans Thai', sans-serif !important;
+    font-family: 'Sarabun', sans-serif !important;
     letter-spacing: 0.5px !important;
   }
 
   /* ── CHAT BUBBLE ── */
   .chat-msg.bot, .msg.msg-ninja {
-    background: linear-gradient(135deg, rgba(17,14,51,0.9), rgba(7,5,26,0.95)) !important;
+    background: linear-gradient(135deg, rgba(237,232,220,0.9), rgba(253,250,245,0.95)) !important;
     border: 1px solid rgba(255,107,53,0.14) !important;
     border-left: 2px solid rgba(255,107,53,0.35) !important;
     border-radius: 2px !important;
-    font-family: 'Noto Sans Thai', sans-serif !important;
+    font-family: 'Sarabun', sans-serif !important;
   }
   .chat-msg.user, .msg.msg-user {
     background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,179,71,0.08)) !important;
@@ -1435,7 +1439,7 @@
   .chat-msg.system {
     border: 1px dashed rgba(255,107,53,0.2) !important;
     background: rgba(255,107,53,0.04) !important;
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Fira Code', monospace !important;
     font-size: 10px !important;
     color: var(--muted) !important;
     letter-spacing: 0.5px !important;
@@ -1449,12 +1453,12 @@
 
   /* ── FORM INPUTS ── */
   input, textarea, select {
-    background: rgba(0,0,0,0.5) !important;
+    background: rgba(245,240,232,0.9) !important;
     border: 1px solid var(--border) !important;
     border-bottom-color: rgba(255,107,53,0.3) !important;
     border-radius: var(--radius-sm) !important;
     color: var(--text) !important;
-    font-family: 'Noto Sans Thai', sans-serif !important;
+    font-family: 'Sarabun', sans-serif !important;
     transition: border-bottom-color .2s, box-shadow .2s !important;
   }
   input:focus, textarea:focus, select:focus {
@@ -1474,10 +1478,10 @@
   /* ── POPUP OVERLAY ── */
   [class*="overlay"] {
     backdrop-filter: blur(10px) !important;
-    background: rgba(7,5,26,0.88) !important;
+    background: rgba(253,250,245,0.88) !important;
   }
   [class*="popup"], [class*="modal-card"], [class*="popup-card"] {
-    background: linear-gradient(135deg, rgba(13,10,40,0.99), rgba(7,5,26,1)) !important;
+    background: linear-gradient(135deg, rgba(30,33,36,0.99), rgba(253,250,245,1)) !important;
     border: 1px solid var(--border) !important;
     border-top: 2px solid var(--accent) !important;
     border-radius: var(--radius-sm) !important;
@@ -1486,21 +1490,21 @@
 
   /* ── ORDER TOTAL BAR ── */
   .order-total-bar {
-    background: linear-gradient(135deg, rgba(13,10,40,0.98), rgba(7,5,26,0.99)) !important;
+    background: linear-gradient(135deg, rgba(30,33,36,0.98), rgba(253,250,245,0.99)) !important;
     border-bottom: 1px solid var(--border) !important;
     border-bottom-color: var(--accent) !important;
     box-shadow: 0 4px 20px rgba(0,0,0,0.8) !important;
     backdrop-filter: blur(12px) !important;
   }
   .otb-amount {
-    font-family: 'Share Tech Mono', monospace !important;
+    font-family: 'Fira Code', monospace !important;
     color: var(--accent) !important;
     text-shadow: 0 0 12px var(--glow-o) !important;
   }
 
   /* ── CARDS ── */
   [class*="card"]:not(.prod-btn):not([class*="pkg"]) {
-    background: linear-gradient(135deg, rgba(13,10,40,0.9), rgba(7,5,26,0.95)) !important;
+    background: linear-gradient(135deg, rgba(245,240,232,0.9), rgba(253,250,245,0.95)) !important;
     border: 1px solid var(--border) !important;
     border-left: 2px solid rgba(255,107,53,0.25) !important;
   }
@@ -1511,7 +1515,7 @@
   ::-webkit-scrollbar-thumb { background: rgba(255,107,53,0.25); border-radius: 2px; }
 
   /* ── HISTORY ROWS ── */
-  [class*="history-row"]:nth-child(odd) { background: rgba(255,107,53,0.025) !important; }
+  [class*="history-row"]:nth-child(odd) { background: rgba(184,255,0,0.04) !important; }
   [class*="history-row"]:nth-child(even) { background: transparent !important; }
 
   /* ── SUCCESS/ERROR BADGES ── */
@@ -1520,11 +1524,327 @@
 
   /* ── TITLE ── */
   #page-title-display, .page-title, h1, h2 {
-    font-family: 'Kanit', sans-serif !important;
+    font-family: 'Prompt', sans-serif !important;
     color: var(--accent) !important;
     text-shadow: 0 0 15px var(--glow-o) !important;
   }
 
+
+  /* ══ NEON MANTIS — Personality Chips ══ */
+  .personality-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+  .personality-chip input[type=checkbox] {
+    width: 14px !important;
+    height: 14px !important;
+    accent-color: var(--green) !important;
+    border: none !important;
+    background: none !important;
+    border-radius: 3px !important;
+    flex-shrink: 0;
+  }
+  .personality-chip:has(input:checked) {
+    background: rgba(184,255,0,0.10);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .personality-chip:active { transform: scale(0.96); }
+
+  /* ══ AI Avatar ring glow ══ */
+  #admin-ai-avatar-preview {
+    transition: transform .2s, box-shadow .2s;
+  }
+  #admin-ai-avatar-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 16px var(--glow-o);
+  }
+
+  /* ══ Chat bubble — Neon Mantis ══ */
+  .chat-msg.user {
+    background: linear-gradient(135deg, rgba(184,255,0,0.12), rgba(0,229,255,0.08)) !important;
+    border: 1.5px solid rgba(184,255,0,0.30) !important;
+    color: var(--text) !important;
+    border-radius: 16px 16px 4px 16px !important;
+    font-weight: 600;
+  }
+  .chat-msg.bot {
+    background: linear-gradient(135deg, rgba(30,33,36,0.95), rgba(30,33,36,0.90)) !important;
+    border: 1.5px solid rgba(184,255,0,0.25) !important;
+    border-left: 3px solid var(--accent) !important;
+    border-radius: 4px 16px 16px 16px !important;
+    color: var(--text) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35) !important;
+  }
+  .chat-msg.bot::before { display: none !important; }
+  .chat-msg.system {
+    background: rgba(184,255,0,0.05) !important;
+    border: 1px dashed rgba(184,255,0,0.30) !important;
+    color: var(--muted) !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+  }
+
+  /* ══ AI popup Neon Mantis ══ */
+  .ai-popup {
+    background: var(--bg) !important;
+    border-radius: 24px 24px 0 0 !important;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.55) !important;
+  }
+  .ai-popup-header {
+    background: linear-gradient(135deg, rgba(184,255,0,0.06), rgba(0,255,135,0.04));
+    border-bottom: 1.5px solid var(--border) !important;
+  }
+  .ai-popup-title { color: var(--accent) !important; font-weight: 800; }
+  .ai-popup-actions {
+    background: var(--card2) !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  .ai-new-chat-btn {
+    background: var(--card) !important;
+    border: 1.5px solid var(--border2) !important;
+    color: var(--accent) !important;
+    font-weight: 700 !important;
+  }
+  .ai-new-chat-btn:active { background: rgba(184,255,0,0.1) !important; }
+  .ai-history-btn { color: var(--muted) !important; border-color: var(--border) !important; }
+
+  .chat-input-area { background: var(--card) !important; border-top: 1.5px solid var(--border) !important; }
+  .chat-textarea {
+    background: var(--card2) !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--text) !important;
+    border-radius: 12px !important;
+  }
+  .chat-textarea:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(184,255,0,0.12) !important; }
+  .chat-send-btn {
+    background: linear-gradient(135deg, #B8FF00, #8ACC00) !important;
+    color: #141618 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 0 #0D6635 !important;
+  }
+  .chat-send-btn:active { transform: translateY(4px) !important; box-shadow: 0 0 0 #0D6635 !important; }
+  .tip-chip {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--muted) !important;
+  }
+  .tip-chip:active { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(184,255,0,0.08) !important; }
+
+  /* ══ AI FAB Solar ══ */
+  .ai-fab {
+    background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+    box-shadow: 0 6px 24px rgba(184,255,0,0.40), 0 0 0 4px rgba(184,255,0,0.12) !important;
+    border: 2px solid rgba(255,255,255,0.6) !important;
+  }
+
+  /* ══ Thinking dots ══ */
+  .thinking-dots span {
+    background: var(--accent) !important;
+    box-shadow: 0 0 6px var(--glow-o) !important;
+  }
+  .thinking-dots {
+    background: rgba(184,255,0,0.06) !important;
+    border: 1.5px solid rgba(184,255,0,0.20) !important;
+    border-left: 3px solid var(--accent) !important;
+  }
+
+  /* ══ Tab Bar Solar ══ */
+  .tab-bar {
+    background: rgba(20,22,24,0.97) !important;
+    border-bottom: 2px solid var(--border) !important;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.45) !important;
+    backdrop-filter: blur(12px);
+  }
+  .tab-bar::after {
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
+    opacity: 0.4 !important;
+  }
+  .tab-btn {
+    color: var(--muted) !important;
+    font-family: 'Fira Code', monospace !important;
+    font-size: 9px !important;
+    letter-spacing: 0.5px !important;
+  }
+  .tab-btn.active {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+    background: rgba(184,255,0,0.08) !important;
+  }
+
+  /* ══ Product buttons Solar ══ */
+  .prod-btn {
+    background: linear-gradient(135deg, #FFFFFF, #1E2124) !important;
+    border: 1.5px solid var(--border) !important;
+    border-bottom: 3px solid rgba(184,255,0,0.4) !important;
+    box-shadow: 0 3px 0 rgba(184,255,0,0.15), var(--shadow-sm) !important;
+    color: var(--text) !important;
+  }
+  .prod-btn .price { color: var(--accent) !important; font-family: 'Fira Code', monospace !important; }
+  .prod-btn.pressed {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #141618 !important;
+    box-shadow: 0 0 0, 0 0 12px var(--glow-o) !important;
+    transform: translateY(3px) !important;
+  }
+  .prod-btn.pressed .price { color: rgba(255,255,255,0.85) !important; }
+
+  /* ══ Cards Solar ══ */
+  .cart-box, .stock-item, .history-item {
+    background: var(--card) !important;
+    border: 1.5px solid var(--border) !important;
+    border-left: 3px solid var(--border2) !important;
+  }
+
+  /* ══ Total amount ══ */
+  .total-amount, .otb-amount {
+    color: var(--accent) !important;
+    font-family: 'Fira Code', monospace !important;
+  }
+
+  /* ══ Confirm button ══ */
+  .confirm-btn {
+    background: linear-gradient(135deg, #B8FF00, #8ACC00 50%, #6A9900) !important;
+    color: #141618 !important;
+    box-shadow: 0 5px 0 #6A9900, var(--shadow-md) !important;
+    font-family: 'Prompt', sans-serif !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px;
+  }
+  .confirm-btn:disabled {
+    background: var(--surface) !important;
+    color: var(--muted) !important;
+    box-shadow: none !important;
+  }
+
+  /* ══ Pay buttons ══ */
+  .pay-btn {
+    background: var(--card2) !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--text2) !important;
+    font-family: 'Sarabun', sans-serif !important;
+    font-weight: 700 !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  .pay-btn.selected-cash { border-color: var(--green) !important; background: rgba(0,255,135,0.10) !important; color: var(--green) !important; }
+  .pay-btn.selected-transfer { border-color: var(--blue) !important; background: rgba(0,229,255,0.10) !important; color: var(--blue) !important; }
+
+  /* ══ Modal ══ */
+  .modal-overlay {
+    backdrop-filter: blur(8px) !important;
+    background: rgba(0,0,0,0.65) !important;
+  }
+  .modal {
+    background: var(--card) !important;
+    border: 1.5px solid var(--border) !important;
+    border-top: 3px solid var(--accent) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.55) !important;
+    color: var(--text) !important;
+  }
+  .modal h3 { color: var(--accent) !important; font-family: 'Prompt', sans-serif !important; }
+  .modal-ok { background: var(--accent) !important; color: #141618 !important; font-family: 'Sarabun', sans-serif !important; font-weight: 800 !important; }
+  .modal-cancel { background: var(--surface) !important; color: var(--text2) !important; border: 1px solid var(--border) !important; }
+
+  /* ══ Section titles ══ */
+  .sec-title {
+    font-family: 'Fira Code', monospace !important;
+    font-size: 8.5px !important;
+    color: var(--accent) !important;
+    letter-spacing: 2.5px !important;
+    text-transform: uppercase !important;
+    opacity: 0.9;
+  }
+
+  /* ══ Scrollbar ══ */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 99px; opacity: 0.6; }
+
+  /* ══ Shift bar ══ */
+  .shift-bar {
+    background: linear-gradient(135deg, rgba(184,255,0,0.06), rgba(0,255,135,0.04)) !important;
+    border-bottom: 1.5px solid var(--border) !important;
+  }
+
+  /* ══ Pin screen ══ */
+  #pin-screen {
+    background: var(--bg) !important;
+    background-image: radial-gradient(ellipse at 50% -10%, rgba(184,255,0,0.10) 0%, transparent 60%) !important;
+  }
+  .pin-shop-name { color: var(--accent) !important; font-family: 'Prompt', sans-serif !important; }
+  .pin-key {
+    background: var(--card) !important;
+    border: 2px solid var(--border) !important;
+    color: var(--text) !important;
+    box-shadow: 0 3px 0 var(--border2), var(--shadow-sm) !important;
+    border-radius: 12px !important;
+    font-family: 'Fira Code', monospace !important;
+    font-size: 22px !important;
+  }
+  .pin-key:active, .pin-key.pressed {
+    transform: translateY(3px) !important;
+    box-shadow: 0 0 0 !important;
+    background: var(--accent) !important;
+    color: #fff !important;
+  }
+  .pin-key.ok { background: var(--accent) !important; color: #141618 !important; border-color: var(--accent) !important; }
+  .pin-key.del { background: var(--card2) !important; color: var(--text2) !important; }
+  .pin-role-btn {
+    background: var(--card) !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--muted) !important;
+    font-family: 'Sarabun', sans-serif !important;
+    border-radius: 10px !important;
+  }
+  .pin-role-btn.active {
+    background: rgba(184,255,0,0.10) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+    font-weight: 800 !important;
+  }
+  .pin-display {
+    background: var(--card2) !important;
+    border: 1.5px solid var(--border2) !important;
+    color: var(--accent) !important;
+    font-family: 'Fira Code', monospace !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* ══ Admin section ══ */
+  .admin-section { background: var(--card) !important; border: 1.5px solid var(--border) !important; border-radius: var(--radius-md) !important; }
+  .admin-section-head { background: var(--card2) !important; color: var(--accent) !important; font-family: 'Prompt', sans-serif !important; border-bottom: 1px solid var(--border) !important; }
+  .admin-btn { background: var(--card2) !important; border: 1.5px solid var(--border2) !important; color: var(--accent) !important; font-family: 'Sarabun', sans-serif !important; font-weight: 700 !important; border-radius: 10px !important; }
+  .admin-btn.danger { border-color: rgba(192,57,43,0.40) !important; color: var(--red) !important; }
+
+  /* ══ Low stock alert ══ */
+  .low-stock-alert { background: rgba(192,57,43,0.06) !important; border: 1.5px solid var(--red) !important; }
+
+  /* ══ CRM cards ══ */
+  .crm-member-card { background: var(--card) !important; border: 1.5px solid var(--border) !important; }
+  .crm-avatar { background: linear-gradient(135deg,rgba(184,255,0,0.15),rgba(0,229,255,0.08)) !important; border-color: rgba(184,255,0,0.40) !important; }
+
+  /* ══ Order bar ══ */
+  .order-total-bar { background: linear-gradient(135deg, rgba(20,22,24,0.98), rgba(30,33,36,0.99)) !important; border-bottom: 2px solid var(--accent) !important; box-shadow: 0 4px 20px rgba(100,70,20,0.15) !important; }
+
+  /* ══ Toast ══ */
+  .toast { background: linear-gradient(135deg, var(--accent), #8ACC00) !important; color: #fff !important; }
+
+  /* ══ History rows ══ */
+  .history-head { background: var(--card2) !important; }
+  .history-item { border: 1.5px solid var(--border) !important; background: var(--card) !important; }
 </style>
 </head>
 <body>
@@ -1532,12 +1852,12 @@
 
 <!-- ===== PIN LOGIN SCREEN ===== -->
 <div id="pin-screen">
-  <div class="pin-logo">🌿</div>
-  <div class="pin-shop-name">💰 ค้าสด 💰</div>
+  <div class="pin-logo">☀️</div>
+  <div class="pin-shop-name" id="pin-shop-display">⚡ ค้าสด</div>
   <div class="pin-subtitle">กรุณาใส่ PIN เพื่อเข้าใช้งาน</div>
   <div class="pin-role-tabs">
-    <button class="pin-role-btn active" id="pin-role-staff" onclick="selectPinRole('staff')">👤 พนักงาน</button>
-    <button class="pin-role-btn" id="pin-role-owner" onclick="selectPinRole('owner')">👑 เจ้าของร้าน</button>
+    <button class="pin-role-btn active" id="pin-role-staff" onclick="selectPinRole('staff')">⚡ พนักงาน</button>
+    <button class="pin-role-btn" id="pin-role-owner" onclick="selectPinRole('owner')">🔑 เจ้าของร้าน</button>
   </div>
   <div class="pin-display" id="pin-display">·  ·  ·  ·</div>
   <div class="pin-grid">
@@ -1563,11 +1883,11 @@
 
 <!-- ===== TAB BAR ===== -->
 <div class="tab-bar" id="main-tab-bar">
-  <button class="tab-btn active" onclick="switchTab('sell')">🛒 ขาย</button>
-  <button class="tab-btn" onclick="switchTab('stock')">📦 สต็อก</button>
-  <button class="tab-btn" onclick="switchTab('history')">📊 ประวัติ</button>
-  <button class="tab-btn" onclick="switchTab('crm')">👤 สมาชิก</button>
-  <button class="tab-btn" id="tab-btn-admin" onclick="switchTab('admin')" style="display:none;">⚙️ Admin</button>
+  <button class="tab-btn active" onclick="switchTab('sell')">⚡ ขาย</button>
+  <button class="tab-btn" onclick="switchTab('stock')">📋 สต็อก</button>
+  <button class="tab-btn" onclick="switchTab('history')">📈 ประวัติ</button>
+  <button class="tab-btn" onclick="switchTab('crm')">💎 สมาชิก</button>
+  <button class="tab-btn" id="tab-btn-admin" onclick="switchTab('admin')" style="display:none;">🔑 Admin</button>
 
 </div>
 
@@ -1648,7 +1968,7 @@
       </div>
       <input type="text" id="delivery-note" placeholder="หมายเหตุ (ไม่บังคับ)"
         style="width:100%;padding:7px 8px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:13px;font-family:'Sarabun',sans-serif;margin-bottom:8px;">
-      <button onclick="addDelivery()" style="width:100%;padding:9px;border-radius:9px;background:var(--accent);border:none;color:#111;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b8930a;">+ บันทึกลงของรอบนี้</button>
+      <button onclick="addDelivery()" style="width:100%;padding:9px;border-radius:9px;background:var(--accent);border:none;color:#141618;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b8930a;">+ บันทึกลงของรอบนี้</button>
     </div>
     <div id="delivery-log-list" style="max-height:220px;overflow-y:auto;padding:0 14px;"></div>
   </div>
@@ -1713,7 +2033,7 @@
     <input type="text" id="crm-search" placeholder="ใส่เบอร์โทร / ชื่อ" inputmode="tel"
       style="flex:1;padding:10px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:'Sarabun',sans-serif;"
       oninput="crmSearch()">
-    <button onclick="openAddMemberModal()" style="padding:10px 14px;border-radius:10px;background:var(--accent);border:none;color:#111;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">+ เพิ่ม</button>
+    <button onclick="openAddMemberModal()" style="padding:10px 14px;border-radius:10px;background:var(--accent);border:none;color:#141618;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">+ เพิ่ม</button>
   </div>
   <div id="crm-list"></div>
 </div>
@@ -1725,13 +2045,49 @@
   <div class="admin-section">
     <div class="admin-section-head">🏪 ตั้งค่าร้าน</div>
     <div class="admin-section-body">
-      <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
         <input type="text" id="admin-shop-name" placeholder="ชื่อร้าน (เช่น ร้านชาชานมไข่มุก)" 
-          style="width:100%;padding:9px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:'Sarabun',sans-serif;">
-        <input type="text" id="admin-assistant-name" placeholder="ชื่อผู้ช่วย AI (เช่น มุกมุก)" 
-          style="width:100%;padding:9px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:'Sarabun',sans-serif;">
+          style="width:100%;padding:9px 12px;border-radius:10px;background:var(--card2);border:1.5px solid var(--border2);color:var(--text);font-size:14px;font-family:'Sarabun',sans-serif;">
+        
+        <!-- AI Avatar + Name row -->
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(184,255,0,0.06);border:1.5px solid var(--border2);border-radius:12px;padding:12px;">
+          <div id="admin-ai-avatar-preview" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,rgba(184,255,0,0.15),rgba(0,255,135,0.10));border:2.5px solid var(--accent2);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;cursor:pointer;" title="Avatar สร้างใหม่เมื่อตั้งชื่อ">🤖</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:5px;">ชื่อ & Avatar ผู้ช่วย AI</div>
+            <input type="text" id="admin-assistant-name" placeholder="ชื่อผู้ช่วย AI (เช่น มุกมุก)" 
+              style="width:100%;padding:8px 10px;border-radius:8px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:'Sarabun',sans-serif;"
+              oninput="previewAiAvatar(this.value)">
+            <div style="font-size:10px;color:var(--muted);margin-top:4px;">Avatar จะ generate ใหม่ทุกครั้งที่เปลี่ยนชื่อ</div>
+          </div>
+        </div>
+
+        <!-- AI Personality -->
+        <div style="background:rgba(0,255,135,0.05);border:1.5px solid rgba(0,255,135,0.25);border-radius:12px;padding:12px;">
+          <div style="font-size:10px;color:var(--green);font-weight:800;letter-spacing:1px;margin-bottom:10px;">🧠 ลักษณะนิสัย AI (เลือกได้หลายข้อ)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="personality-grid">
+            <label class="personality-chip" data-trait="friendly">
+              <input type="checkbox" value="friendly" onchange="savePersonality()"> 😊 เป็นกันเอง
+            </label>
+            <label class="personality-chip" data-trait="precise">
+              <input type="checkbox" value="precise" onchange="savePersonality()"> 🎯 แม่นยำ
+            </label>
+            <label class="personality-chip" data-trait="proactive">
+              <input type="checkbox" value="proactive" onchange="savePersonality()"> ⚡ เชิงรุก
+            </label>
+            <label class="personality-chip" data-trait="concise">
+              <input type="checkbox" value="concise" onchange="savePersonality()"> ✂️ กระชับ
+            </label>
+            <label class="personality-chip" data-trait="cheerful">
+              <input type="checkbox" value="cheerful" onchange="savePersonality()"> 🌟 ร่าเริง
+            </label>
+            <label class="personality-chip" data-trait="analytical">
+              <input type="checkbox" value="analytical" onchange="savePersonality()"> 📊 วิเคราะห์
+            </label>
+          </div>
+        </div>
+
       </div>
-      <button class="admin-btn" onclick="saveShopSettings()" style="margin-top:10px;">💾 บันทึกชื่อร้าน</button>
+      <button class="admin-btn" onclick="saveShopSettings()" style="margin-top:10px;">💾 บันทึกตั้งค่าร้าน</button>
     </div>
   </div>
   <div class="admin-section">
@@ -1751,7 +2107,7 @@
   <div class="admin-section">
     <div class="admin-section-head" style="display:flex;justify-content:space-between;align-items:center;">
       <span>🛒 จัดการสินค้า</span>
-      <button onclick="openAddProductModal()" style="padding:4px 12px;border-radius:7px;background:var(--accent);border:none;color:#111;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+ เพิ่ม</button>
+      <button onclick="openAddProductModal()" style="padding:4px 12px;border-radius:7px;background:var(--accent);border:none;color:#141618;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">+ เพิ่ม</button>
     </div>
     <div class="admin-section-body" style="padding:0;">
       <div id="admin-product-list" style="max-height:400px;overflow-y:auto;padding:0 14px;"></div>
@@ -1830,7 +2186,7 @@
       <button class="pay-btn" id="pm-transfer" onclick="confirmSale('transfer')">📱 โอน</button>
     </div>
     <button class="pay-btn" onclick="confirmSale('free')"
-      style="width:100%;background:#2a1a3a;border-color:#9b59b6;color:#c39bd3;font-size:15px;">
+      style="width:100%;background:rgba(255,229,0,0.08);border-color:#FFE500;color:#FFE500;font-size:15px;">
       🎁 แลกฟรี (ไม่รับเงิน)
     </button>
     <div class="modal-btns" style="margin-top:12px">
@@ -2943,9 +3299,25 @@ function buildShopSystem() {
     return `- ${pr.name}: [${itemsDesc}] ราคาโปร ฿${pr.promoPrice} (ปกติ ฿${normalPrice}) ${isOn ? '✅ เปิดอยู่' : '⏸️ ปิดอยู่'}`;
   }).join('\n') : '- ยังไม่มีโปรโมชั่น';
 
+  // Build personality description from saved traits
+  const personalityMap = {
+    friendly:   'พูดแบบเป็นกันเอง ใช้ภาษาสบายๆ',
+    precise:    'ตอบด้วยข้อมูลที่แม่นยำ ไม่คาดเดา',
+    proactive:  'แนะนำสิ่งที่เป็นประโยชน์เชิงรุก ไม่ต้องถามก่อน',
+    concise:    'ตอบสั้น กระชับ ตรงประเด็น ไม่ยืดเยื้อ',
+    cheerful:   'ร่าเริง ใช้ emoji สม่ำเสมอ บรรยากาศดี',
+    analytical: 'วิเคราะห์ข้อมูลเป็นตัวเลข เปรียบเทียบ แสดง insight'
+  };
+  const savedTraits = loadPersonality();
+  const traitLines = savedTraits.length > 0
+    ? savedTraits.map(t => '• ' + (personalityMap[t] || t)).join('\n')
+    : '• พูดแบบเป็นกันเอง ใช้ emoji บ้าง';
+
   return `คุณคือ "${assistantName}" — ผู้ช่วย AI ประจำ${shopName}
 คุณรู้จักสินค้า ราคา สต็อก โปรโมชั่น และยอดขายทุกอย่าง
-พูดภาษาไทยแบบสบายๆ เป็นกันเอง ใช้ emoji บ้าง ตอบตรงประเด็น ไม่วนเวียน
+
+=== ลักษณะนิสัยของคุณ ===
+${traitLines}
 
 === สินค้าในร้าน (ข้อมูลปัจจุบัน) ===
 ${prodLines}
@@ -3117,6 +3489,13 @@ ${promoLines}
 <ACTION>{"type":"set_member_tier","phone":"[เบอร์โทร]","tier":"[ระดับ]"}</ACTION>
 ตัวอย่าง: "อัปเกรดเบอร์ 0812345678 เป็น Gold" → <ACTION>{"type":"set_member_tier","phone":"0812345678","tier":"gold"}</ACTION>
 หมายเหตุ: tier ใช้ "regular", "vip", "gold", "platinum"
+
+▶ แสดงบิลทั้งหมด / ไล่บิล (แสดงประวัติการขายทุกบิลในกะนี้):
+<ACTION>{"type":"list_all_bills"}</ACTION>
+ตัวอย่าง: "ไล่บิลทั้งหมดให้หน่อย" → <ACTION>{"type":"list_all_bills"}</ACTION>
+ตัวอย่าง: "แสดงประวัติการขายทั้งหมด" → <ACTION>{"type":"list_all_bills"}</ACTION>
+ตัวอย่าง: "มีกี่บิลแล้ว ดูหน่อย" → <ACTION>{"type":"list_all_bills"}</ACTION>
+หมายเหตุ: ระบบจะแสดงตารางบิลครบทุกรายการพร้อมสรุปยอดรวม — ใช้ action นี้ทุกครั้งที่ถามเรื่องบิล/ประวัติการขายทั้งหมด ห้ามตอบจากข้อความอย่างเดียว
 
 Product keys ที่ใช้ได้: ${effProds.filter(p=>!p.promoBase).map(p=>`${p.name}=${p.key}`).join(', ')}
 
@@ -3470,24 +3849,82 @@ function saveShopSettings() {
   const shopName = document.getElementById('admin-shop-name').value.trim();
   const assistantName = document.getElementById('admin-assistant-name').value.trim();
   if (shopName) localStorage.setItem('pos_shop_name', shopName);
-  if (assistantName) localStorage.setItem('pos_assistant_name', assistantName);
-  // Update title
-  document.title = (shopName || 'POS Template') + ' v12';
+  if (assistantName) {
+    const prevName = localStorage.getItem('pos_assistant_name') || '';
+    localStorage.setItem('pos_assistant_name', assistantName);
+    // Generate new avatar if name changed
+    if (prevName !== assistantName) {
+      const newAvatar = generateAiAvatar(assistantName);
+      localStorage.setItem('pos_assistant_avatar', newAvatar);
+      applyAiAvatar(newAvatar);
+    }
+  }
+  document.title = (shopName || 'ค้าสด') + ' POS';
+  // Update pin screen shop name
+  const pinShop = document.getElementById('pin-shop-display');
+  if (pinShop && shopName) pinShop.textContent = '⚡ ' + shopName;
   const nameEl = document.getElementById('popup-assistant-name');
   if (nameEl && assistantName) nameEl.textContent = assistantName;
-  showToast('✅ บันทึกชื่อร้านแล้ว');
+  showToast('✅ บันทึกตั้งค่าร้านแล้ว');
+}
+
+// Generate AI avatar emoji from name hash
+function generateAiAvatar(name) {
+  const aiAvatars = ['🤖','🧠','⚡','🌟','💡','🔮','🎯','✨','🚀','💎','🌈','🦋','🌺','🌸','🎪','🦄','🐉','🦊','🐧','🦅'];
+  let hash = 0;
+  for (let c of (name || '')) hash = ((hash << 5) - hash) + c.charCodeAt(0);
+  return aiAvatars[Math.abs(hash) % aiAvatars.length];
+}
+
+function applyAiAvatar(avatar) {
+  const popup = document.getElementById('popup-avatar');
+  if (popup) popup.textContent = avatar;
+  const fab = document.getElementById('ai-fab-avatar');
+  if (fab) fab.textContent = avatar;
+  const preview = document.getElementById('admin-ai-avatar-preview');
+  if (preview) preview.textContent = avatar;
+}
+
+function previewAiAvatar(name) {
+  const avatar = generateAiAvatar(name);
+  const preview = document.getElementById('admin-ai-avatar-preview');
+  if (preview) preview.textContent = avatar;
+}
+
+function savePersonality() {
+  const checked = [...document.querySelectorAll('#personality-grid input:checked')].map(i => i.value);
+  localStorage.setItem('pos_ai_personality', JSON.stringify(checked));
+}
+
+function loadPersonality() {
+  try { return JSON.parse(localStorage.getItem('pos_ai_personality') || '[]'); } catch { return []; }
+}
+
+function loadShopSettingsUI() {
+  const shopName = localStorage.getItem('pos_shop_name') || '';
+  const assistantName = localStorage.getItem('pos_assistant_name') || '';
+  const avatar = localStorage.getItem('pos_assistant_avatar') || generateAiAvatar(assistantName);
+  const shopEl = document.getElementById('admin-shop-name');
+  if (shopEl) shopEl.value = shopName;
+  const assistEl = document.getElementById('admin-assistant-name');
+  if (assistEl) assistEl.value = assistantName;
+  applyAiAvatar(avatar);
+  // Load personality chips
+  const traits = loadPersonality();
+  document.querySelectorAll('#personality-grid input[type=checkbox]').forEach(cb => {
+    cb.checked = traits.includes(cb.value);
+  });
+  // Update pin screen shop name
+  const pinShop = document.getElementById('pin-shop-display');
+  if (pinShop && shopName) pinShop.textContent = '⚡ ' + shopName;
+  const nameEl = document.getElementById('popup-assistant-name');
+  if (nameEl && assistantName) nameEl.textContent = assistantName;
 }
 
 function loadShopSettings() {
+  loadShopSettingsUI();
   const shopName = localStorage.getItem('pos_shop_name') || '';
-  const assistantName = localStorage.getItem('pos_assistant_name') || '';
-  const sn = document.getElementById('admin-shop-name');
-  const an = document.getElementById('admin-assistant-name');
-  if (sn && shopName) sn.value = shopName;
-  if (an && assistantName) an.value = assistantName;
-  if (shopName) document.title = shopName + ' v12';
-  const nameEl = document.getElementById('popup-assistant-name');
-  if (nameEl && assistantName) nameEl.textContent = assistantName;
+  if (shopName) document.title = shopName + ' POS';
 }
 
 function saveAdminPins() {
@@ -3530,7 +3967,7 @@ function renderShiftBar() {
   if (!shift || !shift.open) {
     bar.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--card);border-bottom:1px solid var(--border);">
       <span style="font-size:12px;color:var(--muted);">ยังไม่ได้เปิดกะ</span>
-      <button onclick="openShiftModal()" style="padding:6px 16px;border-radius:8px;background:var(--green);border:none;color:#111;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">🌅 เปิดกะ</button>
+      <button onclick="openShiftModal()" style="padding:6px 16px;border-radius:8px;background:var(--green);border:none;color:#141618;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:800;cursor:pointer;">🌅 เปิดกะ</button>
     </div>`;
     bar.style.display = 'block';
     return;
@@ -4709,7 +5146,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <!-- ===== AI FLOATING BUTTON ===== -->
-<button class="ai-fab" id="ai-fab" onclick="openAiPopup()" title="คุยกับ AI">🌿</button>
+<button class="ai-fab" id="ai-fab" onclick="openAiPopup()" title="คุยกับ AI"><span id="ai-fab-avatar" style="font-size:24px;">🤖</span></button>
 
 <!-- ===== AI POPUP ===== -->
 <div class="ai-popup-overlay" id="ai-popup-overlay" onclick="closeAiPopupOnOverlay(event)">
@@ -4726,7 +5163,7 @@ if ('serviceWorker' in navigator) {
 
     <!-- Header -->
     <div class="ai-popup-header">
-      <div class="chat-avatar">🌿</div>
+      <div class="chat-avatar" id="popup-avatar" style="font-size:30px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,var(--accent-glow),rgba(0,255,135,0.12));border:2px solid var(--border2);">🤖</div>
       <div class="ai-popup-header-info">
         <div class="ai-popup-title" id="popup-assistant-name">ผู้ช่วย AI ประจำร้าน</div>
         <div class="ai-popup-sub">ถามสต็อก ยอดขาย สั่งลงของ สร้างสินค้าใหม่</div>
@@ -4760,6 +5197,7 @@ if ('serviceWorker' in navigator) {
         <span class="tip-chip" onclick="popupSetTip('แก้ข้อมูลสมาชิกเบอร์ [เบอร์โทร] ชื่อ [ชื่อ] ยอดรวม [ยอด] บาท ครั้งซื้อ [จำนวน] แต้ม [จำนวน]')">✏️ แก้ข้อมูลสมาชิก</span>
         <span class="tip-chip" onclick="popupSetTip('เปิดกะ เงินในลิ้นชัก [จำนวน] บาท')">🌅 เปิดกะ</span>
         <span class="tip-chip" onclick="popupSetTip('เปลี่ยนราคา [ชื่อสินค้า] เป็น [ราคา] บาท')">💱 แก้ราคา</span>
+        <span class="tip-chip" onclick="popupSetTip('ไล่บิลทั้งหมดให้หน่อย')">🧾 ดูบิลทั้งหมด</span>
       </div>
     </div>
 
@@ -4836,7 +5274,8 @@ function popupInitChat(keepHistory) {
     popupChatHist = [];
     document.getElementById('popup-chat-history').innerHTML = '';
   }
-  popupAppendMsg('bot', '🌿 สวัสดีค่ะ! ฉันคือ AI ประจำร้าน\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊');
+  const aiName = localStorage.getItem('pos_assistant_name') || 'AI ประจำร้าน';
+  popupAppendMsg('bot', `☀️ สวัสดีค่ะ! ฉันคือ ${aiName}\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊`);
 }
 
 function popupNewChat() {
@@ -4977,8 +5416,8 @@ async function popupSendChat() {
         .join('\n')
     : '  (ยังไม่มียอดขาย)';
 
-  // ── (6) บิลล่าสุด 8 รายการ (Stock Movement) ──
-  const recentBillsStr = history.slice(0, 8).map((h, i) => {
+  // ── (6) บิลทั้งหมด (Stock Movement) ──
+  const recentBillsStr = history.slice(0, 100).map((h, i) => {
     const timeLabel  = (h.time || '').split(' ')[1] || h.time || '';
     const payLabel   = h.pay === 'cash' ? 'สด' : h.pay === 'transfer' ? 'โอน'
                      : h.pay === 'free' ? 'ฟรี' : h.pay === 'debt' ? 'ค้าง' : h.pay;
@@ -5053,7 +5492,7 @@ async function popupSendChat() {
     `\n\n--- ยอดขายกะนี้ ---` +
     `\n  เงินสด ฿${todayCash} | โอน ฿${todayTransfer} | รวม ฿${todayCash+todayTransfer} | บิล ${history.length} ใบ (ฟรี ${freeCnt} ใบ)` +
     `\n\n--- ยอดขายรายสินค้า (กะนี้) ---\n${prodSalesStr}` +
-    `\n\n--- บิลล่าสุด 8 รายการ (Stock Movement) ---\n${recentBillsStr}` +
+    `\n\n--- บิลทั้งหมดในกะนี้ (${Math.min(history.length,100)} รายการ) ---\n${recentBillsStr}` +
     `\n\n--- บิลค้างชำระ (${debtBills.length} บิล รวม ฿${debtTotal}) ---\n${debtStr}` +
     `\n\n--- สมาชิกที่มาในกะนี้ ---\n${memberSessionStr}` +
     `\n\n--- ทะเบียนสมาชิกทั้งหมด (ซื้อครบ ${loyaltyN} ครั้ง ฟรี 1) ---\n${memberStr}`;
@@ -5886,6 +6325,56 @@ async function popupSendChat() {
             }
           }
 
+          // --- N6. แสดงบิลทั้งหมด (List All Bills) ---
+          else if (action.type === 'list_all_bills') {
+            const allBills = loadHistory();
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg bot';
+              if (allBills.length === 0) {
+                chip.innerHTML = `<strong>🧾 ประวัติบิล</strong><br>ยังไม่มีบิลในกะนี้`;
+              } else {
+                let cashTotal = 0, transferTotal = 0, freeCount = 0, debtTotal = 0;
+                let html = `<strong>🧾 บิลทั้งหมด (${allBills.length} บิล)</strong><br>`;
+                html += `<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;">`;
+                html += `<tr style="color:var(--muted);font-size:10px;border-bottom:1px solid var(--border2);">
+                  <td style="padding:2px 4px;">#</td>
+                  <td style="padding:2px 4px;">เวลา</td>
+                  <td style="padding:2px 4px;">รายการ</td>
+                  <td style="padding:2px 4px;text-align:right;">จ่าย</td>
+                  <td style="padding:2px 4px;text-align:right;">฿</td>
+                </tr>`;
+                allBills.forEach((h, i) => {
+                  const timeLabel = (h.time || '').split(' ')[1] || h.time || '';
+                  const payLabel = h.pay === 'cash' ? '💵' : h.pay === 'transfer' ? '📱' : h.pay === 'free' ? '🎁' : h.pay === 'debt' ? '⚠️' : h.pay;
+                  const memberTag = (h.member && h.member !== 'ทั่วไป') ? ` [${h.member}]` : '';
+                  const debtTag = h.debtRemaining > 0 ? ` ⚠️฿${h.debtRemaining}` : '';
+                  const itemsStr = (h.items || []).filter(it => it.price >= 0).map(it => `${it.name}×${it.qty}`).join(', ');
+                  const rowColor = h.pay === 'debt' ? 'color:var(--red)' : h.pay === 'free' ? 'color:var(--purple)' : '';
+                  html += `<tr style="border-bottom:1px solid var(--border);${rowColor}">
+                    <td style="padding:3px 4px;color:var(--muted);">${i+1}</td>
+                    <td style="padding:3px 4px;white-space:nowrap;">${timeLabel}${memberTag}</td>
+                    <td style="padding:3px 4px;">${itemsStr}</td>
+                    <td style="padding:3px 4px;text-align:center;">${payLabel}${debtTag}</td>
+                    <td style="padding:3px 4px;text-align:right;font-weight:700;">฿${h.total.toLocaleString()}</td>
+                  </tr>`;
+                  if (h.pay === 'cash') cashTotal += h.total;
+                  else if (h.pay === 'transfer') transferTotal += h.total;
+                  else if (h.pay === 'free') freeCount++;
+                  if (h.debtRemaining > 0) debtTotal += h.debtRemaining;
+                });
+                html += `<tr style="border-top:2px solid var(--border2);font-weight:800;">
+                  <td colspan="4" style="padding:4px 4px;color:var(--muted);">รวม</td>
+                  <td style="padding:4px 4px;text-align:right;color:var(--accent);">฿${(cashTotal+transferTotal).toLocaleString()}</td>
+                </tr>`;
+                html += `</table>`;
+                html += `<div style="margin-top:6px;font-size:11px;color:var(--muted);">💵 สด ฿${cashTotal.toLocaleString()} | 📱 โอน ฿${transferTotal.toLocaleString()}${freeCount>0?' | 🎁 ฟรี '+freeCount+' ใบ':''}${debtTotal>0?' | ⚠️ ค้าง ฿'+debtTotal.toLocaleString():''}</div>`;
+                chip.innerHTML = html;
+              }
+              box.appendChild(chip); box.scrollTop = box.scrollHeight;
+            }, 300);
+          }
+
         } catch(e) {}
         reply = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
       }
@@ -5943,6 +6432,23 @@ function popupChatKeyDown(e) {
 }
 
 // Hide FAB when on the AI tab (not needed there) — handled in switchTab above
+</script>
+
+<script>
+// ══ NEON MANTIS — init avatar + personality on page load ══
+document.addEventListener('DOMContentLoaded', () => {
+  // Apply stored AI avatar immediately
+  const storedAvatar = localStorage.getItem('pos_assistant_avatar');
+  const storedName = localStorage.getItem('pos_assistant_name') || '';
+  const avatar = storedAvatar || (storedName ? generateAiAvatar(storedName) : '🤖');
+  // Apply to FAB and popup header (if they exist yet)
+  setTimeout(() => applyAiAvatar(avatar), 50);
+  
+  // Apply shop name to pin screen
+  const shopName = localStorage.getItem('pos_shop_name') || '';
+  const pinShop = document.getElementById('pin-shop-display');
+  if (pinShop && shopName) pinShop.textContent = '⚡ ' + shopName;
+});
 </script>
 </body>
 </html>

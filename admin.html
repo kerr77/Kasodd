@@ -5,40 +5,41 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🐕 ค้าสด — Real-time Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700&family=Kanit:wght@700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:        #07051a;
-  --bg2:       #0d0a28;
-  --bg3:       #110e33;
-  --bg4:       #17143d;
-  --border:    rgba(255,107,53,0.14);
-  --border2:   rgba(199,125,255,0.18);
-  --border-s:  #1f1b4e;
-  --gold:      #ff6b35;
-  --gold2:     #ffb347;
-  --green:     #2ecc8a;
-  --green2:    #52d990;
-  --orange:    #ff8c42;
-  --orange2:   #ffaa65;
-  --blue:      #5bc0de;
-  --blue2:     #7dd4ee;
-  --purple:    #c77dff;
-  --red:       #e74c3c;
-  --text:      #f5f0ff;
-  --text2:     #c8b8f0;
-  --text3:     #7a6aa8;
-  --pulse:     rgba(255,107,53,0.35);
-  --mono:      'Share Tech Mono', monospace;
-  --glow-o:    rgba(255,107,53,0.4);
-  --glow-p:    rgba(199,125,255,0.3);
-  --glow-g:    rgba(46,204,138,0.3);
+  /* ══ NEON MANTIS ADMIN ══ */
+  --bg:        #141618;
+  --bg2:       #1E2124;
+  --bg3:       #252A2F;
+  --bg4:       #2D3339;
+  --border:    rgba(184,255,0,0.14);
+  --border2:   rgba(0,229,255,0.20);
+  --border-s:  #2D3339;
+  --gold:      #B8FF00;
+  --gold2:     #00E5FF;
+  --green:     #00FF87;
+  --green2:    #00E57A;
+  --orange:    #FFE500;
+  --orange2:   #FFD000;
+  --blue:      #00E5FF;
+  --blue2:     #40F0FF;
+  --purple:    #B8FF00;
+  --red:       #FF3D5A;
+  --text:      #F0F4F8;
+  --text2:     #BFC8D4;
+  --text3:     #7A8896;
+  --pulse:     rgba(184,255,0,0.35);
+  --mono:      'Fira Code', monospace;
+  --glow-o:    rgba(184,255,0,0.30);
+  --glow-p:    rgba(0,229,255,0.25);
+  --glow-g:    rgba(0,255,135,0.20);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Sarabun', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -59,7 +60,7 @@ body {
   gap: 12px;
   flex-wrap: wrap;
 }
-.logo { color: var(--gold); font-size: 16px; font-weight: 800; font-family: 'Kanit', sans-serif; display: flex; align-items: center; gap: 8px; }
+.logo { color: var(--gold); font-size: 16px; font-weight: 800; font-family: 'Prompt', sans-serif; display: flex; align-items: center; gap: 8px; }
 .logo span { color: var(--text3); font-size: 12px; font-weight: 400; }
 .status-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .live-dot {
@@ -74,7 +75,7 @@ body {
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 .live-label { font-size: 11px; color: var(--green); font-weight: 600; letter-spacing: 1px; }
-.last-update { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text3); }
+.last-update { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--text3); }
 .refresh-btn {
   background: var(--bg3); border: 1px solid var(--border2); color: var(--gold);
   padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
@@ -139,7 +140,7 @@ main { padding: 20px; max-width: 1400px; margin: 0 auto; }
 .stat-card { text-align: center; }
 .stat-card .val {
   font-size: 28px; font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Fira Code', monospace;
   line-height: 1.1; display: block; margin: 4px 0;
 }
 .stat-card .lbl { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
@@ -175,7 +176,7 @@ th {
 td {
   padding: 9px 12px; border-bottom: 1px solid var(--border);
   font-size: 13px; vertical-align: middle;
-  font-family: 'Noto Sans Thai', sans-serif;
+  font-family: 'Sarabun', sans-serif;
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--bg3); }
@@ -192,13 +193,13 @@ tr:hover td { background: var(--bg3); }
 .pill-red { background: rgba(212,90,90,.15); color: var(--red); border: 1px solid rgba(212,90,90,.3); }
 
 /* ── MONO ── */
-.mono { font-family: 'JetBrains Mono', monospace; }
+.mono { font-family: 'Fira Code', monospace; }
 
 /* ── LOG PANEL ── */
 .log-panel {
   background: var(--bg); border: 1px solid var(--border);
   border-radius: 10px; padding: 14px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Fira Code', monospace;
   font-size: 12px; line-height: 1.8;
   height: 340px; overflow-y: auto;
 }
@@ -221,7 +222,7 @@ tr:hover td { background: var(--bg3); }
   color: var(--text3); padding: 5px 14px; border-radius: 8px;
   cursor: pointer; font-size: 12px; font-family: inherit; transition: all .2s;
 }
-.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(255,107,53,.1); }
+.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(184,255,0,.1); }
 .chat-entries { display: flex; flex-direction: column; gap: 8px; }
 .chat-entry {
   background: var(--bg3); border: 1px solid var(--border);
@@ -232,7 +233,7 @@ tr:hover td { background: var(--bg3); }
   margin-bottom: 8px; gap: 8px; flex-wrap: wrap;
 }
 .chat-entry-shop { font-weight: 700; color: var(--gold); font-size: 13px; }
-.chat-entry-ts { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.chat-entry-ts { font-size: 11px; color: var(--text3); font-family: 'Fira Code', monospace; }
 .chat-bubble-user {
   background: rgba(91,141,184,.12); border: 1px solid rgba(91,141,184,.2);
   border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
@@ -252,7 +253,7 @@ tr:hover td { background: var(--bg3); }
 .bar-lbl { font-size: 12px; color: var(--text2); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-track { flex: 1; height: 20px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
-.bar-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); width: 60px; text-align: right; flex-shrink: 0; }
+.bar-val { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--text2); width: 60px; text-align: right; flex-shrink: 0; }
 
 /* ── SERVER HEALTH ── */
 .health-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -262,7 +263,7 @@ tr:hover td { background: var(--bg3); }
   display: flex; flex-direction: column; gap: 4px;
 }
 .health-item .h-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
-.health-item .h-val { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.health-item .h-val { font-size: 18px; font-weight: 700; font-family: 'Fira Code', monospace; }
 .health-item .h-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; }
 .health-item .h-bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
 
@@ -342,20 +343,20 @@ tr:hover td { background: var(--bg3); }
 /* 🐕 Cartoon Hero extras for admin */
 body {
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255,107,53,0.05) 0%, transparent 45%),
+    radial-gradient(circle at 10% 20%, rgba(184,255,0,0.05) 0%, transparent 45%),
     radial-gradient(circle at 90% 80%, rgba(199,125,255,0.05) 0%, transparent 45%);
 }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
 .card { border: 2px solid var(--border2) !important; border-radius: 16px !important; }
 .stat-card .val { font-family: 'JetBrains Mono', monospace !important; }
-.stat-card .lbl { font-family: 'Noto Sans Thai', sans-serif !important; }
-.topbar { border-bottom: 3px solid var(--gold) !important; box-shadow: 0 4px 20px rgba(255,107,53,0.15) !important; }
+.stat-card .lbl { font-family: 'Sarabun', sans-serif !important; }
+.topbar { border-bottom: 3px solid var(--gold) !important; box-shadow: 0 4px 20px rgba(184,255,0,0.15) !important; }
 .nav-tab.active { color: var(--gold) !important; }
 .nav-tab.active { border-bottom-color: var(--bg) !important; }
-.refresh-btn { border-radius: 12px !important; font-family: 'Kanit', sans-serif !important; }
-.refresh-btn:hover { border-color: var(--gold) !important; background: rgba(255,107,53,0.1) !important; }
-table thead th { font-family: 'Kanit', sans-serif !important; color: var(--gold) !important; }
+.refresh-btn { border-radius: 12px !important; font-family: 'Prompt', sans-serif !important; }
+.refresh-btn:hover { border-color: var(--gold) !important; background: rgba(184,255,0,0.1) !important; }
+table thead th { font-family: 'Prompt', sans-serif !important; color: var(--gold) !important; }
 
 
 /* ══ ADMIN ATMOSPHERE ══ */
@@ -363,8 +364,8 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(255,107,53,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,107,53,0.018) 1px, transparent 1px);
+    linear-gradient(rgba(184,255,0,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,255,0,0.018) 1px, transparent 1px);
   background-size: 48px 48px;
   pointer-events: none; z-index: 0;
 }
@@ -372,7 +373,7 @@ body::after {
   content: '';
   position: fixed; inset: 0;
   background:
-    radial-gradient(ellipse 60% 40% at 0% 0%,   rgba(255,107,53,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 0%,   rgba(184,255,0,0.06) 0%, transparent 55%),
     radial-gradient(ellipse 50% 55% at 100% 100%, rgba(199,125,255,0.05) 0%, transparent 55%);
   pointer-events: none; z-index: 0;
 }
@@ -395,23 +396,23 @@ body::after {
 }
 @keyframes topbar-scan { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-.logo { font-family: 'Kanit', sans-serif !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: 0 0 12px var(--glow-o) !important; }
-.logo span { font-family: 'Share Tech Mono', monospace !important; }
+.logo { font-family: 'Prompt', sans-serif !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: 0 0 12px var(--glow-o) !important; }
+.logo span { font-family: 'Fira Code', monospace !important; }
 
 /* ── NAV TABS ── */
 .nav-tabs { background: rgba(7,5,26,0.95) !important; border-bottom: 1px solid var(--border) !important; }
-.nav-tab { font-family: 'Share Tech Mono', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; border-radius: 0 !important; }
-.nav-tab.active { color: var(--gold) !important; background: rgba(255,107,53,0.06) !important; border-color: var(--border) !important; text-shadow: 0 0 8px var(--glow-o) !important; }
+.nav-tab { font-family: 'Fira Code', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; border-radius: 0 !important; }
+.nav-tab.active { color: var(--gold) !important; background: rgba(184,255,0,0.06) !important; border-color: var(--border) !important; text-shadow: 0 0 8px var(--glow-o) !important; }
 
 /* ── CARDS ── */
 .card {
   background: linear-gradient(135deg, rgba(13,10,40,0.92), rgba(7,5,26,0.96)) !important;
   border: 1px solid var(--border) !important;
-  border-left: 2px solid rgba(255,107,53,0.25) !important;
+  border-left: 2px solid rgba(184,255,0,0.25) !important;
   border-radius: 2px !important;
 }
-.stat-card .val { font-family: 'Share Tech Mono', monospace !important; text-shadow: 0 0 15px currentColor !important; }
-.stat-card .lbl { font-family: 'Share Tech Mono', monospace !important; letter-spacing: 1.5px !important; }
+.stat-card .val { font-family: 'Fira Code', monospace !important; text-shadow: 0 0 15px currentColor !important; }
+.stat-card .lbl { font-family: 'Fira Code', monospace !important; letter-spacing: 1.5px !important; }
 
 /* ── LIVE DOT ── */
 .live-dot { box-shadow: 0 0 0 0 var(--glow-g) !important; }
@@ -420,7 +421,7 @@ body::after {
 .refresh-btn {
   background: rgba(7,5,26,0.8) !important;
   border: 1px solid var(--border) !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  font-family: 'Fira Code', monospace !important;
   letter-spacing: 1px !important; font-size: 9px !important;
   border-radius: 1px !important;
   color: var(--gold) !important;
@@ -429,30 +430,81 @@ body::after {
 
 /* ── TABLE ── */
 table { border-collapse: collapse !important; }
-th { font-family: 'Share Tech Mono', monospace !important; font-size: 8px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--gold2) !important; border-bottom: 1px solid rgba(255,107,53,0.2) !important; }
-td { border-bottom: 1px solid rgba(255,107,53,0.06) !important; }
-tr:hover td { background: rgba(255,107,53,0.03) !important; }
+th { font-family: 'Fira Code', monospace !important; font-size: 8px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--gold2) !important; border-bottom: 1px solid rgba(184,255,0,0.2) !important; }
+td { border-bottom: 1px solid rgba(184,255,0,0.06) !important; }
+tr:hover td { background: rgba(184,255,0,0.03) !important; }
 
 /* ── INPUT/SELECT ── */
 input, select, textarea {
   background: rgba(0,0,0,0.5) !important;
   border: 1px solid var(--border) !important;
-  border-bottom-color: rgba(255,107,53,0.3) !important;
+  border-bottom-color: rgba(184,255,0,0.3) !important;
   color: var(--text) !important;
-  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-family: 'Sarabun', sans-serif !important;
   border-radius: 1px !important;
 }
-input:focus, select:focus { border-bottom-color: var(--gold) !important; outline: none !important; box-shadow: 0 2px 0 rgba(255,107,53,0.2) !important; }
+input:focus, select:focus { border-bottom-color: var(--gold) !important; outline: none !important; box-shadow: 0 2px 0 rgba(184,255,0,0.2) !important; }
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,107,53,0.2); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(184,255,0,0.2); border-radius: 2px; }
 
 /* ── MAIN ── */
 main { position: relative; z-index: 1; }
 .tab-content { position: relative; z-index: 1; }
 
+
+/* ══ NEON MANTIS ADMIN OVERRIDES ══ */
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+.topbar {
+  background: var(--bg2) !important;
+  border-bottom: 2px solid var(--border) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.40) !important;
+}
+.logo { color: var(--gold) !important; font-family: 'Prompt', sans-serif !important; }
+.live-label { color: var(--green) !important; }
+.last-update { color: var(--text3) !important; font-family: 'Fira Code', monospace !important; }
+.refresh-btn {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--gold) !important;
+}
+.refresh-btn:hover { background: var(--bg4) !important; border-color: var(--gold) !important; }
+.interval-select { background: var(--bg3) !important; border: 1px solid var(--border2) !important; color: var(--text2) !important; }
+
+.nav-tabs { background: var(--bg2) !important; border-bottom: 1px solid var(--border) !important; }
+.nav-tab { color: var(--text3) !important; }
+.nav-tab:hover { background: var(--bg3) !important; color: var(--text2) !important; }
+.nav-tab.active { color: var(--gold) !important; background: var(--bg) !important; border-color: var(--border) !important; border-bottom-color: var(--bg) !important; }
+
+.card {
+  background: var(--bg2) !important;
+  border: 1.5px solid var(--border) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35) !important;
+}
+.stat-card .lbl { color: var(--text3) !important; }
+th { background: var(--bg3) !important; color: var(--gold) !important; border-bottom: 1px solid var(--border) !important; }
+td { border-bottom: 1px solid var(--border) !important; color: var(--text) !important; }
+tr:hover td { background: var(--bg3) !important; }
+.tbl-wrap { border: 1px solid var(--border) !important; }
+.sec-hdr h3 { color: var(--gold) !important; font-family: 'Prompt', sans-serif !important; }
+.sec-hdr .badge { background: var(--bg3) !important; border: 1px solid var(--border2) !important; color: var(--text3) !important; }
+.log-panel { background: var(--bg) !important; border: 1px solid var(--border) !important; }
+
+/* Pill colors stay the same but need dark borders to show on light bg */
+.pill-green { background: rgba(0,255,135,0.12) !important; color: var(--green) !important; border: 1px solid rgba(0,255,135,0.30) !important; }
+.pill-orange { background: rgba(184,255,0,0.12) !important; color: var(--orange) !important; border: 1px solid rgba(184,255,0,0.30) !important; }
+.pill-blue { background: rgba(0,229,255,0.12) !important; color: var(--blue) !important; border: 1px solid rgba(0,229,255,0.30) !important; }
+.pill-purple { background: rgba(255,229,0,0.12) !important; color: var(--purple) !important; border: 1px solid rgba(255,229,0,0.30) !important; }
+.pill-red { background: rgba(192,57,43,0.12) !important; color: var(--red) !important; border: 1px solid rgba(192,57,43,0.30) !important; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg3); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; opacity:0.6; }
 </style>
 </head>
 <body>
