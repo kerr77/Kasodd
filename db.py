@@ -849,25 +849,48 @@ def get_bill_deletions(shop_id: str, limit: int = 100) -> list:
 def get_all_bill_deletions(days: int = 7, limit: int = 500) -> list:
     """ดึง bill deletion log ทุกร้าน (สำหรับ server admin)"""
     from datetime import timedelta
-    if not DB_ENABLED:
-        return []
-    try:
-        cutoff = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-        with get_conn() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("""
-                    SELECT d.shop_id, u.shop_name, d.username,
-                           d.deleted_at, d.bill_time, d.bill_total,
-                           d.bill_items, d.bill_pay
-                    FROM bill_deletions d
-                    LEFT JOIN users u ON u.shop_id = d.shop_id
-                    WHERE d.deleted_at >= %s
-                    ORDER BY d.deleted_at DESC LIMIT %s
-                """, (cutoff, limit))
-                return [dict(r) for r in cur.fetchall()]
-    except Exception as e:
-        logger.warning(f"get_all_bill_deletions failed: {e}")
-        return []
+    cutoff_dt = datetime.now() - timedelta(days=days)
+
+    if DB_ENABLED:
+        try:
+            with get_conn() as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute("""
+                        SELECT d.shop_id, u.shop_name, d.username,
+                               d.deleted_at, d.bill_time, d.bill_total,
+                               d.bill_items, d.bill_pay
+                        FROM bill_deletions d
+                        LEFT JOIN users u ON u.shop_id = d.shop_id
+                        WHERE d.deleted_at >= %s
+                        ORDER BY d.deleted_at DESC LIMIT %s
+                    """, (cutoff_dt, limit))
+                    return [dict(r) for r in cur.fetchall()]
+        except Exception as e:
+            logger.warning(f"get_all_bill_deletions DB failed, fallback JSON: {e}")
+
+    # JSON fallback — รวบรวมจากทุก shop folder
+    users = _json_load_users()
+    all_logs: list = []
+    cutoff_str = cutoff_dt.strftime('%Y-%m-%d %H:%M:%S')
+    for username, u in users.items():
+        sid = u.get('shop_id', '')
+        if not sid:
+            continue
+        logs = _json_read_shop(sid, 'bill_deletions', [])
+        for row in logs:
+            if row.get('deleted_at', '') >= cutoff_str:
+                all_logs.append({
+                    'shop_id':   sid,
+                    'shop_name': u.get('shop_name', sid),
+                    'username':  row.get('username', username),
+                    'deleted_at': row.get('deleted_at', ''),
+                    'bill_time':  row.get('bill_time', ''),
+                    'bill_total': row.get('bill_total', 0),
+                    'bill_items': row.get('bill_items', []),
+                    'bill_pay':   row.get('bill_pay', ''),
+                })
+    all_logs.sort(key=lambda r: r.get('deleted_at', ''), reverse=True)
+    return all_logs[:limit]
 
 
 # ════════════════════════════════════════════════════════════════

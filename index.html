@@ -5826,6 +5826,12 @@ async function popupSendChat() {
               renderProducts();
               renderStock();
               autoSyncToServer();
+              // ── แจ้ง server ว่ามีการลบบิล (เพื่อให้ admin วิเคราะห์ได้) ──
+              fetch('/api/shop/sale/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bill }),
+              }).catch(() => {});
               setTimeout(() => {
                 const chip = document.createElement('div');
                 chip.className = 'chat-msg system';
