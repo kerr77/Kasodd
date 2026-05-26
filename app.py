@@ -343,6 +343,8 @@ def delete_sale_endpoint():
     return jsonify({'ok': True})
 
 
+@app.route('/api/admin/sales')
+def admin_sales():
     if not is_admin():
         return jsonify({'ok': False}), 401
 
@@ -951,6 +953,11 @@ def admin_new_menus():
     })
 
 
+@app.route('/api/health')
+def health():
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+
     users = DB.load_users()
     return jsonify({
         'status':  'ok',
@@ -963,7 +970,7 @@ def admin_new_menus():
         'pro':     sum(1 for u in users.values() if u['plan'] == 'pro' and u['status'] == 'active'),
         'starter': sum(1 for u in users.values() if u['plan'] == 'starter' and u['status'] == 'active'),
         'ai_key':  bool(GEMINI_KEY),
-        **DB.db_status(),   # ← เพิ่ม db_mode / db_enabled
+        **DB.db_status(),
     })
 
 
