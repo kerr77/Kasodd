@@ -476,6 +476,7 @@ tr:hover td{background:rgba(201,162,39,0.04);}
   <button class="nav-tab" onclick="switchTab('chats',this)">💬 AI Chat</button>
   <button class="nav-tab" onclick="switchTab('activity',this)">⚡ Activity</button>
   <button class="nav-tab" onclick="switchTab('server',this)">🖥️ Server</button>
+  <button class="nav-tab" onclick="switchTab('ai-admin',this)">🤖 AI Admin</button>
 </div>
 
 <main id="main-content" style="display:none;">
@@ -785,6 +786,82 @@ tr:hover td{background:rgba(201,162,39,0.04);}
   <div class="card">
     <div class="sec-hdr"><h3>📈 Uptime Stats (session)</h3></div>
     <div class="bar-wrap" id="uptime-bars"><div class="empty-state"><div class="icon">📡</div>กำลังตรวจสอบ...</div></div>
+  </div>
+</div>
+
+<!-- ───── TAB: AI ADMIN ───── -->
+<div id="tab-ai-admin" class="tab-content">
+  <div class="card" style="margin-bottom:14px;">
+    <div class="sec-hdr" style="margin-bottom:10px;">
+      <h3>🤖 AI Admin Assistant</h3>
+      <span class="badge" id="ai-admin-model-badge">ยังไม่เลือก model</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">API Key</div>
+        <input type="password" id="ai-admin-key" placeholder="sk-ant-... หรือ sk-..." autocomplete="off"
+          style="width:100%;padding:9px 12px;border-radius:10px;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);font-family:'Fira Code',monospace;font-size:13px;outline:none;"
+          oninput="saveAiAdminConfig()" onfocus="this.type='text'" onblur="this.type='password'">
+      </div>
+      <div style="flex:0 0 auto;min-width:160px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Model</div>
+        <select id="ai-admin-model" onchange="saveAiAdminConfig()"
+          style="width:100%;padding:9px 12px;border-radius:10px;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;outline:none;cursor:pointer;">
+          <optgroup label="── Anthropic ──">
+            <option value="claude-sonnet-4-5-20251001">Claude Sonnet 4.5</option>
+            <option value="claude-opus-4-5-20251001">Claude Opus 4.5</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+          </optgroup>
+          <optgroup label="── OpenAI ──">
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o-mini</option>
+          </optgroup>
+          <optgroup label="── Google ──">
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</content>
+          </optgroup>
+        </select>
+      </div>
+      <div style="flex:0 0 auto;">
+        <div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Context</div>
+        <select id="ai-admin-context" onchange="saveAiAdminConfig()"
+          style="padding:9px 12px;border-radius:10px;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);font-family:inherit;font-size:13px;outline:none;cursor:pointer;">
+          <option value="overview">📊 ภาพรวม</option>
+          <option value="sales">💰 ยอดขาย</option>
+          <option value="shops">👥 ร้านค้า</option>
+          <option value="all">🌐 ทุกข้อมูล</option>
+        </select>
+      </div>
+      <button onclick="clearAiAdminChat()" class="btn btn-ghost btn-sm" style="margin-bottom:1px;">🗑 ล้าง</button>
+    </div>
+    <div id="ai-admin-config-status" style="font-size:11px;color:var(--text3);margin-top:8px;font-family:'Fira Code',monospace;min-height:16px;"></div>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+    <button class="btn btn-ghost btn-sm" onclick="aiAdminQuick('สรุปภาพรวมธุรกิจ: จำนวนร้าน ยอดขาย แนวโน้ม')">📊 สรุปภาพรวม</button>
+    <button class="btn btn-ghost btn-sm" onclick="aiAdminQuick('ร้านไหนมียอดขายดีที่สุด และร้านไหนควรติดตาม?')">🏆 Rank ร้านค้า</button>
+    <button class="btn btn-ghost btn-sm" onclick="aiAdminQuick('วิเคราะห์การใช้งาน AI ของลูกค้า ใครใช้เยอะ ใครใช้น้อย')">🤖 AI usage</button>
+    <button class="btn btn-ghost btn-sm" onclick="aiAdminQuick('ร้านไหนควร upgrade เป็น Pro จากพฤติกรรมการใช้งาน?')">⬆️ Upgrade</button>
+    <button class="btn btn-ghost btn-sm" onclick="aiAdminQuick('ตรวจสอบ pending users ที่ยังไม่ได้ approve')">⏳ Pending</button>
+    <button class="btn btn-ghost btn-sm" onclick="aiAdminQuick('สินค้าและเมนูอะไรที่กำลังมาแรงในร้านค้าต่างๆ?')">🔥 เมนูมาแรง</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div id="ai-admin-chat-history"
+      style="height:420px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;">
+      <div style="text-align:center;padding:40px 20px;color:var(--text3);">
+        <div style="font-size:32px;margin-bottom:10px;">🤖</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;">AI Admin Assistant</div>
+        <div style="font-size:12px;line-height:1.8;">ใส่ API Key + เลือก Model แล้วถามได้เลยครับ<br>ระบบจะดึงข้อมูลจากร้านค้าทั้งหมดมาให้ AI วิเคราะห์</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding:12px 14px;display:flex;gap:8px;align-items:flex-end;background:var(--bg2);">
+      <textarea id="ai-admin-input" placeholder="ถามอะไรก็ได้เกี่ยวกับธุรกิจ ร้านค้า ยอดขาย..." rows="2"
+        style="flex:1;padding:10px 12px;border-radius:10px;background:var(--bg);border:1.5px solid var(--border2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;resize:none;outline:none;line-height:1.5;"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiAdminChat();}"></textarea>
+      <button onclick="sendAiAdminChat()" id="ai-admin-send-btn"
+        style="padding:10px 18px;border-radius:10px;background:var(--gold);border:none;color:#0d0f0a;font-weight:800;font-size:13px;cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap;flex-shrink:0;transition:opacity .2s;">
+        ส่ง ➤
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1479,6 +1556,257 @@ function clearLog(){
 // ══════════════════════════════════════
 // AUTO CHECK SESSION
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+// AI ADMIN ASSISTANT
+// ══════════════════════════════════════
+const AI_ADMIN_LS = 'kaasod_ai_admin_cfg';
+let aiAdminHistory = []; // {role:'user'|'assistant', content:''}
+
+function saveAiAdminConfig(){
+  const key   = document.getElementById('ai-admin-key').value.trim();
+  const model = document.getElementById('ai-admin-model').value;
+  const ctx   = document.getElementById('ai-admin-context').value;
+  localStorage.setItem(AI_ADMIN_LS, JSON.stringify({key,model,ctx}));
+  const badge = document.getElementById('ai-admin-model-badge');
+  badge.textContent = model || 'ยังไม่เลือก';
+  const status = document.getElementById('ai-admin-config-status');
+  status.textContent = key ? `✅ API Key บันทึกแล้ว (${key.slice(0,8)}...)  |  model: ${model}  |  context: ${ctx}` : '⚠️  ยังไม่ได้ใส่ API Key';
+}
+
+function loadAiAdminConfig(){
+  try{
+    const c = JSON.parse(localStorage.getItem(AI_ADMIN_LS)||'{}');
+    if(c.key)   document.getElementById('ai-admin-key').value   = c.key;
+    if(c.model) document.getElementById('ai-admin-model').value = c.model;
+    if(c.ctx)   document.getElementById('ai-admin-context').value = c.ctx;
+    saveAiAdminConfig();
+  }catch(e){}
+}
+
+function clearAiAdminChat(){
+  aiAdminHistory = [];
+  const box = document.getElementById('ai-admin-chat-history');
+  box.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3);">
+    <div style="font-size:32px;margin-bottom:10px;">🤖</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;">AI Admin Assistant</div>
+    <div style="font-size:12px;line-height:1.8;">ล้าง chat แล้ว พร้อมคุยใหม่</div>
+  </div>`;
+}
+
+function aiAdminQuick(text){
+  document.getElementById('ai-admin-input').value = text;
+  sendAiAdminChat();
+}
+
+// Build context payload from current dashboard data
+function buildAiAdminContext(mode){
+  const users = allUsersData || [];
+  const base = {
+    timestamp: new Date().toLocaleString('th-TH'),
+    total_shops: users.length,
+    active_shops: users.filter(u=>u.status==='active').length,
+    pending_shops: users.filter(u=>u.status==='pending').length,
+    pro_shops: users.filter(u=>u.plan==='pro'&&u.status==='active').length,
+    starter_shops: users.filter(u=>u.plan==='starter'&&u.status==='active').length,
+    total_ai_calls_today: users.reduce((a,u)=>a+(u.ai_today||0),0),
+  };
+
+  if(mode==='overview'){
+    return `=== KAASOD Admin Dashboard Context ===
+วันเวลา: ${base.timestamp}
+ร้านค้าทั้งหมด: ${base.total_shops} | Active: ${base.active_shops} | Pending: ${base.pending_shops}
+Pro: ${base.pro_shops} | Starter: ${base.starter_shops}
+AI Calls วันนี้รวม: ${base.total_ai_calls_today}`;
+  }
+
+  if(mode==='shops'){
+    const rows = users.slice(0,50).map(u=>
+      `- ${u.shop_name||u.username} (@${u.username}) | ${u.plan} | ${u.status} | AI วันนี้: ${u.ai_today||0} | สมัคร: ${u.created_at||'?'}`
+    ).join('\n');
+    return `=== ข้อมูลร้านค้า (${users.length} ร้าน) ===\n${rows}`;
+  }
+
+  if(mode==='sales'){
+    // ดึงจาก DOM ที่โหลดไว้แล้ว
+    const totalEl  = document.getElementById('sale-total');
+    const billsEl  = document.getElementById('sale-bills');
+    const cashEl   = document.getElementById('sale-cash');
+    const transEl  = document.getElementById('sale-transfer');
+    return `=== ข้อมูลยอดขาย (จาก Dashboard ปัจจุบัน) ===
+ยอดรวม: ${totalEl?.textContent||'—'}
+จำนวนบิล: ${billsEl?.textContent||'—'}
+เงินสด: ${cashEl?.textContent||'—'}
+โอน: ${transEl?.textContent||'—'}`;
+  }
+
+  // mode === 'all'
+  const shopRows = users.slice(0,30).map(u=>
+    `- ${u.shop_name||u.username} (@${u.username}) | ${u.plan} | ${u.status} | AI: ${u.ai_today||0}`
+  ).join('\n');
+  return `=== KAASOD Full Context ===
+วันเวลา: ${base.timestamp}
+สรุป: ${base.active_shops} ร้าน active, ${base.pending_shops} รอ approve, Pro ${base.pro_shops} / Starter ${base.starter_shops}
+AI calls วันนี้: ${base.total_ai_calls_today}
+
+ร้านค้า (${Math.min(users.length,30)} จาก ${users.length}):
+${shopRows}`;
+}
+
+// Detect provider from API key prefix
+function detectProvider(key){
+  if(key.startsWith('sk-ant-')) return 'anthropic';
+  if(key.startsWith('sk-'))     return 'openai';
+  return 'google'; // Gemini uses API key without prefix
+}
+
+async function sendAiAdminChat(){
+  const key     = document.getElementById('ai-admin-key').value.trim();
+  const model   = document.getElementById('ai-admin-model').value;
+  const ctx     = document.getElementById('ai-admin-context').value;
+  const input   = document.getElementById('ai-admin-input');
+  const msg     = input.value.trim();
+  if(!msg) return;
+  if(!key){ showToast('กรุณาใส่ API Key ก่อนครับ', true); return; }
+
+  input.value = '';
+  const sendBtn = document.getElementById('ai-admin-send-btn');
+  sendBtn.disabled = true;
+  sendBtn.textContent = '⏳';
+
+  // Append user message
+  aiAdminAppendMsg('user', msg);
+  aiAdminHistory.push({role:'user', content: msg});
+
+  // Build system context
+  const context = buildAiAdminContext(ctx);
+  const systemPrompt = `คุณคือ AI Assistant สำหรับ Admin ของ KAASOD ระบบ SaaS POS สำหรับร้านค้าปลีก
+คุณมีข้อมูล dashboard จริงจากร้านค้าลูกค้า ตอบเป็นภาษาไทย กระชับ ตรงประเด็น
+
+${context}
+
+กฎ: ตอบตามข้อมูลที่ให้มา ถ้าข้อมูลไม่พอให้บอกตรงๆ ไม่ต้องแต่งเติม`;
+
+  // Thinking bubble
+  const thinkEl = aiAdminAppendThinking();
+
+  const provider = detectProvider(key);
+
+  try{
+    let reply = '';
+
+    if(provider === 'anthropic'){
+      // Build messages (last 10 turns)
+      const msgs = aiAdminHistory.slice(-10).map(m=>({role:m.role,content:m.content}));
+      const res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key': key,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body: JSON.stringify({
+          model, max_tokens:1200,
+          system: systemPrompt,
+          messages: msgs
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+      reply = data.content?.[0]?.text || '(ไม่มีคำตอบ)';
+
+    } else if(provider === 'openai'){
+      const msgs = [
+        {role:'system', content: systemPrompt},
+        ...aiAdminHistory.slice(-10).map(m=>({role:m.role,content:m.content}))
+      ];
+      const res = await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+        body: JSON.stringify({model, max_tokens:1200, messages: msgs})
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+      reply = data.choices?.[0]?.message?.content || '(ไม่มีคำตอบ)';
+
+    } else {
+      // Google Gemini
+      const geminiModel = model.replace('gemini-','gemini-');
+      const contents = [
+        {role:'user', parts:[{text:'[SYSTEM]\n'+systemPrompt}]},
+        {role:'model', parts:[{text:'เข้าใจแล้วครับ พร้อมช่วยงาน admin'}]},
+        ...aiAdminHistory.slice(-10).map(m=>({
+          role: m.role==='user'?'user':'model',
+          parts:[{text:m.content}]
+        }))
+      ];
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({contents, generationConfig:{maxOutputTokens:1200,temperature:0.7}})
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+      reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '(ไม่มีคำตอบ)';
+    }
+
+    thinkEl.remove();
+    aiAdminHistory.push({role:'assistant', content: reply});
+    aiAdminAppendMsg('assistant', reply);
+
+  } catch(e){
+    thinkEl.remove();
+    aiAdminAppendMsg('error', '❌ ' + e.message);
+  }
+
+  sendBtn.disabled = false;
+  sendBtn.textContent = 'ส่ง ➤';
+}
+
+function aiAdminAppendMsg(role, text){
+  const box = document.getElementById('ai-admin-chat-history');
+  const div = document.createElement('div');
+  const isUser = role === 'user';
+  const isErr  = role === 'error';
+  div.style.cssText = `max-width:88%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;
+    ${isUser
+      ? 'align-self:flex-end;background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.3);color:var(--text);'
+      : isErr
+        ? 'align-self:flex-start;background:rgba(192,84,74,0.12);border:1px solid rgba(192,84,74,0.3);color:var(--red);'
+        : 'align-self:flex-start;background:var(--bg4);border:1px solid var(--border);color:var(--text);'}`;
+  if(!isUser && !isErr){
+    div.innerHTML = '<div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:5px;letter-spacing:.5px;">🤖 AI ADMIN</div>' + esc(text).replace(/\n/g,'<br>');
+  } else {
+    div.textContent = text;
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+function aiAdminAppendThinking(){
+  const box = document.getElementById('ai-admin-chat-history');
+  const div = document.createElement('div');
+  div.style.cssText = 'align-self:flex-start;padding:10px 16px;border-radius:12px;background:var(--bg4);border:1px solid var(--border);display:flex;gap:5px;align-items:center;';
+  div.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:var(--gold);opacity:.4;animation:think-pulse 1s ease infinite;display:inline-block;"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--gold);opacity:.4;animation:think-pulse 1s ease .2s infinite;display:inline-block;"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--gold);opacity:.4;animation:think-pulse 1s ease .4s infinite;display:inline-block;"></span>';
+  if(!document.getElementById('think-style')){
+    const s=document.createElement('style');
+    s.id='think-style';
+    s.textContent='@keyframes think-pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}';
+    document.head.appendChild(s);
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+// Load config on tab switch
+const _origSwitchTab = switchTab;
+function switchTab(name,el){
+  _origSwitchTab(name,el);
+  if(name==='ai-admin') loadAiAdminConfig();
+}
+
 (async function(){
   try{
     BASE_URL=window.location.origin;
