@@ -8,13 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* ══ KAASOD GOLD ADMIN · ทอง + มะกอก ══ */
+  /* ══ NEON MANTIS ADMIN ══ */
   --bg:        #111408;
   --bg2:       #1A1F0A;
   --bg3:       #22290E;
   --bg4:       #2E3415;
-  --border:    rgba(201,162,39,0.18);
-  --border2:   rgba(232,201,106,0.24);
+  --border:    rgba(201,162,39,0.20);
+  --border2:   rgba(232,201,106,0.25);
   --border-s:  #2E3415;
   --gold:      #C9A227;
   --gold2:     #E8C96A;
@@ -25,11 +25,11 @@
   --blue:      #E8C96A;
   --blue2:     #F0D882;
   --purple:    #C9A227;
-  --red:       #E05252;
+  --red:       #FF3D5A;
   --text:      #F0F4F8;
   --text2:     #BFC8D4;
   --text3:     #7A8896;
-  --pulse:     rgba(201,162,39,0.35);
+  --pulse:     rgba(201,162,39,0.38);
   --mono:      'Fira Code', monospace;
   --glow-o:    rgba(201,162,39,0.35);
   --glow-p:    rgba(232,201,106,0.28);
@@ -40,7 +40,7 @@
 
 body {
   font-family: 'Sarabun', sans-serif;
-  background: linear-gradient(160deg, #111408 0%, #161C08 100%);
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   font-size: 14px;
@@ -82,7 +82,7 @@ body {
   font-family: inherit; font-weight: 600; transition: all .2s;
   display: flex; align-items: center; gap: 6px;
 }
-.refresh-btn:hover { background: var(--bg4); border-color: #C9A227; }
+.refresh-btn:hover { background: var(--bg4); border-color: var(--gold); }
 .refresh-btn.spinning svg { animation: spin .6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .interval-select {
@@ -90,7 +90,7 @@ body {
   padding: 5px 10px; border-radius: 8px; font-family: inherit; font-size: 12px;
   cursor: pointer;
 }
-.interval-select:focus { outline: none; border-color: #C9A227; }
+.interval-select:focus { outline: none; border-color: var(--gold); }
 
 /* ── NAV TABS ── */
 .nav-tabs {
@@ -107,7 +107,7 @@ body {
 }
 .nav-tab:hover { color: var(--text2); background: var(--bg3); }
 .nav-tab.active {
-  color: var(--gold); background: linear-gradient(160deg, #111408 0%, #161C08 100%);
+  color: var(--gold); background: var(--bg);
   border-color: var(--border); border-bottom-color: var(--bg);
   position: relative; top: 1px;
 }
@@ -146,7 +146,7 @@ main { padding: 20px; max-width: 1400px; margin: 0 auto; }
 .stat-card .lbl { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
 .stat-card .delta { font-size: 11px; margin-top: 4px; }
 
-.gold  .val { color: var(--gold2); }
+.gold  .val { color: var(--accent2); }
 .green .val { color: var(--green2); }
 .orange .val { color: var(--orange2); }
 .blue  .val { color: var(--blue2); }
@@ -186,11 +186,11 @@ tr:hover td { background: var(--bg3); }
   display: inline-block; padding: 2px 10px; border-radius: 20px;
   font-size: 11px; font-weight: 700;
 }
-.pill-green { background: rgba(126,196,126,.15); color: var(--green2); border: 1px solid rgba(126,196,126,.3); }
-.pill-orange { background: rgba(201,162,39,.15); color: var(--orange2); border: 1px solid rgba(201,162,39,.3); }
-.pill-blue { background: rgba(201,162,39,.15); color: var(--blue2); border: 1px solid rgba(201,162,39,.3); }
-.pill-purple { background: rgba(201,162,39,.15); color: var(--purple); border: 1px solid rgba(201,162,39,.3); }
-.pill-red { background: rgba(224,82,82,.15); color: var(--red); border: 1px solid rgba(224,82,82,.3); }
+.pill-green { background: rgba(46,204,113,.15); color: var(--green2); border: 1px solid rgba(46,204,113,.3); }
+.pill-orange { background: rgba(224,123,58,.15); color: var(--orange2); border: 1px solid rgba(224,123,58,.3); }
+.pill-blue { background: rgba(91,141,184,.15); color: var(--blue2); border: 1px solid rgba(91,141,184,.3); }
+.pill-purple { background: rgba(155,111,212,.15); color: var(--purple); border: 1px solid rgba(155,111,212,.3); }
+.pill-red { background: rgba(212,90,90,.15); color: var(--red); border: 1px solid rgba(212,90,90,.3); }
 
 /* ── MONO ── */
 .mono { font-family: 'Fira Code', monospace; }
@@ -208,7 +208,7 @@ tr:hover td { background: var(--bg3); }
 .log-shop { color: var(--blue2); }
 .log-msg { color: var(--text2); }
 .log-msg.chat { color: var(--green2); }
-.log-msg.sale { color: var(--gold2); }
+.log-msg.sale { color: var(--accent2); }
 .log-msg.login { color: var(--purple); }
 .log-msg.error { color: var(--red); }
 .log-msg.system { color: var(--text3); }
@@ -222,7 +222,7 @@ tr:hover td { background: var(--bg3); }
   color: var(--text3); padding: 5px 14px; border-radius: 8px;
   cursor: pointer; font-size: 12px; font-family: inherit; transition: all .2s;
 }
-.chat-filter-btn.active { border-color: #C9A227; color: var(--gold); background: rgba(201,162,39,.1); }
+.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.12); }
 .chat-entries { display: flex; flex-direction: column; gap: 8px; }
 .chat-entry {
   background: var(--bg3); border: 1px solid var(--border);
@@ -235,13 +235,13 @@ tr:hover td { background: var(--bg3); }
 .chat-entry-shop { font-weight: 700; color: var(--gold); font-size: 13px; }
 .chat-entry-ts { font-size: 11px; color: var(--text3); font-family: 'Fira Code', monospace; }
 .chat-bubble-user {
-  background: rgba(201,162,39,.12); border: 1px solid rgba(201,162,39,.2);
+  background: rgba(91,141,184,.12); border: 1px solid rgba(91,141,184,.2);
   border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
   font-size: 13px; line-height: 1.6;
 }
 .chat-bubble-user .role-lbl { font-size: 10px; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
 .chat-bubble-ai {
-  background: rgba(126,196,126,.08); border: 1px solid rgba(126,196,126,.15);
+  background: rgba(46,204,113,.08); border: 1px solid rgba(46,204,113,.15);
   border-radius: 8px; padding: 8px 12px;
   font-size: 13px; line-height: 1.6;
 }
@@ -291,14 +291,14 @@ tr:hover td { background: var(--bg3); }
   font-weight: 700; cursor: pointer; font-family: inherit;
   border: 1px solid; transition: all .2s;
 }
-.act-btn-green { background: rgba(126,196,126,.15); color: var(--green2); border-color: rgba(126,196,126,.3); }
-.act-btn-green:hover { background: rgba(126,196,126,.25); }
-.act-btn-orange { background: rgba(201,162,39,.15); color: var(--orange2); border-color: rgba(201,162,39,.3); }
-.act-btn-orange:hover { background: rgba(201,162,39,.25); }
-.act-btn-blue { background: rgba(201,162,39,.15); color: var(--blue2); border-color: rgba(201,162,39,.3); }
-.act-btn-blue:hover { background: rgba(201,162,39,.25); }
-.act-btn-red { background: rgba(224,82,82,.15); color: var(--red); border-color: rgba(224,82,82,.3); }
-.act-btn-red:hover { background: rgba(224,82,82,.25); }
+.act-btn-green { background: rgba(46,204,113,.15); color: var(--green2); border-color: rgba(46,204,113,.3); }
+.act-btn-green:hover { background: rgba(46,204,113,.25); }
+.act-btn-orange { background: rgba(224,123,58,.15); color: var(--orange2); border-color: rgba(224,123,58,.3); }
+.act-btn-orange:hover { background: rgba(224,123,58,.25); }
+.act-btn-blue { background: rgba(91,141,184,.15); color: var(--blue2); border-color: rgba(91,141,184,.3); }
+.act-btn-blue:hover { background: rgba(91,141,184,.25); }
+.act-btn-red { background: rgba(212,90,90,.15); color: var(--red); border-color: rgba(212,90,90,.3); }
+.act-btn-red:hover { background: rgba(212,90,90,.25); }
 
 /* ── PROGRESS RING ── */
 .usage-ring { display: flex; align-items: center; gap: 6px; }
@@ -314,7 +314,7 @@ tr:hover td { background: var(--bg3); }
 
 /* ── LOCK SCREEN ── */
 #lock-screen {
-  position: fixed; inset: 0; background: linear-gradient(160deg, #111408 0%, #161C08 100%);
+  position: fixed; inset: 0; background: var(--bg);
   display: flex; align-items: center; justify-content: center;
   z-index: 200; flex-direction: column; gap: 16px;
 }
@@ -330,32 +330,32 @@ tr:hover td { background: var(--bg3); }
   font-family: inherit; font-size: 14px; margin-bottom: 12px;
   outline: none;
 }
-.lock-input:focus { border-color: #C9A227; }
+.lock-input:focus { border-color: var(--gold); }
 .lock-btn {
   width: 100%; background: var(--gold); color: var(--bg);
   border: none; padding: 11px; border-radius: 10px;
   font-weight: 700; font-size: 14px; cursor: pointer;
   font-family: inherit; transition: background .2s;
 }
-.lock-btn:hover { background: var(--gold2); }
+.lock-btn:hover { background: var(--accent2); }
 .lock-err { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
 
 /* 🐕 Cartoon Hero extras for admin */
 body {
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(201,162,39,0.05) 0%, transparent 45%),
-    radial-gradient(circle at 90% 80%, rgba(199,125,255,0.05) 0%, transparent 45%);
+    radial-gradient(circle at 90% 80%, rgba(201,162,39,0.15) 0%, transparent 45%);
 }
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-thumb { background: #C9A227; border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
 .card { border: 2px solid var(--border2) !important; border-radius: 16px !important; }
 .stat-card .val { font-family: 'JetBrains Mono', monospace !important; }
 .stat-card .lbl { font-family: 'Sarabun', sans-serif !important; }
-.topbar { border-bottom: 3px solid var(--gold) !important; box-shadow: 0 4px 20px rgba(201,162,39,0.15) !important; }
+.topbar { border-bottom: 3px solid var(--gold) !important; box-shadow: 0 4px 20px rgba(201,162,39,0.18) !important; }
 .nav-tab.active { color: var(--gold) !important; }
 .nav-tab.active { border-bottom-color: var(--bg) !important; }
 .refresh-btn { border-radius: 12px !important; font-family: 'Prompt', sans-serif !important; }
-.refresh-btn:hover { border-color: var(--gold) !important; background: rgba(201,162,39,0.1) !important; }
+.refresh-btn:hover { border-color: var(--gold) !important; background: rgba(201,162,39,0.12) !important; }
 table thead th { font-family: 'Prompt', sans-serif !important; color: var(--gold) !important; }
 
 
@@ -373,8 +373,8 @@ body::after {
   content: '';
   position: fixed; inset: 0;
   background:
-    radial-gradient(ellipse 60% 40% at 0% 0%,   rgba(201,162,39,0.06) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 55% at 100% 100%, rgba(199,125,255,0.05) 0%, transparent 55%);
+    radial-gradient(ellipse 60% 40% at 0% 0%,   rgba(201,162,39,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 55% at 100% 100%, rgba(201,162,39,0.15) 0%, transparent 55%);
   pointer-events: none; z-index: 0;
 }
 
@@ -389,7 +389,7 @@ body::after {
 .topbar::after {
   content: '';
   position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+  background: linear-gradient(90deg, transparent, var(--gold), var(--accent2), var(--gold), transparent);
   background-size: 200% 100%;
   animation: topbar-scan 4s linear infinite;
   opacity: 0.55;
@@ -402,13 +402,13 @@ body::after {
 /* ── NAV TABS ── */
 .nav-tabs { background: rgba(7,5,26,0.95) !important; border-bottom: 1px solid var(--border) !important; }
 .nav-tab { font-family: 'Fira Code', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; border-radius: 0 !important; }
-.nav-tab.active { color: var(--gold) !important; background: rgba(201,162,39,0.06) !important; border-color: var(--border) !important; text-shadow: 0 0 8px var(--glow-o) !important; }
+.nav-tab.active { color: var(--gold) !important; background: rgba(201,162,39,0.07) !important; border-color: var(--border) !important; text-shadow: 0 0 8px var(--glow-o) !important; }
 
 /* ── CARDS ── */
 .card {
   background: linear-gradient(135deg, rgba(13,10,40,0.92), rgba(7,5,26,0.96)) !important;
   border: 1px solid var(--border) !important;
-  border-left: 2px solid rgba(201,162,39,0.25) !important;
+  border-left: 2px solid rgba(201,162,39,0.28) !important;
   border-radius: 2px !important;
 }
 .stat-card .val { font-family: 'Fira Code', monospace !important; text-shadow: 0 0 15px currentColor !important; }
@@ -430,25 +430,25 @@ body::after {
 
 /* ── TABLE ── */
 table { border-collapse: collapse !important; }
-th { font-family: 'Fira Code', monospace !important; font-size: 8px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--gold2) !important; border-bottom: 1px solid rgba(201,162,39,0.2) !important; }
-td { border-bottom: 1px solid rgba(201,162,39,0.06) !important; }
-tr:hover td { background: rgba(201,162,39,0.03) !important; }
+th { font-family: 'Fira Code', monospace !important; font-size: 8px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--accent2) !important; border-bottom: 1px solid rgba(201,162,39,0.25) !important; }
+td { border-bottom: 1px solid rgba(201,162,39,0.07) !important; }
+tr:hover td { background: rgba(201,162,39,0.04) !important; }
 
 /* ── INPUT/SELECT ── */
 input, select, textarea {
   background: rgba(0,0,0,0.5) !important;
   border: 1px solid var(--border) !important;
-  border-bottom-color: rgba(201,162,39,0.3) !important;
+  border-bottom-color: rgba(201,162,39,0.35) !important;
   color: var(--text) !important;
   font-family: 'Sarabun', sans-serif !important;
   border-radius: 1px !important;
 }
-input:focus, select:focus { border-bottom-color: var(--gold) !important; outline: none !important; box-shadow: 0 2px 0 rgba(201,162,39,0.2) !important; }
+input:focus, select:focus { border-bottom-color: var(--gold) !important; outline: none !important; box-shadow: 0 2px 0 rgba(201,162,39,0.25) !important; }
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(201,162,39,0.2); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(201,162,39,0.25); border-radius: 2px; }
 
 /* ── MAIN ── */
 main { position: relative; z-index: 1; }
@@ -457,7 +457,7 @@ main { position: relative; z-index: 1; }
 
 /* ══ NEON MANTIS ADMIN OVERRIDES ══ */
 body {
-  background: linear-gradient(160deg, #111408 0%, #161C08 100%);
+  background: var(--bg);
   color: var(--text);
 }
 .topbar {
@@ -496,19 +496,19 @@ tr:hover td { background: var(--bg3) !important; }
 .log-panel { background: var(--bg) !important; border: 1px solid var(--border) !important; }
 
 /* Pill colors stay the same but need dark borders to show on light bg */
-.pill-green { background: rgba(126,196,126,0.12) !important; color: var(--green) !important; border: 1px solid rgba(126,196,126,0.30) !important; }
-.pill-orange { background: rgba(201,162,39,0.12) !important; color: var(--orange) !important; border: 1px solid rgba(201,162,39,0.30) !important; }
-.pill-blue { background: rgba(232,201,106,0.12) !important; color: var(--blue) !important; border: 1px solid rgba(232,201,106,0.30) !important; }
-.pill-purple { background: rgba(255,229,0,0.12) !important; color: var(--purple) !important; border: 1px solid rgba(255,229,0,0.30) !important; }
+.pill-green { background: rgba(0,255,135,0.12) !important; color: var(--green) !important; border: 1px solid rgba(0,255,135,0.30) !important; }
+.pill-orange { background: rgba(201,162,39,0.14) !important; color: var(--orange) !important; border: 1px solid rgba(201,162,39,0.35) !important; }
+.pill-blue { background: rgba(232,201,106,0.14) !important; color: var(--blue) !important; border: 1px solid rgba(232,201,106,0.35) !important; }
+.pill-purple { background: rgba(201,162,39,0.1) !important; color: var(--purple) !important; border: 1px solid rgba(201,162,39,0.1) !important; }
 .pill-red { background: rgba(192,57,43,0.12) !important; color: var(--red) !important; border: 1px solid rgba(192,57,43,0.30) !important; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg3); }
-::-webkit-scrollbar-thumb { background: #C9A227; border-radius: 99px; opacity:0.6; }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; opacity:0.6; }
 </style>
 </head>
 <body>
-<div class="pos-scan" style="position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent);opacity:0;animation:scan-pos 10s linear infinite;z-index:999;pointer-events:none;"></div>
+<div class="pos-scan" style="position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),var(--accent2),var(--gold),transparent);opacity:0;animation:scan-pos 10s linear infinite;z-index:999;pointer-events:none;"></div>
 <style>@keyframes scan-pos{0%{top:0;opacity:0}3%{opacity:.5}97%{opacity:.2}100%{top:100vh;opacity:0}}</style>
 
 <!-- LOCK SCREEN -->
@@ -549,6 +549,7 @@ tr:hover td { background: var(--bg3) !important; }
 <!-- NAV TABS -->
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="switchTab('overview')">📊 ภาพรวม</button>
+  <button class="nav-tab" onclick="switchTab('sales')">💰 ยอดขาย</button>
   <button class="nav-tab" onclick="switchTab('users')">👥 ร้านค้า</button>
   <button class="nav-tab" onclick="switchTab('chats')">💬 ประวัติ AI Chat</button>
   <button class="nav-tab" onclick="switchTab('activity')">⚡ Activity Log</button>
@@ -626,6 +627,54 @@ tr:hover td { background: var(--bg3) !important; }
         <tbody id="new-shops-body">
           <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
         </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ───── TAB: SALES (ใหม่ v6) ───── -->
+<div id="tab-sales" class="tab-content">
+
+  <!-- filter bar -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="sec-hdr" style="flex-wrap:wrap;gap:10px;">
+      <h3>💰 ยอดขายจริง</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="sales-days" style="background:var(--bg3);border:1px solid var(--border);color:var(--text1);padding:6px 10px;border-radius:6px;font-size:12px;">
+          <option value="1">วันนี้</option>
+          <option value="7">7 วัน</option>
+          <option value="30">30 วัน</option>
+        </select>
+        <select id="sales-shop" style="background:var(--bg3);border:1px solid var(--border);color:var(--text1);padding:6px 10px;border-radius:6px;font-size:12px;">
+          <option value="">ทุกร้าน</option>
+        </select>
+        <button onclick="loadSales()" style="background:linear-gradient(135deg,#C9A227,#A07B18);color:#111408;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">🔍 โหลด</button>
+        <button onclick="loadSales(true)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">🔄 Live</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- summary cards -->
+  <div class="grid-4" style="margin-bottom:16px;">
+    <div class="card stat-card gold"><span class="lbl">ยอดรวม</span><span class="val" id="sale-total">—</span></div>
+    <div class="card stat-card green"><span class="lbl">จำนวนบิล</span><span class="val" id="sale-bills">—</span></div>
+    <div class="card stat-card blue"><span class="lbl">เงินสด</span><span class="val" id="sale-cash">—</span></div>
+    <div class="card stat-card orange"><span class="lbl">โอน</span><span class="val" id="sale-transfer">—</span></div>
+  </div>
+
+  <!-- per-shop breakdown -->
+  <div id="sales-shops-list"></div>
+
+  <!-- บิลล่าสุด -->
+  <div class="card" style="margin-top:16px;">
+    <div class="sec-hdr"><h3>🧾 บิลล่าสุด</h3><span class="badge" id="sales-bill-count">—</span></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr>
+          <th>เวลา</th><th>ร้าน</th><th>สินค้า</th>
+          <th>ยอด</th><th>ชำระ</th><th>สมาชิก</th>
+        </tr></thead>
+        <tbody id="sales-bill-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -747,14 +796,14 @@ tr:hover td { background: var(--bg3) !important; }
   <div class="grid-4">
     <div class="card stat-card green"><span class="lbl">Server Status</span><span class="val" id="srv-status">—</span></div>
     <div class="card stat-card blue"><span class="lbl">Version</span><span class="val" id="srv-version" style="font-size:20px">—</span></div>
-    <div class="card stat-card"><span class="lbl">Gemini Model</span><span class="val" id="srv-model" style="font-size:14px;color:var(--gold2)">—</span></div>
+    <div class="card stat-card"><span class="lbl">Gemini Model</span><span class="val" id="srv-model" style="font-size:14px;color:var(--accent2)">—</span></div>
     <div class="card stat-card"><span class="lbl">AI Key</span><span class="val" id="srv-aikey">—</span></div>
   </div>
 
   <div class="grid-2">
     <div class="card">
       <div class="sec-hdr"><h3>🕐 Server Time</h3></div>
-      <div class="mono" id="srv-time" style="font-size:28px;color:var(--gold2);margin:8px 0;">--:--:--</div>
+      <div class="mono" id="srv-time" style="font-size:28px;color:var(--accent2);margin:8px 0;">--:--:--</div>
       <div style="font-size:12px;color:var(--text3)" id="srv-date">-- / -- / ----</div>
       <div style="margin-top:16px;font-size:12px;color:var(--text3)">Starter Daily Limit</div>
       <div class="mono" style="font-size:24px;color:var(--blue2);margin-top:4px;" id="srv-limit">—</div>
@@ -772,7 +821,7 @@ tr:hover td { background: var(--bg3) !important; }
         </div>
         <div class="health-item">
           <span class="h-lbl">Total API Calls (session)</span>
-          <span class="h-val" id="total-calls" style="color:var(--gold2)">0</span>
+          <span class="h-val" id="total-calls" style="color:var(--accent2)">0</span>
         </div>
       </div>
     </div>
@@ -866,6 +915,100 @@ function switchTab(name) {
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   event.currentTarget.classList.add('active');
+  if (name === 'sales') loadSales();
+}
+
+// ══════════════════════════════════════════════════════
+// ★ LOAD SALES — ยอดขายจริง v6
+// ══════════════════════════════════════════════════════
+async function loadSales(live = false) {
+  const days     = document.getElementById('sales-days')?.value || 1;
+  const shopSel  = document.getElementById('sales-shop')?.value || '';
+  let url        = `${BASE_URL}/api/admin/sales?days=${days}`;
+  if (shopSel)   url += `&username=${encodeURIComponent(shopSel)}`;
+
+  try {
+    const r    = await fetch(url);
+    const data = await r.json();
+    if (!data.ok) return;
+
+    // summary cards
+    const s = data.summary;
+    document.getElementById('sale-total').textContent    = '฿' + (s.total || 0).toLocaleString();
+    document.getElementById('sale-bills').textContent    = (s.bills || 0).toLocaleString() + ' บิล';
+    document.getElementById('sale-cash').textContent     = '฿' + (s.cash || 0).toLocaleString();
+    document.getElementById('sale-transfer').textContent = '฿' + (s.transfer || 0).toLocaleString();
+
+    // populate shop filter dropdown once
+    const shopSel2 = document.getElementById('sales-shop');
+    if (shopSel2 && shopSel2.options.length <= 1) {
+      Object.entries(data.shops).forEach(([uname, sh]) => {
+        const opt   = document.createElement('option');
+        opt.value   = uname;
+        opt.textContent = sh.shop_name;
+        shopSel2.appendChild(opt);
+      });
+    }
+
+    // per-shop cards
+    const container = document.getElementById('sales-shops-list');
+    container.innerHTML = '';
+    if (Object.keys(data.shops).length === 0) {
+      container.innerHTML = '<div class="card" style="text-align:center;color:var(--text3);padding:24px;">ยังไม่มีข้อมูลยอดขายในช่วงนี้</div>';
+    }
+    Object.entries(data.shops).forEach(([uname, sh]) => {
+      const topHtml = sh.top_items.map(it =>
+        `<span style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-size:11px;">${it.name} ×${it.qty}</span>`
+      ).join(' ');
+      container.innerHTML += `
+        <div class="card" style="margin-bottom:12px;">
+          <div class="sec-hdr">
+            <h3>🏪 ${sh.shop_name} <span style="font-size:11px;color:var(--text3);">(${uname})</span></h3>
+            <span class="badge ${sh.plan === 'pro' ? 'green' : ''}">${sh.plan.toUpperCase()}</span>
+          </div>
+          <div class="grid-4" style="margin-bottom:10px;">
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">ยอดรวม</div>
+              <div style="font-size:18px;font-weight:700;color:var(--gold);">฿${sh.total.toLocaleString()}</div></div>
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">บิล</div>
+              <div style="font-size:18px;font-weight:700;">${sh.bills}</div></div>
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">เงินสด</div>
+              <div style="font-size:16px;font-weight:600;color:var(--green);">฿${sh.cash.toLocaleString()}</div></div>
+            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">โอน</div>
+              <div style="font-size:16px;font-weight:600;color:var(--blue);">฿${sh.transfer.toLocaleString()}</div></div>
+          </div>
+          ${topHtml ? `<div style="display:flex;flex-wrap:wrap;gap:4px;"><span style="font-size:10px;color:var(--text3);margin-right:4px;">ขายดี:</span>${topHtml}</div>` : ''}
+        </div>`;
+    });
+
+    // bills table
+    const tbody = document.getElementById('sales-bill-tbody');
+    tbody.innerHTML = '';
+    let billCount = 0;
+    Object.entries(data.shops).forEach(([uname, sh]) => {
+      (sh.sales || []).slice().reverse().forEach(sale => {
+        const itemNames = (sale.items || [])
+          .filter(it => it.key !== '_promo_')
+          .map(it => `${it.name}×${it.qty}`)
+          .join(', ');
+        const payIcon = sale.pay === 'cash' ? '💵' : sale.pay === 'transfer' ? '📱' : sale.pay === 'free' ? '🎁' : '📝';
+        tbody.innerHTML += `<tr>
+          <td style="white-space:nowrap;font-size:11px;">${sale._ts || sale.time || '—'}</td>
+          <td style="font-size:11px;">${sh.shop_name}</td>
+          <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${itemNames}</td>
+          <td style="color:var(--gold);font-weight:700;">฿${(sale.total||0).toLocaleString()}</td>
+          <td>${payIcon} ${sale.pay || '—'}</td>
+          <td style="font-size:11px;color:var(--text3);">${sale.member || 'ทั่วไป'}</td>
+        </tr>`;
+        billCount++;
+      });
+    });
+    document.getElementById('sales-bill-count').textContent = billCount + ' บิล';
+
+    if (live) addLog('sale', '', `โหลดยอดขาย ${days} วัน: ${s.bills} บิล ฿${s.total.toLocaleString()}`);
+
+  } catch (e) {
+    addLog('error', '', `loadSales error: ${e.message}`);
+  }
 }
 
 // ──────────────────────────────────────
@@ -1028,7 +1171,7 @@ async function loadUsers() {
   document.getElementById('new-shops-count').textContent = `${users.length} ร้าน`;
   document.getElementById('new-shops-body').innerHTML = sorted5.map(u => `
     <tr>
-      <td class="mono" style="color:var(--gold2)">${esc(u.username)}</td>
+      <td class="mono" style="color:var(--accent2)">${esc(u.username)}</td>
       <td>${esc(u.shop_name)}</td>
       <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro':'📋 Starter'}</span></td>
       <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
@@ -1086,7 +1229,7 @@ function renderUsersTable(users) {
   }
   document.getElementById('users-body').innerHTML = users.map(u => `
     <tr id="urow-${esc(u.username)}">
-      <td class="mono" style="color:var(--gold2);font-size:13px">${esc(u.username)}</td>
+      <td class="mono" style="color:var(--accent2);font-size:13px">${esc(u.username)}</td>
       <td style="font-weight:600">${esc(u.shop_name)}</td>
       <td class="mono" style="font-size:12px;color:var(--text2)">${esc(u.phone||'—')}</td>
       <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro 399฿':'📋 Starter 199฿'}</span></td>
@@ -1143,7 +1286,7 @@ function renderAIUsageTable(users) {
     return `
     <tr>
       <td style="font-weight:600">${esc(u.shop_name)}</td>
-      <td class="mono" style="font-size:12px;color:var(--gold2)">${esc(u.username)}</td>
+      <td class="mono" style="font-size:12px;color:var(--accent2)">${esc(u.username)}</td>
       <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan}</span></td>
       <td class="mono" style="color:${used>15?'var(--orange2)':'var(--text)'}">${used}</td>
       <td class="mono" style="color:${isPro?'var(--purple)':used>15?'var(--red)':'var(--green2)'}">${rem}</td>
@@ -1181,7 +1324,7 @@ async function loadShopBackups(users) {
       syncRows.push(`
         <tr>
           <td style="font-weight:600">${esc(u.shop_name)}</td>
-          <td class="mono" style="font-size:12px;color:var(--gold2)">${esc(u.username)}</td>
+          <td class="mono" style="font-size:12px;color:var(--accent2)">${esc(u.username)}</td>
           <td class="mono" style="font-size:12px;color:var(--text3)">${u.created_at||'—'}</td>
           <td class="mono">—</td>
           <td><span class="pill pill-blue">—</span></td>
