@@ -1649,7 +1649,7 @@
   <button class="tab-btn" onclick="switchTab('history')">📈 ประวัติ</button>
   <button class="tab-btn" onclick="switchTab('crm')">💎 สมาชิก</button>
   <button class="tab-btn" id="tab-btn-admin" onclick="switchTab('admin')" style="display:none;">🔑 Admin</button>
-
+  <button class="tab-btn" id="tab-btn-logout" onclick="confirmLogout()" style="color:var(--red);flex:0 0 auto;padding:13px 10px;font-size:11px;">🚪 ออก</button>
 </div>
 
 <!-- ===== ORDER TOTAL BAR ===== -->
@@ -2641,6 +2641,56 @@ async function restoreFromCloud() {
     return true;
   } catch (e) {
     console.warn('restoreFromCloud failed:', e);
+    return false;
+  }
+}
+
+// ★ sync เงียบๆ เมื่อเปิดเครื่องที่มีข้อมูลแล้ว (ดึง cloud มา merge ถ้ามีข้อมูลใหม่กว่า)
+async function restoreFromCloudSilent() {
+  try {
+    const r    = await fetch('/api/shop/sync');
+    const data = await r.json();
+    if (!data.ok || !data.has_data) return false;
+
+    const d = data.data;
+    let updated = false;
+
+    // merge สินค้า: ถ้า cloud มีมากกว่า local → เอา cloud
+    if (d.products && d.products.length) {
+      const local = (() => { try { return JSON.parse(localStorage.getItem(LS_PRODUCTS)) || []; } catch { return []; } })();
+      if (d.products.length > local.length) {
+        localStorage.setItem(LS_PRODUCTS, JSON.stringify(d.products));
+        updated = true;
+      }
+    }
+    // merge stock: ใช้ค่าจาก cloud เป็นหลัก (cloud sync หลังทุก transaction)
+    if (d.stock && Object.keys(d.stock).length) {
+      Object.assign(stock, d.stock);
+      saveStock();
+      updated = true;
+    }
+    // merge members: ถ้า cloud มีมากกว่า local → เอา cloud
+    if (d.members && d.members.length) {
+      const localM = (() => { try { return JSON.parse(localStorage.getItem(LS_MEMBERS)) || []; } catch { return []; } })();
+      if (d.members.length > localM.length) {
+        localStorage.setItem(LS_MEMBERS, JSON.stringify(d.members));
+        updated = true;
+      }
+    }
+    // settings
+    if (d.settings) {
+      if (d.settings.shopName && !localStorage.getItem('pos_shop_name')) { localStorage.setItem('pos_shop_name', d.settings.shopName); updated = true; }
+      if (d.settings.assistantName && !localStorage.getItem('pos_assistant_name')) { localStorage.setItem('pos_assistant_name', d.settings.assistantName); updated = true; }
+      if (d.settings.loyaltyN) { localStorage.setItem(LS_LOYALTY, d.settings.loyaltyN); }
+    }
+
+    if (updated) {
+      setTimeout(() => { renderStock(); if (typeof renderProducts === 'function') renderProducts(); }, 300);
+      console.log('☁️ Cloud sync (silent) — ข้อมูลอัปเดตแล้ว');
+    }
+    return updated;
+  } catch (e) {
+    console.warn('restoreFromCloudSilent failed:', e);
     return false;
   }
 }
@@ -6296,6 +6346,23 @@ function popupChatKeyDown(e) {
 }
 
 // Hide FAB when on the AI tab (not needed there) — handled in switchTab above
+
+// ===================================================================
+// 🚪 LOGOUT — sync ก่อน logout แล้ว redirect ไปหน้า login
+// ===================================================================
+async function confirmLogout() {
+  const confirmed = confirm('ออกจากระบบ?\n\nระบบจะ sync ข้อมูลขึ้น Cloud ก่อนออก');
+  if (!confirmed) return;
+  showToast('☁️ กำลัง sync ข้อมูล...');
+  try {
+    await autoSyncToServer();
+  } catch(e) {}
+  try {
+    await fetch('/api/logout', { method: 'POST' });
+  } catch(e) {}
+  // ล้าง session flag แต่เก็บข้อมูล localStorage ไว้ (backup ในเครื่อง)
+  window.location.href = '/';
+}
 </script>
 
 <script>
@@ -6313,13 +6380,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const pinShop = document.getElementById('pin-shop-display');
   if (pinShop && shopName) pinShop.textContent = '⚡ ' + shopName;
 
-  // ★ โหลดข้อมูลจาก Cloud เมื่อ localStorage ว่าง (เครื่องใหม่/ย้ายเครื่อง)
+  // ★ โหลดข้อมูลจาก Cloud เสมอเมื่อเปิดหน้า (ดึงข้อมูลล่าสุดมา merge)
+  // ถ้า localStorage ว่าง → restore เต็ม | ถ้ามีข้อมูลแล้ว → sync เงียบๆ ในพื้นหลัง
   const hasLocalProducts = (() => {
     try { return (JSON.parse(localStorage.getItem(LS_PRODUCTS)) || []).length > 0; } catch { return false; }
   })();
   if (!hasLocalProducts) {
-    // เครื่องใหม่ — ดึงจาก cloud อัตโนมัติ
+    // เครื่องใหม่ — ดึงจาก cloud อัตโนมัติ พร้อมแจ้งเตือน
     setTimeout(() => restoreFromCloud(), 1000);
+  } else {
+    // มีข้อมูลในเครื่องแล้ว — sync เงียบๆ เพื่ออัปเดตข้อมูลจาก cloud
+    setTimeout(() => restoreFromCloudSilent(), 2000);
   }
 });
 </script>
