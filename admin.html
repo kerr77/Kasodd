@@ -2,1496 +2,1403 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🌿 KAASOD — Admin Panel</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAASOD Admin — หลังบ้าน</title>
 <style>
-:root {
-  --bg:      #0d0f0a;
-  --bg2:     #141810;
-  --bg3:     #1a1f14;
-  --bg4:     #222918;
-  --border:  rgba(201,162,39,0.18);
-  --border2: rgba(232,201,106,0.28);
-  --gold:    #C9A227;
-  --gold2:   #E8C96A;
-  --green:   #7EC47E;
-  --green2:  #6AAA6A;
-  --blue:    #5a9fc8;
-  --blue2:   #88c0d8;
-  --purple:  #9b7ec8;
-  --red:     #c0544a;
-  --text:    #e8e5d8;
-  --text2:   #b8b4a0;
-  --text3:   #7a7860;
-  --pulse:   rgba(201,162,39,0.38);
-  --glow-o:  rgba(201,162,39,0.35);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Prompt:wght@700;800;900&family=Fira+Code:wght@400;500&display=swap');
 
-body{
-  font-family:'Sarabun',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  font-size:14px;
-}
+  :root {
+    --bg:       #111408;
+    --card:     #1A1F0A;
+    --card2:    #22290E;
+    --surface:  #2E3415;
+    --accent:   #C9A227;
+    --accent2:  #E8C96A;
+    --accent-glow: rgba(201,162,39,0.22);
+    --green:    #7EC47E;
+    --red:      #FF3D5A;
+    --orange:   #FF8C42;
+    --blue:     #5BC8FF;
+    --text:     #F0F4F8;
+    --text2:    #BFC8D4;
+    --muted:    #7A8896;
+    --border:   #2E3415;
+    --border2:  rgba(201,162,39,0.28);
+    --shadow-sm:  0 2px 8px rgba(0,0,0,0.55);
+    --shadow-md:  0 4px 20px rgba(0,0,0,0.65);
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+  }
 
-/* ── ATMOSPHERE ── */
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:
-    linear-gradient(rgba(201,162,39,0.015) 1px, transparent 1px),
-    linear-gradient(90deg,rgba(201,162,39,0.015) 1px,transparent 1px);
-  background-size:52px 52px;
-  pointer-events:none;z-index:0;
-}
-body::after{
-  content:'';position:fixed;inset:0;
-  background:
-    radial-gradient(ellipse 55% 40% at 0% 0%,   rgba(201,162,39,0.06) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 55% at 100% 100%, rgba(201,162,39,0.10) 0%, transparent 55%);
-  pointer-events:none;z-index:0;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-/* ── SCAN LINE ── */
-.scan-line{
-  position:fixed;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent);
-  opacity:0;animation:scan-pos 12s linear infinite;z-index:999;pointer-events:none;
-}
-@keyframes scan-pos{0%{top:0;opacity:0}3%{opacity:.4}97%{opacity:.15}100%{top:100vh;opacity:0}}
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
 
-/* ── LOCK SCREEN ── */
-#lock-screen{
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;align-items:center;justify-content:center;
-  z-index:200;flex-direction:column;gap:16px;
-}
-.lock-box{
-  background:var(--bg3);border:1.5px solid var(--border2);
-  border-radius:20px;padding:36px 32px;width:340px;text-align:center;
-  box-shadow:0 0 40px rgba(201,162,39,0.08);
-}
-.lock-box .lock-icon{font-size:40px;margin-bottom:12px;}
-.lock-box h2{color:var(--gold2);font-size:20px;font-weight:800;letter-spacing:2px;font-family:'Prompt',sans-serif;margin-bottom:6px;}
-.lock-box p{color:var(--text3);font-size:12px;margin-bottom:22px;}
-.lock-input{
-  width:100%;background:var(--bg);border:1.5px solid var(--border2);
-  color:var(--text);padding:11px 16px;border-radius:12px;
-  font-family:'Fira Code',monospace;font-size:15px;margin-bottom:12px;
-  outline:none;text-align:center;letter-spacing:2px;transition:border-color .2s;
-}
-.lock-input:focus{border-color:var(--gold);}
-.lock-btn{
-  width:100%;background:var(--gold);color:#0d0f0a;
-  border:none;padding:13px;border-radius:12px;
-  font-weight:800;font-size:15px;cursor:pointer;
-  font-family:'Sarabun',sans-serif;transition:opacity .2s;letter-spacing:1px;
-}
-.lock-btn:hover{opacity:.88;}
-.lock-err{color:var(--red);font-size:13px;margin-top:10px;min-height:18px;}
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(201,162,39,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,162,39,0.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    pointer-events: none; z-index: 0;
+  }
 
-/* ── TOPBAR ── */
-.topbar{
-  position:sticky;top:0;z-index:100;
-  background:rgba(13,15,10,0.97);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
-  padding:0 20px;height:56px;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-}
-.topbar::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent);
-  background-size:200% 100%;animation:topbar-scan 5s linear infinite;opacity:.4;
-}
-@keyframes topbar-scan{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.logo{color:var(--gold);font-size:18px;font-weight:900;font-family:'Prompt',sans-serif;display:flex;align-items:center;gap:8px;text-shadow:0 0 12px var(--glow-o);}
-.logo span{color:var(--text3);font-size:11px;font-weight:400;font-family:'Fira Code',monospace;}
-.topbar-badge{
-  background:rgba(201,162,39,0.12);border:1px solid var(--border2);
-  border-radius:6px;padding:3px 8px;font-size:10px;color:var(--gold);font-weight:700;
-  font-family:'Fira Code',monospace;letter-spacing:1px;
-}
-.status-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;}
-.live-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--green);
-  box-shadow:0 0 0 0 var(--pulse);animation:pulse-ring 2s ease infinite;display:inline-block;
-}
-@keyframes pulse-ring{0%{box-shadow:0 0 0 0 var(--pulse)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
-.live-label{font-size:11px;color:var(--green);font-weight:700;letter-spacing:1.5px;}
-.last-update{font-family:'Fira Code',monospace;font-size:11px;color:var(--text3);}
-.interval-select{
-  background:var(--bg3);border:1px solid var(--border2);color:var(--text2);
-  padding:5px 10px;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;
-}
-.interval-select:focus{outline:none;border-color:var(--gold);}
-.refresh-btn{
-  background:var(--bg3);border:1px solid var(--border2);color:var(--gold);
-  padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;
-  font-family:inherit;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:6px;
-}
-.refresh-btn:hover{background:var(--bg4);border-color:var(--gold);}
-.refresh-btn.spinning svg{animation:spin .6s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.logout-btn{
-  padding:6px 14px;border-radius:8px;background:transparent;
-  border:1px solid var(--border2);color:var(--text3);
-  font-family:inherit;font-size:12px;cursor:pointer;transition:all .2s;
-}
-.logout-btn:hover{border-color:var(--red);color:var(--red);}
+  /* ══ LOGIN SCREEN ══ */
+  #login-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    background: var(--bg);
+  }
 
-/* ── NAV TABS ── */
-.nav-tabs{
-  display:flex;gap:4px;padding:12px 20px 0;
-  background:var(--bg2);border-bottom:1px solid var(--border);
-  overflow-x:auto;scrollbar-width:none;position:relative;z-index:99;
-}
-.nav-tabs::-webkit-scrollbar{display:none;}
-.nav-tab{
-  padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer;
-  font-size:12px;font-weight:600;color:var(--text3);
-  border:1px solid transparent;border-bottom:none;
-  transition:all .2s;white-space:nowrap;background:transparent;
-  font-family:'Fira Code',monospace;letter-spacing:.5px;text-transform:uppercase;
-}
-.nav-tab:hover{color:var(--text2);background:var(--bg3);}
-.nav-tab.active{
-  color:var(--gold);background:var(--bg);
-  border-color:var(--border);border-bottom-color:var(--bg);
-  position:relative;top:1px;text-shadow:0 0 8px var(--glow-o);
-}
-.nav-tab .badge{
-  display:inline-block;background:var(--red);color:#fff;
-  border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800;margin-left:5px;
-}
+  .login-box {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 40px 36px;
+    width: 360px;
+    box-shadow: 0 0 60px rgba(201,162,39,0.12);
+    text-align: center;
+  }
 
-/* ── MAIN ── */
-main{padding:20px;max-width:1200px;margin:0 auto;position:relative;z-index:1;}
-.tab-content{display:none;position:relative;z-index:1;}
-.tab-content.active{display:block;}
+  .login-logo {
+    font-family: 'Prompt', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
 
-/* ── GRIDS ── */
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
-@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:repeat(2,1fr);}.grid-2{grid-template-columns:1fr;}}
-@media(max-width:500px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:1fr;}main{padding:12px;}}
+  .login-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
 
-/* ── CARDS ── */
-.card{
-  background:var(--bg3);border:1.5px solid var(--border);
-  border-radius:14px;padding:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,.35);
-  margin-bottom:16px;
-}
-.card:last-child{margin-bottom:0;}
-.stat-card{text-align:center;}
-.stat-card .val{
-  font-size:28px;font-weight:700;font-family:'Fira Code',monospace;
-  line-height:1.1;display:block;margin:4px 0;text-shadow:0 0 15px currentColor;
-}
-.stat-card .lbl{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;}
-.stat-card .delta{font-size:11px;margin-top:4px;}
-.gold .val{color:var(--gold2);}
-.green .val{color:var(--green);}
-.blue .val{color:var(--blue2);}
-.purple .val{color:var(--purple);}
-.orange .val{color:var(--gold);}
-.red .val{color:var(--red);}
+  .login-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'Fira Code', monospace;
+    font-size: 15px;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: var(--accent); }
+  .login-input::placeholder { color: var(--muted); font-family: 'Sarabun', sans-serif; }
 
-/* ── SECTION HEADER ── */
-.sec-hdr{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:12px;flex-wrap:wrap;gap:8px;
-}
-.sec-hdr h3{font-size:13px;font-weight:700;color:var(--gold);font-family:'Prompt',sans-serif;}
-.sec-hdr .badge{
-  font-size:11px;background:var(--bg4);border:1px solid var(--border2);
-  color:var(--text3);padding:3px 10px;border-radius:20px;
-}
-.section-title{
-  font-size:10px;font-weight:800;letter-spacing:2px;color:var(--text3);
-  text-transform:uppercase;margin-bottom:14px;margin-top:6px;
-}
+  .btn-login {
+    width: 100%;
+    background: var(--accent);
+    color: #111408;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 13px;
+    font-family: 'Prompt', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-login:hover { background: var(--accent2); }
+  .btn-login:active { transform: scale(0.98); }
 
-/* ── TABLE ── */
-.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
-table{border-collapse:collapse;width:100%;min-width:580px;}
-th{
-  background:var(--bg4);color:var(--gold);padding:9px 12px;
-  text-align:left;font-size:10px;font-weight:700;font-family:'Fira Code',monospace;
-  text-transform:uppercase;letter-spacing:1px;white-space:nowrap;
-  border-bottom:1px solid var(--border);
-}
-td{
-  padding:9px 12px;border-bottom:1px solid var(--border);
-  font-size:13px;vertical-align:middle;
-}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(201,162,39,0.04);}
+  .login-err {
+    color: var(--red);
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 18px;
+  }
 
-/* ── PILLS ── */
-.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.pill-green{background:rgba(126,196,126,.15);color:var(--green);border:1px solid rgba(126,196,126,.3);}
-.pill-blue{background:rgba(90,159,200,.15);color:var(--blue2);border:1px solid rgba(90,159,200,.3);}
-.pill-purple{background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);}
-.pill-orange{background:rgba(201,162,39,.15);color:var(--gold2);border:1px solid rgba(201,162,39,.3);}
-.pill-red{background:rgba(192,84,74,.15);color:var(--red);border:1px solid rgba(192,84,74,.3);}
-.pill-muted{background:rgba(122,120,96,.15);color:var(--text3);border:1px solid rgba(122,120,96,.3);}
+  /* ══ MAIN LAYOUT ══ */
+  #main-screen { display: none; min-height: 100vh; }
 
-/* ── MONO ── */
-.mono{font-family:'Fira Code',monospace;}
+  /* ── Top Bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(17,20,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border2);
+    padding: 0 20px;
+    display: flex; align-items: center; gap: 12px;
+    height: 58px;
+  }
 
-/* ── BAR CHART ── */
-.bar-wrap{display:flex;flex-direction:column;gap:6px;}
-.bar-row{display:flex;align-items:center;gap:10px;}
-.bar-lbl{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bar-track{flex:1;height:20px;background:var(--bg4);border-radius:4px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
-.bar-val{font-family:'Fira Code',monospace;font-size:12px;color:var(--text2);width:60px;text-align:right;flex-shrink:0;}
+  .topbar-logo {
+    font-family: 'Prompt', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--accent);
+    margin-right: 4px;
+    white-space: nowrap;
+  }
 
-/* ── LOG PANEL ── */
-.log-panel{
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:10px;padding:14px;
-  font-family:'Fira Code',monospace;font-size:12px;line-height:1.8;
-  height:340px;overflow-y:auto;
-}
-.log-line{display:flex;gap:10px;}
-.log-ts{color:var(--text3);white-space:nowrap;}
-.log-shop{color:var(--blue2);}
-.log-msg{color:var(--text2);}
-.log-msg.chat{color:var(--green);}
-.log-msg.sale{color:var(--gold2);}
-.log-msg.login{color:var(--purple);}
-.log-msg.error{color:var(--red);}
-.log-msg.system{color:var(--text3);}
+  .topbar-badge {
+    font-size: 10px;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
 
-/* ── FILTER ROW ── */
-.filter-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
-.filter-row select,.filter-row input{
-  padding:7px 12px;border-radius:8px;background:var(--bg3);
-  border:1px solid var(--border2);color:var(--text);
-  font-family:inherit;font-size:13px;outline:none;cursor:pointer;
-}
-.filter-row input:focus{border-color:var(--gold);}
+  .topbar-tabs {
+    display: flex; gap: 4px;
+    overflow-x: auto; flex: 1;
+    scrollbar-width: none;
+  }
+  .topbar-tabs::-webkit-scrollbar { display: none; }
 
-/* ── BUTTONS ── */
-.btn{
-  padding:7px 14px;border-radius:8px;border:none;
-  font-family:inherit;font-size:13px;font-weight:700;
-  cursor:pointer;transition:opacity .2s;
-}
-.btn:hover{opacity:.85;}
-.btn-gold{background:var(--gold);color:#0d0f0a;}
-.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text);}
-.btn-red{background:var(--red);color:#fff;}
-.btn-green{background:var(--green);color:#0d0f0a;}
-.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;}
-.act-btn{padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid;transition:all .2s;}
-.act-btn-green{background:rgba(126,196,126,.15);color:var(--green);border-color:rgba(126,196,126,.3);}
-.act-btn-green:hover{background:rgba(126,196,126,.25);}
-.act-btn-orange{background:rgba(201,162,39,.15);color:var(--gold2);border-color:rgba(201,162,39,.3);}
-.act-btn-orange:hover{background:rgba(201,162,39,.25);}
-.act-btn-blue{background:rgba(90,159,200,.15);color:var(--blue2);border-color:rgba(90,159,200,.3);}
-.act-btn-blue:hover{background:rgba(90,159,200,.25);}
-.act-btn-red{background:rgba(192,84,74,.15);color:var(--red);border-color:rgba(192,84,74,.3);}
-.act-btn-red:hover{background:rgba(192,84,74,.25);}
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn:hover { color: var(--text2); background: var(--card); }
+  .tab-btn.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+    border: 1px solid var(--border2);
+  }
+  .tab-icon { font-size: 15px; }
 
-/* ── EMPTY STATE ── */
-.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
-.empty-state .icon{font-size:32px;margin-bottom:8px;}
+  .topbar-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
 
-/* ── LOADING ── */
-.loading-row{text-align:center;padding:30px;color:var(--text3);font-size:13px;}
-.spin{display:inline-block;animation:spin .8s linear infinite;margin-right:8px;}
+  .btn-logout {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
-/* ── MODAL ── */
-.modal-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.75);z-index:500;
-  align-items:center;justify-content:center;padding:20px;
-}
-.modal-overlay.open{display:flex;}
-.modal-box{
-  background:var(--bg3);border:1.5px solid var(--border2);
-  border-radius:16px;padding:24px;width:100%;max-width:480px;
-  max-height:90vh;overflow-y:auto;
-}
-.modal-title{font-size:15px;font-weight:800;margin-bottom:16px;color:var(--gold2);}
-.modal-field{margin-bottom:12px;}
-.modal-field label{font-size:12px;color:var(--text3);display:block;margin-bottom:5px;font-weight:700;}
-.modal-field input,.modal-field select{
-  width:100%;padding:9px 12px;border-radius:10px;
-  background:var(--bg);border:1.5px solid var(--border2);
-  color:var(--text);font-family:inherit;font-size:14px;outline:none;
-}
-.modal-field input:focus,.modal-field select:focus{border-color:var(--gold);}
-.modal-actions{display:flex;gap:10px;margin-top:18px;}
+  /* ══ CONTENT AREA ══ */
+  .content { padding: 24px 20px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
 
-/* ── BILL DELETION ── */
-.deletion-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:18px;}
-.shop-del-card{
-  background:var(--bg3);border:1px solid var(--border);border-radius:12px;
-  padding:14px;cursor:pointer;transition:border-color .2s;
-}
-.shop-del-card:hover{border-color:var(--gold);}
-.shop-del-card.selected{border-color:var(--gold2);background:var(--bg4);}
-.shop-del-name{font-size:13px;font-weight:700;margin-bottom:4px;}
-.shop-del-count{font-size:22px;font-weight:800;color:var(--red);font-family:'Fira Code',monospace;}
-.shop-del-amt{font-size:12px;color:var(--text3);margin-top:2px;}
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
-/* ── TREND BARS ── */
-.trend-bar-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(201,162,39,0.07);}
-.trend-bar-row:last-child{border-bottom:none;}
-.trend-rank{font-size:11px;font-weight:800;color:var(--text3);width:22px;text-align:center;font-family:'Fira Code',monospace;flex-shrink:0;}
-.trend-name{font-size:14px;font-weight:600;flex:1;min-width:0;}
-.trend-bar-wrap{flex:2;min-width:80px;}
-.trend-bar-bg{height:6px;background:rgba(201,162,39,0.1);border-radius:3px;overflow:hidden;}
-.trend-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .5s;}
-.trend-shops{font-size:12px;color:var(--blue2);width:60px;text-align:right;flex-shrink:0;font-family:'Fira Code',monospace;}
-.trend-price{font-size:12px;color:var(--text3);width:60px;text-align:right;flex-shrink:0;font-family:'Fira Code',monospace;}
+  /* ══ STAT CARDS ══ */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
 
-/* ── ITEM TAGS ── */
-.items-tags{display:flex;flex-wrap:wrap;gap:5px;}
-.item-tag{background:rgba(201,162,39,0.08);border:1px solid rgba(201,162,39,0.2);border-radius:6px;padding:2px 7px;font-size:11px;color:var(--gold2);white-space:nowrap;}
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
 
-/* ── CHAT LOG ── */
-.chat-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-.chat-filter-btn{
-  background:var(--bg4);border:1px solid var(--border2);color:var(--text3);
-  padding:5px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .2s;
-}
-.chat-filter-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,162,39,0.12);}
-.chat-entry{background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
-.chat-entry-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;}
-.chat-entry-shop{font-weight:700;color:var(--gold);font-size:13px;}
-.chat-entry-ts{font-size:11px;color:var(--text3);font-family:'Fira Code',monospace;}
-.chat-bubble-user{background:rgba(90,159,200,.1);border:1px solid rgba(90,159,200,.2);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px;line-height:1.6;}
-.chat-bubble-user .role-lbl{font-size:10px;color:var(--blue2);font-weight:700;margin-bottom:4px;}
-.chat-bubble-ai{background:rgba(126,196,126,.08);border:1px solid rgba(126,196,126,.15);border-radius:8px;padding:8px 12px;font-size:13px;line-height:1.6;}
-.chat-bubble-ai .role-lbl{font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px;}
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 
-/* ── HEALTH ── */
-.health-item{background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px;}
-.health-item .h-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
-.health-item .h-val{font-size:18px;font-weight:700;font-family:'Fira Code',monospace;}
-.health-item .h-bar{height:4px;background:var(--border);border-radius:2px;margin-top:4px;}
-.health-item .h-bar-fill{height:100%;border-radius:2px;transition:width .5s;}
+  .stat-value {
+    font-family: 'Prompt', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
 
-/* ── TOAST ── */
-#toast{
-  position:fixed;bottom:24px;right:24px;
-  background:var(--bg4);border:1px solid var(--border2);
-  color:var(--text);padding:12px 20px;border-radius:12px;
-  font-size:13px;transform:translateY(100px);opacity:0;
-  transition:all .3s;z-index:9999;max-width:300px;
-  box-shadow:0 8px 32px rgba(0,0,0,.5);
-}
-#toast.show{transform:translateY(0);opacity:1;}
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
 
-/* ── USER CARD (mobile) ── */
-.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
-.user-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px;}
-.user-card-name{font-size:15px;font-weight:700;line-height:1.3;}
-.user-card-phone{font-size:11px;color:var(--text3);margin-top:2px;}
-.user-card-pills{display:flex;gap:5px;flex-shrink:0;align-items:center;}
-.user-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;color:var(--text3);margin-bottom:12px;}
-.user-card-meta-item span{color:var(--text);font-weight:600;}
-.user-card-actions{display:flex;gap:8px;flex-wrap:wrap;}
-.user-card-actions .btn{flex:1;min-width:0;text-align:center;}
+  /* ══ SECTION HEADER ══ */
+  .section-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
 
-/* ── MOBILE ── */
-@media(max-width:700px){
-  .topbar{height:auto;min-height:52px;flex-wrap:wrap;padding:8px 12px;gap:6px;}
-  .nav-tabs{padding:10px 10px 0;gap:3px;}
-  .nav-tab{padding:7px 10px;font-size:10px;}
-  main{padding:12px 10px;}
-  .stats-row{grid-template-columns:1fr 1fr;gap:8px;}
-  .desktop-table{display:none!important;}
-  .mobile-cards{display:block!important;}
-  .data-table-wrap{overflow-x:auto;}
-}
-.mobile-cards{display:none;}
+  .section-title {
+    font-family: 'Prompt', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+  }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:var(--bg3);}
-::-webkit-scrollbar-thumb{background:rgba(201,162,39,.35);border-radius:2px;}
-::-webkit-scrollbar-thumb:hover{background:var(--gold);}
+  .section-count {
+    font-size: 12px;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-family: 'Fira Code', monospace;
+  }
+
+  /* ══ FILTER BAR ══ */
+  .filter-bar {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px; align-items: center;
+  }
+
+  .filter-input {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 8px 14px;
+    font-size: 14px;
+    font-family: 'Sarabun', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .filter-input:focus { border-color: var(--accent); }
+  .filter-input::placeholder { color: var(--muted); }
+
+  .filter-select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 8px 14px;
+    font-size: 14px;
+    font-family: 'Sarabun', sans-serif;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary { background: var(--accent); color: #111408; }
+  .btn-primary:hover { background: var(--accent2); }
+
+  .btn-success { background: var(--green); color: #111408; }
+  .btn-success:hover { filter: brightness(1.1); }
+
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { filter: brightness(1.15); }
+
+  .btn-warning { background: var(--orange); color: #111408; }
+  .btn-warning:hover { filter: brightness(1.1); }
+
+  .btn-ghost {
+    background: var(--card2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-sm { padding: 5px 12px; font-size: 13px; }
+
+  /* ══ TABLE ══ */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    text-align: left;
+    padding: 11px 14px;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 11px 14px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(201,162,39,0.03); }
+
+  /* ══ BADGES ══ */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-family: 'Fira Code', monospace;
+  }
+  .badge-active { background: rgba(126,196,126,0.18); color: var(--green); }
+  .badge-pending { background: rgba(255,140,66,0.18); color: var(--orange); }
+  .badge-pro { background: rgba(201,162,39,0.18); color: var(--accent); }
+  .badge-starter { background: rgba(122,136,150,0.18); color: var(--muted); }
+  .badge-critical { background: rgba(255,61,90,0.18); color: var(--red); }
+  .badge-warning { background: rgba(255,140,66,0.18); color: var(--orange); }
+  .badge-ok { background: rgba(126,196,126,0.18); color: var(--green); }
+
+  /* ══ MONEY DISPLAY ══ */
+  .money { font-family: 'Fira Code', monospace; color: var(--accent2); font-weight: 600; }
+  .money-big { font-family: 'Prompt', sans-serif; font-size: 20px; font-weight: 800; color: var(--accent); }
+
+  /* ══ LOADING / EMPTY ══ */
+  .loading-box {
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-box {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* ══ MODAL ══ */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 500;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+
+  .modal-title {
+    font-family: 'Prompt', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'Sarabun', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+  /* ══ TOAST ══ */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error { border-color: var(--red); color: var(--red); }
+
+  /* ══ CHAT LOG ══ */
+  .chat-shop-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .chat-shop-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .chat-shop-head:hover { background: var(--surface); }
+
+  .chat-shop-name { font-weight: 700; font-size: 14px; }
+  .chat-count { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  .chat-logs-body { padding: 12px 16px; display: none; }
+  .chat-logs-body.open { display: block; }
+
+  .chat-row {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .chat-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .chat-ts { font-size: 11px; color: var(--muted); font-family: 'Fira Code', monospace; margin-bottom: 4px; }
+  .chat-user { font-size: 13px; color: var(--text2); margin-bottom: 3px; }
+  .chat-user span { color: var(--accent); font-weight: 600; }
+  .chat-ai { font-size: 13px; color: var(--green); }
+  .chat-ai span { color: var(--text2); font-weight: 600; }
+
+  /* ══ RESTOCK ══ */
+  .restock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .restock-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .restock-card.critical { border-color: rgba(255,61,90,0.4); }
+  .restock-card.warning  { border-color: rgba(255,140,66,0.4); }
+
+  .restock-shop { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--accent); }
+
+  .restock-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .restock-item:last-child { border-bottom: none; }
+  .restock-name { color: var(--text2); flex: 1; }
+  .restock-stat { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ══ SALES SUMMARY ══ */
+  .shop-sale-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+
+  .shop-sale-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .shop-sale-head:hover { background: var(--surface); }
+
+  .shop-sale-name { font-weight: 700; font-size: 15px; flex: 1; }
+
+  .shop-sale-body { padding: 14px 16px; display: none; }
+  .shop-sale-body.open { display: block; }
+
+  .sale-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .sale-meta-item { text-align: center; }
+  .sale-meta-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .sale-meta-val { font-family: 'Fira Code', monospace; font-size: 15px; color: var(--text); font-weight: 600; }
+
+  /* ══ TREND ══ */
+  .trend-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .trend-bar-label { font-size: 13px; color: var(--text2); min-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .trend-bar-bg { flex: 1; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+  .trend-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.6s; }
+  .trend-bar-val { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--muted); min-width: 40px; text-align: right; }
+
+  /* ══ DELETIONS ══ */
+  .del-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .del-row:last-child { border-bottom: none; }
+  .del-icon { font-size: 16px; flex-shrink: 0; padding-top: 1px; }
+  .del-detail { flex: 1; }
+  .del-shop { font-weight: 700; color: var(--accent); }
+  .del-time { font-size: 11px; color: var(--muted); font-family: 'Fira Code', monospace; }
+  .del-amt { font-family: 'Fira Code', monospace; color: var(--red); font-weight: 600; white-space: nowrap; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ══ SCROLLBAR ══ */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 </style>
 </head>
 <body>
 
-<div class="scan-line"></div>
-
-<!-- ═══ LOCK SCREEN ═══ -->
-<div id="lock-screen">
-  <div class="lock-box">
-    <div class="lock-icon">🌿</div>
-    <h2>KAASOD ADMIN</h2>
-    <p>กรอก Admin Key เพื่อเข้าใช้งาน</p>
-    <input type="password" class="lock-input" id="key-input" placeholder="Admin Key..." autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="lock-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
-    <div class="lock-err" id="lock-err"></div>
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🌿 ค้าสด</div>
+    <div class="login-sub">Admin Dashboard — หลังบ้าน</div>
+    <input id="admin-key-input" class="login-input" type="password" placeholder="Admin Key" autocomplete="off">
+    <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<!-- ═══ TOPBAR ═══ -->
-<div class="topbar" id="topbar" style="display:none;">
-  <div class="logo">🌿 KAASOD <span>SERVER ADMIN</span></div>
-  <div class="topbar-badge">ADMIN PANEL</div>
-  <div class="status-bar">
-    <span class="live-dot"></span>
-    <span class="live-label">LIVE</span>
-    <span class="last-update" id="last-update">--:--:--</span>
-    <select class="interval-select" id="interval-sel" onchange="changeInterval()">
-      <option value="10000">10 วิ</option>
-      <option value="30000" selected>30 วิ</option>
-      <option value="60000">1 นาที</option>
-      <option value="300000">5 นาที</option>
-    </select>
-    <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M1 4v6h6M23 20v-6h-6"/>
-        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-      </svg>
-      รีเฟรช
-    </button>
-    <button class="logout-btn" onclick="doLogout()">ออก</button>
-  </div>
-</div>
-
-<!-- ═══ NAV TABS ═══ -->
-<div class="nav-tabs" id="nav-tabs" style="display:none;">
-  <button class="nav-tab active" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
-  <button class="nav-tab" onclick="switchTab('sales',this)">💰 ยอดขาย</button>
-  <button class="nav-tab" onclick="switchTab('shops',this)">👥 ร้านค้า</button>
-  <button class="nav-tab" onclick="switchTab('deletions',this)">🗑️ ลบบิล <span id="del-badge" class="badge" style="display:none"></span></button>
-  <button class="nav-tab" onclick="switchTab('menus',this)">🌟 เมนูใหม่</button>
-  <button class="nav-tab" onclick="switchTab('popular',this)">🔥 ยอดฮิต</button>
-  <button class="nav-tab" onclick="switchTab('chats',this)">💬 AI Chat</button>
-  <button class="nav-tab" onclick="switchTab('activity',this)">⚡ Activity</button>
-  <button class="nav-tab" onclick="switchTab('server',this)">🖥️ Server</button>
-</div>
-
-<main id="main-content" style="display:none;">
-
-<!-- ───── TAB: OVERVIEW ───── -->
-<div id="tab-overview" class="tab-content active">
-  <div class="grid-4">
-    <div class="card stat-card gold"><span class="lbl">ร้านทั้งหมด</span><span class="val" id="s-total">—</span></div>
-    <div class="card stat-card green"><span class="lbl">Active</span><span class="val" id="s-active">—</span></div>
-    <div class="card stat-card red"><span class="lbl">รอ Approve</span><span class="val" id="s-pending">—</span></div>
-    <div class="card stat-card purple"><span class="lbl">รายได้/เดือน</span><span class="val" id="s-revenue">—</span><span class="delta" id="s-pro-count" style="color:var(--text3)"></span></div>
-  </div>
-  <div class="grid-3">
-    <div class="card stat-card blue"><span class="lbl">Pro</span><span class="val" id="s-pro">—</span></div>
-    <div class="card stat-card"><span class="lbl">Starter</span><span class="val" id="s-starter" style="color:var(--text2)">—</span></div>
-    <div class="card stat-card green"><span class="lbl">AI Calls วันนี้</span><span class="val" id="s-ai">—</span></div>
-  </div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="sec-hdr"><h3>🤖 AI Usage วันนี้</h3><span class="badge" id="ai-badge">—</span></div>
-      <div class="bar-wrap" id="ai-bar-wrap"><div class="empty-state"><div class="icon">📊</div>กำลังโหลด...</div></div>
+<!-- ══ MAIN ══ -->
+<div id="main-screen">
+  <div class="topbar">
+    <div class="topbar-logo">🌿 ค้าสด</div>
+    <span class="topbar-badge">ADMIN</span>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" onclick="switchTab('dashboard')" id="tab-dashboard">
+        <span class="tab-icon">📊</span> Dashboard
+      </button>
+      <button class="tab-btn" onclick="switchTab('users')" id="tab-users">
+        <span class="tab-icon">🏪</span> ร้านค้า
+      </button>
+      <button class="tab-btn" onclick="switchTab('sales')" id="tab-sales">
+        <span class="tab-icon">💰</span> ยอดขาย
+      </button>
+      <button class="tab-btn" onclick="switchTab('chatlogs')" id="tab-chatlogs">
+        <span class="tab-icon">💬</span> Chat Logs
+      </button>
+      <button class="tab-btn" onclick="switchTab('restock')" id="tab-restock">
+        <span class="tab-icon">📦</span> Restock
+      </button>
+      <button class="tab-btn" onclick="switchTab('trend')" id="tab-trend">
+        <span class="tab-icon">🔥</span> Trend
+      </button>
+      <button class="tab-btn" onclick="switchTab('deletions')" id="tab-deletions">
+        <span class="tab-icon">🗑️</span> ลบบิล
+      </button>
     </div>
-    <div class="card">
-      <div class="sec-hdr"><h3>📋 แพ็กเกจ Distribution</h3></div>
-      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+    <div class="topbar-right">
+      <button class="btn-logout" onclick="doLogout()">ออก</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="tab-panel active" id="panel-dashboard">
+      <div class="stat-grid" id="dash-stats">
+        <div class="loading-box" style="grid-column:1/-1"><div class="spinner"></div> กำลังโหลด...</div>
+      </div>
+      <div class="two-col">
         <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:12px;color:var(--text2)">🤖 Pro 399฿</span>
-            <span class="mono" style="font-size:12px;color:var(--purple)" id="pro-pct">—%</span>
+          <div class="section-head">
+            <div class="section-title">รอ Approve</div>
           </div>
-          <div class="bar-track"><div class="bar-fill" id="pro-bar" style="background:var(--purple);width:0%"></div></div>
+          <div id="dash-pending"></div>
         </div>
         <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:12px;color:var(--text2)">📋 Starter 199฿</span>
-            <span class="mono" style="font-size:12px;color:var(--blue2)" id="starter-pct">—%</span>
+          <div class="section-head">
+            <div class="section-title">ยอดขายวันนี้</div>
           </div>
-          <div class="bar-track"><div class="bar-fill" id="starter-bar" style="background:var(--blue2);width:0%"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:12px;color:var(--text2)">⏳ Pending</span>
-            <span class="mono" style="font-size:12px;color:var(--gold2)" id="pending-pct">—%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="pending-bar" style="background:var(--gold);width:0%"></div></div>
+          <div id="dash-today-sales"></div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="card">
-    <div class="sec-hdr"><h3>🆕 ร้านค้าล่าสุด</h3><span class="badge" id="new-shops-count">—</span></div>
-    <div class="tbl-wrap">
-      <table>
-        <tr><th>Username</th><th>ชื่อร้าน</th><th>แพ็กเกจ</th><th>สถานะ</th><th>สมัครเมื่อ</th><th>Actions</th></tr>
-        <tbody id="new-shops-body">
-          <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
-<!-- ───── TAB: SALES ───── -->
-<div id="tab-sales" class="tab-content">
-  <div class="card" style="margin-bottom:16px;">
-    <div class="sec-hdr">
-      <h3>💰 ยอดขายจริง</h3>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <select id="sales-days" style="background:var(--bg4);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;">
+    <!-- ══ USERS ══ -->
+    <div class="tab-panel" id="panel-users">
+      <div class="filter-bar">
+        <input class="filter-input" placeholder="🔍 ค้นหาร้าน / username" id="user-search" oninput="filterUsers()">
+        <select class="filter-select" id="user-status-filter" onchange="filterUsers()">
+          <option value="">ทุกสถานะ</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+        </select>
+        <select class="filter-select" id="user-plan-filter" onchange="filterUsers()">
+          <option value="">ทุกแพ็กเกจ</option>
+          <option value="pro">Pro</option>
+          <option value="starter">Starter</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadUsers()">↺ รีเฟรช</button>
+      </div>
+      <div id="users-table-wrap">
+        <div class="loading-box"><div class="spinner"></div> กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- ══ SALES ══ -->
+    <div class="tab-panel" id="panel-sales">
+      <div class="filter-bar">
+        <input class="filter-input" type="date" id="sales-date" onchange="loadSales()">
+        <select class="filter-select" id="sales-days" onchange="loadSales()">
+          <option value="1">วันนี้</option>
+          <option value="7">7 วัน</option>
+          <option value="30">30 วัน</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadSales()">↺ รีเฟรช</button>
+      </div>
+      <div class="stat-grid" id="sales-summary"></div>
+      <div id="sales-list"></div>
+    </div>
+
+    <!-- ══ CHAT LOGS ══ -->
+    <div class="tab-panel" id="panel-chatlogs">
+      <div class="filter-bar">
+        <button class="btn btn-ghost" onclick="loadChatLogs()">↺ รีเฟรช</button>
+      </div>
+      <div id="chatlogs-list">
+        <div class="loading-box"><div class="spinner"></div> กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- ══ RESTOCK ══ -->
+    <div class="tab-panel" id="panel-restock">
+      <div class="filter-bar">
+        <button class="btn btn-ghost" onclick="loadRestock()">↺ รีเฟรช</button>
+      </div>
+      <div id="restock-list">
+        <div class="loading-box"><div class="spinner"></div> กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- ══ TREND ══ -->
+    <div class="tab-panel" id="panel-trend">
+      <div class="filter-bar">
+        <select class="filter-select" id="trend-days" onchange="loadTrend()">
+          <option value="7">7 วัน</option>
+          <option value="30" selected>30 วัน</option>
+          <option value="90">90 วัน</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadTrend()">↺ รีเฟรช</button>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-head"><div class="section-title">🔥 สินค้าขายดีข้ามร้าน</div></div>
+          <div id="trend-popular"></div>
+        </div>
+        <div>
+          <div class="section-head"><div class="section-title">🆕 เมนูใหม่มาแรง</div></div>
+          <div id="trend-new-menus"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DELETIONS ══ -->
+    <div class="tab-panel" id="panel-deletions">
+      <div class="filter-bar">
+        <select class="filter-select" id="del-days" onchange="loadDeletions()">
           <option value="1">วันนี้</option>
           <option value="7" selected>7 วัน</option>
           <option value="30">30 วัน</option>
         </select>
-        <select id="sales-shop" style="background:var(--bg4);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;">
-          <option value="">ทุกร้าน</option>
-        </select>
-        <button onclick="loadSales()" class="btn btn-gold btn-sm">🔍 โหลด</button>
-        <button onclick="loadSales(true)" class="btn btn-ghost btn-sm">🔄 Live</button>
+        <button class="btn btn-ghost" onclick="loadDeletions()">↺ รีเฟรช</button>
+      </div>
+      <div class="stat-grid" id="del-summary"></div>
+      <div class="section-head" style="margin-top:8px">
+        <div class="section-title">Log การลบบิล</div>
+      </div>
+      <div id="del-list">
+        <div class="loading-box"><div class="spinner"></div> กำลังโหลด...</div>
       </div>
     </div>
-  </div>
-  <div class="grid-4">
-    <div class="card stat-card gold"><span class="lbl">ยอดรวม</span><span class="val" id="sale-total">—</span></div>
-    <div class="card stat-card green"><span class="lbl">จำนวนบิล</span><span class="val" id="sale-bills">—</span></div>
-    <div class="card stat-card blue"><span class="lbl">เงินสด</span><span class="val" id="sale-cash">—</span></div>
-    <div class="card stat-card orange"><span class="lbl">โอน</span><span class="val" id="sale-transfer">—</span></div>
-  </div>
-  <div id="sales-shops-list"></div>
-  <div class="card">
-    <div class="sec-hdr"><h3>🧾 บิลล่าสุด</h3><span class="badge" id="sales-bill-count">—</span></div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>เวลา</th><th>ร้าน</th><th>สินค้า</th><th>ยอด</th><th>ชำระ</th><th>สมาชิก</th></tr></thead>
-        <tbody id="sales-bill-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
-<!-- ───── TAB: SHOPS ───── -->
-<div id="tab-shops" class="tab-content">
-  <div class="section-title">ภาพรวมร้านค้าทั้งหมด</div>
-  <div class="filter-row">
-    <input id="user-search" placeholder="🔍 ค้นหา ชื่อร้าน / username" style="width:200px;" oninput="filterUsers()">
-    <select id="user-filter-status" onchange="filterUsers()">
-      <option value="">ทุกสถานะ</option>
-      <option value="pending">รอ Approve</option>
-      <option value="active">Active</option>
-    </select>
-    <select id="user-filter-plan" onchange="filterUsers()">
-      <option value="">ทุกแพ็กเกจ</option>
-      <option value="starter">Starter</option>
-      <option value="pro">Pro</option>
-    </select>
-    <button class="btn btn-gold btn-sm" onclick="loadUsers()">🔄 รีเฟรช</button>
-  </div>
-  <!-- Desktop table -->
-  <div class="tbl-wrap desktop-table">
-    <table>
-      <thead><tr>
-        <th>Username</th><th>ชื่อร้าน</th><th>เบอร์</th>
-        <th>แพ็กเกจ</th><th>สถานะ</th><th>AI วันนี้</th>
-        <th>สมัครเมื่อ</th><th>Export</th><th>Actions</th>
-      </tr></thead>
-      <tbody id="users-tbody">
-        <tr><td colspan="9" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <!-- Mobile cards -->
-  <div class="mobile-cards" id="users-cards">
-    <div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>
-  </div>
-</div>
+  </div><!-- /content -->
+</div><!-- /main-screen -->
 
-<!-- ───── TAB: BILL DELETIONS ───── -->
-<div id="tab-deletions" class="tab-content">
-  <div class="section-title">การลบบิล — ติดตามทุกครั้งที่ร้านลบข้อมูลยอดขาย</div>
-  <div class="grid-3">
-    <div class="card stat-card red"><span class="lbl">ลบบิลทั้งหมด</span><span class="val" id="del-total">—</span></div>
-    <div class="card stat-card gold"><span class="lbl">มูลค่ารวม</span><span class="val" id="del-amount">—</span></div>
-    <div class="card stat-card blue"><span class="lbl">ร้านที่ลบ</span><span class="val" id="del-shops">—</span></div>
-  </div>
-  <div class="filter-row">
-    <select id="del-days" onchange="loadDeletions()">
-      <option value="1">วันนี้</option>
-      <option value="7" selected>7 วัน</option>
-      <option value="30">30 วัน</option>
-      <option value="90">90 วัน</option>
-    </select>
-    <select id="del-shop-filter" onchange="filterDeletionLogs()"><option value="">ทุกร้าน</option></select>
-    <button class="btn btn-ghost btn-sm" onclick="loadDeletions()">🔄 รีเฟรช</button>
-  </div>
-  <div class="section-title">สรุปรายร้าน</div>
-  <div id="del-shop-summary" class="deletion-summary-grid"></div>
-  <div class="section-title">รายการที่ถูกลบ</div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>เวลาที่ลบ</th><th>ร้าน</th><th>ผู้ใช้</th><th>เวลาบิล</th><th>มูลค่า</th><th>รายการสินค้า</th><th>ชำระ</th></tr></thead>
-      <tbody id="del-tbody">
-        <tr><td colspan="7" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ───── TAB: MENUS ───── -->
-<div id="tab-menus" class="tab-content">
-  <div class="section-title">เมนูใหม่ — วิเคราะห์แนวโน้มจากร้านที่ลงทะเบียน</div>
-  <div class="grid-2">
-    <div class="card stat-card gold"><span class="lbl">เมนูที่ติดตาม</span><span class="val" id="menu-total">—</span></div>
-    <div class="card stat-card green"><span class="lbl">เมนูซ้ำ ≥2 ร้าน</span><span class="val" id="menu-overlap">—</span></div>
-  </div>
-  <div class="filter-row">
-    <select id="menu-days" onchange="loadMenuTrend()">
-      <option value="7">7 วัน</option>
-      <option value="30" selected>30 วัน</option>
-      <option value="90">90 วัน</option>
-    </select>
-    <button class="btn btn-ghost btn-sm" onclick="loadMenuTrend()">🔄 รีเฟรช</button>
-  </div>
-  <div class="section-title">เมนูที่เพิ่มบ่อยสุดข้ามร้าน</div>
-  <div class="card" style="padding:6px 0;">
-    <div id="menu-trend-list"><div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div></div>
-  </div>
-  <div class="section-title" style="margin-top:20px;">ตารางรายละเอียด</div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr><th>#</th><th>ชื่อเมนู</th><th>ร้านที่เพิ่ม</th><th>ครั้งที่เพิ่ม</th><th>ราคาเฉลี่ย</th><th>ล่าสุด</th></tr></thead>
-      <tbody id="menu-tbody">
-        <tr><td colspan="6" class="loading-row"><span class="spin">⟳</span></td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ───── TAB: POPULAR ───── -->
-<div id="tab-popular" class="tab-content">
-  <div class="section-title">สินค้ายอดนิยม — รวมยอดขายทุกร้าน</div>
-  <div class="filter-row">
-    <select id="pop-days" onchange="loadPopular()">
-      <option value="1">วันนี้</option>
-      <option value="7" selected>7 วัน</option>
-      <option value="30">30 วัน</option>
-    </select>
-    <button class="btn btn-ghost btn-sm" onclick="loadPopular()">🔄 รีเฟรช</button>
-  </div>
-  <div id="pop-shop-count" style="font-size:12px;color:var(--text3);margin-bottom:14px;"></div>
-  <div class="section-title">Top 20 รายการขายดีสุด</div>
-  <div class="card" style="padding:6px 0;">
-    <div id="popular-list"><div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div></div>
-  </div>
-</div>
-
-<!-- ───── TAB: AI CHAT ───── -->
-<div id="tab-chats" class="tab-content">
-  <div class="card">
-    <div class="sec-hdr">
-      <h3>💬 ประวัติ AI Chat แต่ละร้าน</h3>
-      <span class="badge">Real-time</span>
-    </div>
-    <div class="chat-filters" id="chat-shop-filters">
-      <button class="chat-filter-btn active" onclick="filterChats('all')" data-shop="all">ทุกร้าน</button>
-    </div>
-    <div id="chat-entries-wrap">
-      <div class="empty-state"><div class="icon">💬</div>ยังไม่มีข้อมูล Chat — กด Refresh เพื่อโหลด</div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="sec-hdr"><h3>📊 สถิติ AI Usage รายร้าน</h3></div>
-    <div class="tbl-wrap">
-      <table>
-        <tr><th>ร้าน</th><th>Username</th><th>แพ็กเกจ</th><th>ใช้วันนี้</th><th>เหลือวันนี้</th><th>Usage Bar</th></tr>
-        <tbody id="ai-usage-body">
-          <tr><td colspan="6"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ───── TAB: ACTIVITY ───── -->
-<div id="tab-activity" class="tab-content">
-  <div class="grid-2">
-    <div class="card">
-      <div class="sec-hdr">
-        <h3>⚡ Activity Feed</h3>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span id="log-count" class="badge">0 events</span>
-          <button class="act-btn act-btn-orange btn-sm" onclick="clearLog()">ล้าง</button>
-        </div>
-      </div>
-      <div class="log-panel" id="log-panel">
-        <div class="log-line"><span class="log-ts">--:--:--</span><span class="log-msg system">เริ่มต้น Monitor...</span></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="sec-hdr"><h3>📦 Backup Files รายร้าน</h3><span class="badge" id="backup-count">—</span></div>
-      <div class="tbl-wrap" style="max-height:340px;overflow-y:auto;">
-        <table>
-          <tr><th>ร้าน</th><th>ไฟล์ล่าสุด</th><th>ขนาด</th><th>ดู</th></tr>
-          <tbody id="backup-body">
-            <tr><td colspan="4"><div class="empty-state"><div class="icon">📁</div>กำลังโหลด...</div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="sec-hdr"><h3>🔄 Sync Timeline</h3></div>
-    <div class="tbl-wrap">
-      <table>
-        <tr><th>ร้าน</th><th>Username</th><th>Sync ล่าสุด</th><th>จำนวนไฟล์</th><th>History</th><th>Members</th><th>Products</th></tr>
-        <tbody id="sync-body">
-          <tr><td colspan="7"><div class="empty-state"><div class="icon">⏳</div>กำลังโหลด...</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ───── TAB: SERVER ───── -->
-<div id="tab-server" class="tab-content">
-  <div class="grid-4">
-    <div class="card stat-card green"><span class="lbl">Server Status</span><span class="val" id="srv-status">—</span></div>
-    <div class="card stat-card blue"><span class="lbl">Version</span><span class="val" id="srv-version" style="font-size:18px">—</span></div>
-    <div class="card stat-card"><span class="lbl">Gemini Model</span><span class="val" id="srv-model" style="font-size:13px;color:var(--gold2)">—</span></div>
-    <div class="card stat-card"><span class="lbl">AI Key</span><span class="val" id="srv-aikey">—</span></div>
-  </div>
-  <div class="grid-2">
-    <div class="card">
-      <div class="sec-hdr"><h3>🕐 Server Time</h3></div>
-      <div class="mono" id="srv-time" style="font-size:28px;color:var(--gold2);margin:8px 0;">--:--:--</div>
-      <div style="font-size:12px;color:var(--text3)" id="srv-date">-- / -- / ----</div>
-      <div style="margin-top:16px;font-size:12px;color:var(--text3)">Starter Daily Limit</div>
-      <div class="mono" style="font-size:22px;color:var(--blue2);margin-top:4px;" id="srv-limit">—</div>
-    </div>
-    <div class="card">
-      <div class="sec-hdr"><h3>📡 API Health</h3></div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-        <div class="health-item"><span class="h-lbl">Last Check</span><span class="h-val" id="last-health" style="color:var(--green)">—</span></div>
-        <div class="health-item"><span class="h-lbl">Response Time</span><span class="h-val" id="resp-time" style="color:var(--blue2)">— ms</span></div>
-        <div class="health-item"><span class="h-lbl">Total API Calls</span><span class="h-val" id="total-calls" style="color:var(--gold2)">0</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="sec-hdr"><h3>📈 Uptime Stats (session)</h3></div>
-    <div class="bar-wrap" id="uptime-bars"><div class="empty-state"><div class="icon">📡</div>กำลังตรวจสอบ...</div></div>
-  </div>
-</div>
-
-</main>
-
-<!-- ── EDIT USER MODAL ── -->
-<div id="edit-modal" class="modal-overlay">
-  <div class="modal-box">
+<!-- ══ MODAL: แก้ไขร้าน ══ -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
     <div class="modal-title">✏️ แก้ไขข้อมูลร้าน</div>
     <input type="hidden" id="edit-username">
-    <div class="modal-field"><label>ชื่อร้าน</label><input type="text" id="edit-shop-name"></div>
-    <div class="modal-field"><label>เบอร์โทร</label><input type="text" id="edit-phone"></div>
-    <div class="modal-field"><label>แพ็กเกจ</label>
-      <select id="edit-plan"><option value="starter">Starter 199฿</option><option value="pro">Pro 399฿</option></select>
+    <div class="form-group">
+      <label class="form-label">ชื่อร้าน</label>
+      <input class="form-input" id="edit-shop-name">
     </div>
-    <div class="modal-field"><label>สถานะ</label>
-      <select id="edit-status"><option value="active">Active</option><option value="pending">Pending</option></select>
+    <div class="form-group">
+      <label class="form-label">เบอร์โทร</label>
+      <input class="form-input" id="edit-phone">
+    </div>
+    <div class="form-group">
+      <label class="form-label">แพ็กเกจ</label>
+      <select class="form-select" id="edit-plan">
+        <option value="starter">Starter — 199฿</option>
+        <option value="pro">Pro — 399฿</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">สถานะ</label>
+      <select class="form-select" id="edit-status">
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+      </select>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-gold" onclick="submitEdit()">💾 บันทึก</button>
-      <button class="btn btn-ghost" onclick="closeEditModal()">ยกเลิก</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="submitEdit()">บันทึก</button>
     </div>
   </div>
 </div>
 
-<!-- ── RESET PW MODAL ── -->
-<div id="reset-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">🔒 รีเซ็ตรหัสผ่าน</div>
+<!-- ══ MODAL: Reset Password ══ -->
+<div class="modal-overlay" id="modal-reset-pw">
+  <div class="modal">
+    <div class="modal-title">🔑 รีเซ็ตรหัสผ่าน</div>
     <input type="hidden" id="reset-username">
-    <div class="modal-field">
-      <label id="reset-shop-label">ร้าน</label>
-      <input type="password" id="reset-pw" placeholder="รหัสผ่านใหม่ (อย่างน้อย 4 ตัว)">
+    <div class="form-group">
+      <label class="form-label">รหัสผ่านใหม่</label>
+      <input class="form-input" type="text" id="reset-pw" placeholder="อย่างน้อย 4 ตัวอักษร">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-red" onclick="submitReset()">🔑 รีเซ็ต</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('reset-modal').classList.remove('open')">ยกเลิก</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-reset-pw')">ยกเลิก</button>
+      <button class="btn btn-warning" onclick="submitResetPw()">รีเซ็ต</button>
     </div>
   </div>
 </div>
 
+<!-- ══ TOAST ══ -->
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // STATE
-// ══════════════════════════════════════
-let ADMIN_KEY       = '';
-let BASE_URL        = '';
-let refreshTimer    = null;
-let allUsersData    = [];
-let allDelLogs      = [];
-let delSummary      = [];
-let sessionCalls    = 0;
-let sessionErrors   = 0;
-let sessionStart    = Date.now();
-let logLines        = [];
-let chatData        = {};
-let currentChatShop = 'all';
+// ════════════════════════════════════════════════════════
+let allUsers = [];
+let currentTab = 'dashboard';
 
-// ══════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════
-function fmt(n){ if(n==null)return '—'; return Number(n).toLocaleString('th-TH'); }
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-function fmtUptime(s){ if(s<60)return `${s}s`; if(s<3600)return `${Math.floor(s/60)}m`; return `${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m`; }
-function timeAgo(ts){
-  if(!ts)return '—';
-  const diff=(Date.now()-new Date(ts))/1000;
-  if(diff<60)return `${Math.floor(diff)}s ที่แล้ว`;
-  if(diff<3600)return `${Math.floor(diff/60)}m ที่แล้ว`;
-  if(diff<86400)return `${Math.floor(diff/3600)}h ที่แล้ว`;
-  return `${Math.floor(diff/86400)}d ที่แล้ว`;
-}
-
-function showToast(msg,err=false){
-  const el=document.getElementById('toast');
-  el.textContent=msg;
-  el.style.borderColor=err?'rgba(192,84,74,.5)':'';
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2800);
-}
-
-async function api(path,opts={}){
-  const res=await fetch(BASE_URL+path,{
-    headers:{'Content-Type':'application/json','X-Admin-Key':ADMIN_KEY},
-    credentials:'include',...opts
-  });
-  return res.json();
-}
-
-// ══════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // LOGIN / LOGOUT
-// ══════════════════════════════════════
-async function doLogin(){
-  const k=document.getElementById('key-input').value.trim();
-  const err=document.getElementById('lock-err');
-  if(!k){err.textContent='กรุณาใส่ Admin Key';return;}
-  err.textContent='';
-  BASE_URL=window.location.origin;
-  try{
-    const d=await api('/api/admin/login',{method:'POST',body:JSON.stringify({key:k})});
-    if(d.ok){
-      ADMIN_KEY=k;
-      document.getElementById('lock-screen').style.display='none';
-      document.getElementById('topbar').style.display='flex';
-      document.getElementById('nav-tabs').style.display='flex';
-      document.getElementById('main-content').style.display='block';
-      init();
-    }else{
-      err.textContent=d.msg||'❌ Key ไม่ถูกต้อง';
+// ════════════════════════════════════════════════════════
+async function doLogin() {
+  const key = document.getElementById('admin-key-input').value.trim();
+  if (!key) return;
+  try {
+    const r = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({key})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-screen').style.display = 'block';
+      loadDashboard();
+    } else {
+      document.getElementById('login-err').textContent = d.msg || 'รหัสไม่ถูกต้อง';
     }
-  }catch(e){
-    err.textContent='❌ เชื่อมต่อ server ไม่ได้';
+  } catch(e) {
+    document.getElementById('login-err').textContent = 'เชื่อมต่อ server ไม่ได้';
   }
 }
+document.getElementById('admin-key-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-async function doLogout(){
-  await api('/api/admin/logout',{method:'POST'});
+async function doLogout() {
+  await fetch('/api/admin/logout', {method:'POST'});
   location.reload();
 }
 
-// ══════════════════════════════════════
-// INIT
-// ══════════════════════════════════════
-function init(){
-  addLog('system','','Admin Panel เริ่มต้นแล้ว 🌿');
-  refreshAll();
-  const iv=parseInt(document.getElementById('interval-sel').value);
-  refreshTimer=setInterval(refreshAll,iv);
-}
-
-function changeInterval(){
-  clearInterval(refreshTimer);
-  const iv=parseInt(document.getElementById('interval-sel').value);
-  refreshTimer=setInterval(refreshAll,iv);
-  addLog('system','',`เปลี่ยน interval เป็น ${iv/1000}s`);
-}
-
-async function refreshAll(){
-  const btn=document.getElementById('refresh-btn');
-  btn.classList.add('spinning');
-  sessionCalls++;
-  document.getElementById('total-calls').textContent=sessionCalls;
-  try{
-    await Promise.all([loadHealth(),loadUsers()]);
-    document.getElementById('last-update').textContent=new Date().toLocaleTimeString('th-TH');
-    addLog('system','','รีเฟรชข้อมูลสำเร็จ ✓');
-  }catch(e){
-    sessionErrors++;
-    addLog('error','',`รีเฟรชล้มเหลว: ${e.message}`);
-  }
-  btn.classList.remove('spinning');
-}
-
-// ══════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // TABS
-// ══════════════════════════════════════
-function switchTab(name,el){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+// ════════════════════════════════════════════════════════
+const tabLoaders = {
+  dashboard: loadDashboard,
+  users: loadUsers,
+  sales: loadSales,
+  chatlogs: loadChatLogs,
+  restock: loadRestock,
+  trend: loadTrend,
+  deletions: loadDeletions,
+};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  if(el)el.classList.add('active');
-  if(name==='sales')loadSales();
-  if(name==='deletions'&&allDelLogs.length===0)loadDeletions();
-  if(name==='menus')loadMenuTrend();
-  if(name==='popular')loadPopular();
+  document.getElementById('panel-'+name).classList.add('active');
+  currentTab = name;
+  if (tabLoaders[name]) tabLoaders[name]();
 }
 
-// ══════════════════════════════════════
-// HEALTH
-// ══════════════════════════════════════
-async function loadHealth(){
-  const t0=Date.now();
-  try{
-    const r=await fetch(`${BASE_URL}/api/health`);
-    const d=await r.json();
-    const ms=Date.now()-t0;
-    document.getElementById('srv-status').textContent=d.status==='ok'?'✅ OK':'❌ ERROR';
-    document.getElementById('srv-version').textContent=d.version||'—';
-    document.getElementById('srv-model').textContent=d.model||'—';
-    document.getElementById('srv-aikey').textContent=d.ai_key?'✅ พร้อม':'❌ ไม่มี';
-    document.getElementById('srv-limit').textContent=d.starter_limit||'—';
-    document.getElementById('resp-time').textContent=`${ms} ms`;
-    document.getElementById('last-health').textContent=new Date().toLocaleTimeString('th-TH');
-    if(d.time){const p=d.time.split(' ');document.getElementById('srv-time').textContent=p[1]||d.time;document.getElementById('srv-date').textContent=p[0]||'';}
-    const uptime=Math.floor((Date.now()-sessionStart)/1000);
-    const errPct=sessionCalls>0?Math.round(sessionErrors/sessionCalls*100):0;
-    document.getElementById('uptime-bars').innerHTML=`
-      <div class="bar-row"><span class="bar-lbl">Uptime</span><div class="bar-track"><div class="bar-fill" style="background:var(--green);width:100%"></div></div><span class="bar-val">${fmtUptime(uptime)}</span></div>
-      <div class="bar-row"><span class="bar-lbl">Response</span><div class="bar-track"><div class="bar-fill" style="background:${ms<300?'var(--green)':ms<800?'var(--gold)':'var(--red)'};width:${Math.min(ms/10,100)}%"></div></div><span class="bar-val">${ms}ms</span></div>
-      <div class="bar-row"><span class="bar-lbl">API Calls</span><div class="bar-track"><div class="bar-fill" style="background:var(--blue2);width:${Math.min(sessionCalls*5,100)}%"></div></div><span class="bar-val">${sessionCalls}</span></div>
-      <div class="bar-row"><span class="bar-lbl">Error Rate</span><div class="bar-track"><div class="bar-fill" style="background:${errPct>10?'var(--red)':'var(--green)'};width:${errPct}%"></div></div><span class="bar-val">${errPct}%</span></div>`;
-  }catch(e){addLog('error','',`Health check failed: ${e.message}`);}
+// ════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════
+async function loadDashboard() {
+  const [usersData, salesData] = await Promise.all([
+    api('/api/admin/users'),
+    api('/api/admin/sales/today'),
+  ]);
+
+  // Stats
+  const s = usersData?.summary || {};
+  const ss = salesData?.summary || {};
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">ร้านทั้งหมด</div>
+      <div class="stat-value">${s.total || 0}</div>
+      <div class="stat-sub">สมัครใช้งาน</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value" style="color:var(--green)">${s.active || 0}</div>
+      <div class="stat-sub">ใช้งานอยู่</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">รอ Approve</div>
+      <div class="stat-value" style="color:var(--orange)">${s.pending || 0}</div>
+      <div class="stat-sub">รอยืนยัน</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">รายได้/เดือน</div>
+      <div class="stat-value">${fmt(s.revenue || 0)}</div>
+      <div class="stat-sub">บาท (ประมาณการ)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ยอดขายวันนี้</div>
+      <div class="stat-value">${fmt(ss.total || 0)}</div>
+      <div class="stat-sub">${ss.bills || 0} บิล รวมทุกร้าน</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">เงินสด / โอน</div>
+      <div class="stat-value" style="font-size:18px">${fmt(ss.cash||0)} / ${fmt(ss.transfer||0)}</div>
+      <div class="stat-sub">บาท</div>
+    </div>
+  `;
+
+  // Pending
+  const pending = (usersData?.users||[]).filter(u => u.status === 'pending');
+  if (pending.length === 0) {
+    document.getElementById('dash-pending').innerHTML = '<div class="empty-box">✅ ไม่มีรอ Approve</div>';
+  } else {
+    document.getElementById('dash-pending').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ร้าน</th><th>Plan</th><th>สมัคร</th><th></th></tr></thead>
+          <tbody>${pending.map(u => `
+            <tr>
+              <td><div style="font-weight:700">${esc(u.shop_name)}</div><div style="font-size:12px;color:var(--muted)">${esc(u.username)} · ${esc(u.phone||'')}</div></td>
+              <td><span class="badge badge-${u.plan}">${u.plan}</span></td>
+              <td style="font-size:12px;color:var(--muted)">${esc(u.created_at||'')}</td>
+              <td><button class="btn btn-success btn-sm" onclick="approveUser('${esc(u.username)}')">✓ Approve</button></td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Today sales
+  const shops = salesData?.shops || {};
+  const topShops = Object.entries(shops).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+  if (topShops.length === 0) {
+    document.getElementById('dash-today-sales').innerHTML = '<div class="empty-box">ไม่มียอดขายวันนี้</div>';
+  } else {
+    document.getElementById('dash-today-sales').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ร้าน</th><th>บิล</th><th>ยอด</th></tr></thead>
+          <tbody>${topShops.map(([u,d])=>`
+            <tr>
+              <td><div style="font-weight:700">${esc(d.shop_name)}</div></td>
+              <td style="color:var(--muted)">${d.bills}</td>
+              <td class="money">${fmt(d.total)} ฿</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      </div>
+    `;
+  }
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════════════════════════════
 // USERS
-// ══════════════════════════════════════
-async function loadUsers(){
-  const d=await api('/api/admin/users');
-  if(!d.ok){addLog('error','','โหลด users ไม่ได้');return;}
-  allUsersData=d.users||[];
-  const s=d.summary||{};
-  const users=allUsersData;
-
-  // Overview stats
-  document.getElementById('s-total').textContent=s.total||users.length;
-  document.getElementById('s-active').textContent=s.active||0;
-  document.getElementById('s-pending').textContent=s.pending||0;
-  document.getElementById('s-revenue').textContent=fmt(s.revenue)+'฿';
-
-  const pro=users.filter(u=>u.plan==='pro'&&u.status==='active').length;
-  const starter=users.filter(u=>u.plan==='starter'&&u.status==='active').length;
-  const pending=users.filter(u=>u.status==='pending').length;
-  const total=users.length;
-  document.getElementById('s-pro').textContent=pro;
-  document.getElementById('s-starter').textContent=starter;
-  document.getElementById('s-pro-count').textContent=`${pro} Pro / ${starter} Starter`;
-  const totalAI=users.reduce((a,u)=>a+(u.ai_today||0),0);
-  document.getElementById('s-ai').textContent=totalAI;
-
-  if(total>0){
-    const pp=Math.round(pro/total*100),sp=Math.round(starter/total*100),pep=Math.round(pending/total*100);
-    document.getElementById('pro-pct').textContent=pp+'%';
-    document.getElementById('starter-pct').textContent=sp+'%';
-    document.getElementById('pending-pct').textContent=pep+'%';
-    document.getElementById('pro-bar').style.width=pp+'%';
-    document.getElementById('starter-bar').style.width=sp+'%';
-    document.getElementById('pending-bar').style.width=pep+'%';
-  }
-
-  // AI bars
-  const aiUsers=[...users].sort((a,b)=>(b.ai_today||0)-(a.ai_today||0)).slice(0,8);
-  const maxAI=Math.max(...aiUsers.map(u=>u.ai_today||0),1);
-  document.getElementById('ai-badge').textContent=`${totalAI} calls วันนี้`;
-  document.getElementById('ai-bar-wrap').innerHTML=aiUsers.length
-    ?aiUsers.map(u=>`<div class="bar-row"><span class="bar-lbl" title="${esc(u.shop_name)}">${esc(u.shop_name||u.username)}</span><div class="bar-track"><div class="bar-fill" style="background:${(u.ai_today||0)>15?'var(--gold)':'var(--green)'};width:${Math.round((u.ai_today||0)/maxAI*100)}%"></div></div><span class="bar-val">${u.ai_today||0}</span></div>`).join('')
-    :'<div class="empty-state"><div class="icon">📊</div>ยังไม่มี AI Usage</div>';
-
-  // New shops table
-  const sorted5=[...users].sort((a,b)=>b.created_at>a.created_at?1:-1).slice(0,5);
-  document.getElementById('new-shops-count').textContent=`${users.length} ร้าน`;
-  document.getElementById('new-shops-body').innerHTML=sorted5.map(u=>`
-    <tr>
-      <td class="mono" style="color:var(--gold2);font-size:12px">${esc(u.username)}</td>
-      <td style="font-weight:600">${esc(u.shop_name)}</td>
-      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro':'📋 Starter'}</span></td>
-      <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
-      <td class="mono" style="font-size:11px;color:var(--text3)">${u.created_at||'—'}</td>
-      <td>${u.status==='pending'?`<button class="act-btn act-btn-green btn-sm" onclick="approveUser('${esc(u.username)}')">✅ อนุมัติ</button>`:`<button class="act-btn act-btn-orange btn-sm" onclick="suspendUser('${esc(u.username)}')">⏸ ระงับ</button>`}</td>
-    </tr>`).join('');
-
-  // Detect pending alerts
-  const newPending=users.filter(u=>u.status==='pending');
-  if(newPending.length>0){
-    newPending.forEach(u=>{
-      const key=`pending-${u.username}`;
-      if(!window._loggedPending)window._loggedPending={};
-      if(!window._loggedPending[key]){window._loggedPending[key]=true;addLog('login',u.shop_name,`🆕 สมัครใหม่รอยืนยัน: ${u.username} (${u.plan})`);}
-    });
-  }
-
-  renderUsersTable(users);
-  renderAIUsageTable(users);
-  loadShopBackups(users);
+// ════════════════════════════════════════════════════════
+async function loadUsers() {
+  setHtml('users-table-wrap', loading());
+  const data = await api('/api/admin/users');
+  allUsers = data?.users || [];
+  renderUsers(allUsers);
 }
 
-function filterUsers(){
-  const q=document.getElementById('user-search').value.toLowerCase();
-  const st=document.getElementById('user-filter-status').value;
-  const pl=document.getElementById('user-filter-plan').value;
-  let list=allUsersData;
-  if(q)list=list.filter(u=>u.username.toLowerCase().includes(q)||(u.shop_name||'').toLowerCase().includes(q)||(u.phone||'').includes(q));
-  if(st)list=list.filter(u=>u.status===st);
-  if(pl)list=list.filter(u=>u.plan===pl);
-  renderUsersTable(list);
-}
-
-function renderUsersTable(users){
-  const tbody=document.getElementById('users-tbody');
-  if(!users.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="icon">🏪</div>ไม่พบร้านค้า</div></td></tr>';renderMobileCards([]);return;}
-  tbody.innerHTML=users.map(u=>`
-    <tr>
-      <td class="mono" style="color:var(--gold2);font-size:12px">${esc(u.username)}</td>
-      <td style="font-weight:600">${esc(u.shop_name||'—')}<br><span style="font-size:10px;color:var(--text3)">${esc(u.phone||'')}</span></td>
-      <td class="mono" style="font-size:11px;color:var(--text3)">${esc(u.phone||'—')}</td>
-      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan==='pro'?'🤖 Pro 399฿':'📋 Starter 199฿'}</span></td>
-      <td><span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'✅ Active':'⏳ Pending'}</span></td>
-      <td class="mono" style="color:${(u.ai_today||0)>15?'var(--gold)':'var(--green)'};">${u.ai_today||0}</td>
-      <td class="mono" style="font-size:11px;color:var(--text3)">${u.created_at||'—'}</td>
-      <td style="font-size:11px;">
-        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=sales" style="color:var(--blue2);display:block;">⬇️ ยอดขาย</a>
-        <a href="${BASE_URL}/admin/export/${esc(u.username)}?key=${ADMIN_KEY}&mode=members" style="color:var(--blue2);display:block;margin-top:2px;">⬇️ สมาชิก</a>
-        <a href="${BASE_URL}/admin/analyze/${esc(u.username)}?key=${ADMIN_KEY}" target="_blank" style="color:var(--gold);display:block;margin-top:2px;font-weight:700;">🤖 AI วิเคราะห์</a>
-      </td>
-      <td style="white-space:nowrap;">
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          ${u.status==='pending'
-            ?`<button class="act-btn act-btn-green btn-sm" onclick="approveUser('${esc(u.username)}')">✅</button>`
-            :`<button class="act-btn act-btn-orange btn-sm" onclick="suspendUser('${esc(u.username)}')">⏸</button>`}
-          <button class="act-btn act-btn-blue btn-sm" onclick="openEdit('${esc(u.username)}')">✏️</button>
-          <button class="act-btn act-btn-blue btn-sm" onclick="openReset('${esc(u.username)}','${esc(u.shop_name||'')}')">🔒</button>
-          <button class="act-btn act-btn-red btn-sm" onclick="deleteUser('${esc(u.username)}','${esc(u.shop_name||'')}')">🗑️</button>
-        </div>
-      </td>
-    </tr>`).join('');
-  renderMobileCards(users);
-}
-
-function renderMobileCards(users){
-  const el=document.getElementById('users-cards');
-  if(!users.length){el.innerHTML='<div class="empty-state"><div class="icon">🏪</div>ไม่พบร้านค้า</div>';return;}
-  el.innerHTML=users.map(u=>`
-    <div class="user-card">
-      <div class="user-card-header">
-        <div>
-          <div class="user-card-name">${esc(u.shop_name||'—')}</div>
-          <div class="user-card-phone">${esc(u.phone||'')} · <span class="mono" style="font-size:11px;">${esc(u.username)}</span></div>
-        </div>
-        <div class="user-card-pills">
-          <span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan.toUpperCase()}</span>
-          <span class="pill ${u.status==='active'?'pill-green':'pill-orange'}">${u.status==='active'?'Active':'รอ'}</span>
-        </div>
-      </div>
-      <div class="user-card-meta">
-        <div class="user-card-meta-item">AI วันนี้ <span>${u.ai_today??0}</span></div>
-        <div class="user-card-meta-item">สมัครเมื่อ <span style="font-size:10px">${u.created_at||'—'}</span></div>
-      </div>
-      <div class="user-card-actions">
-        ${u.status==='pending'
-          ?`<button class="btn btn-green btn-sm" onclick="approveUser('${esc(u.username)}')">✅ อนุมัติ</button>`
-          :`<button class="btn btn-ghost btn-sm" onclick="suspendUser('${esc(u.username)}')">⏸ ระงับ</button>`}
-        <button class="btn btn-gold btn-sm" onclick="openEdit('${esc(u.username)}')">✏️ แก้ไข</button>
-        <button class="btn btn-ghost btn-sm" onclick="openReset('${esc(u.username)}','${esc(u.shop_name||'')}')">🔒 รหัส</button>
-        <button class="btn btn-red btn-sm" onclick="deleteUser('${esc(u.username)}','${esc(u.shop_name||'')}')">🗑️ ลบ</button>
-      </div>
-    </div>`).join('');
-}
-
-// ══════════════════════════════════════
-// SALES
-// ══════════════════════════════════════
-async function loadSales(live=false){
-  const days=document.getElementById('sales-days')?.value||7;
-  const shopSel=document.getElementById('sales-shop')?.value||'';
-  let url=`${BASE_URL}/api/admin/sales?days=${days}`;
-  if(shopSel)url+=`&username=${encodeURIComponent(shopSel)}`;
-  try{
-    const r=await fetch(url,{headers:{'X-Admin-Key':ADMIN_KEY},credentials:'include'});
-    const data=await r.json();
-    if(!data.ok)return;
-    const s=data.summary||{};
-    document.getElementById('sale-total').textContent='฿'+fmt(s.total||0);
-    document.getElementById('sale-bills').textContent=fmt(s.bills||0)+' บิล';
-    document.getElementById('sale-cash').textContent='฿'+fmt(s.cash||0);
-    document.getElementById('sale-transfer').textContent='฿'+fmt(s.transfer||0);
-    const shopSel2=document.getElementById('sales-shop');
-    if(shopSel2&&shopSel2.options.length<=1){
-      Object.entries(data.shops||{}).forEach(([uname,sh])=>{const opt=document.createElement('option');opt.value=uname;opt.textContent=sh.shop_name;shopSel2.appendChild(opt);});
-    }
-    const container=document.getElementById('sales-shops-list');
-    container.innerHTML='';
-    Object.entries(data.shops||{}).forEach(([uname,sh])=>{
-      const topHtml=(sh.top_items||[]).map(it=>`<span style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-size:11px;">${esc(it.name)} ×${it.qty}</span>`).join(' ');
-      container.innerHTML+=`
-        <div class="card" style="margin-bottom:12px;">
-          <div class="sec-hdr"><h3>🏪 ${esc(sh.shop_name)} <span style="font-size:11px;color:var(--text3)">(${esc(uname)})</span></h3>
-            <span class="badge">${sh.plan?.toUpperCase()||'—'}</span></div>
-          <div class="grid-4" style="margin-bottom:10px;">
-            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">ยอดรวม</div><div style="font-size:18px;font-weight:700;color:var(--gold2);">฿${fmt(sh.total)}</div></div>
-            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">บิล</div><div style="font-size:18px;font-weight:700;">${sh.bills}</div></div>
-            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">เงินสด</div><div style="font-size:16px;font-weight:600;color:var(--green);">฿${fmt(sh.cash)}</div></div>
-            <div style="text-align:center;"><div style="font-size:10px;color:var(--text3);">โอน</div><div style="font-size:16px;font-weight:600;color:var(--blue2);">฿${fmt(sh.transfer)}</div></div>
-          </div>
-          ${topHtml?`<div style="display:flex;flex-wrap:wrap;gap:4px;"><span style="font-size:10px;color:var(--text3);margin-right:4px;">ขายดี:</span>${topHtml}</div>`:''}
-        </div>`;
-    });
-    const tbody=document.getElementById('sales-bill-tbody');
-    tbody.innerHTML='';let cnt=0;
-    Object.entries(data.shops||{}).forEach(([uname,sh])=>{
-      (sh.sales||[]).slice().reverse().forEach(sale=>{
-        const items=(sale.items||[]).filter(it=>it.key!=='_promo_').map(it=>`${esc(it.name)}×${it.qty}`).join(', ');
-        const payIcon=sale.pay==='cash'?'💵':sale.pay==='transfer'?'📱':sale.pay==='free'?'🎁':'📝';
-        tbody.innerHTML+=`<tr><td class="mono" style="font-size:11px;white-space:nowrap">${esc(sale._ts||sale.time||'—')}</td><td style="font-size:11px">${esc(sh.shop_name)}</td><td style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td><td style="color:var(--gold2);font-weight:700">฿${fmt(sale.total||0)}</td><td>${payIcon} ${esc(sale.pay||'—')}</td><td style="font-size:11px;color:var(--text3)">${esc(sale.member||'ทั่วไป')}</td></tr>`;
-        cnt++;
-      });
-    });
-    document.getElementById('sales-bill-count').textContent=cnt+' บิล';
-    if(live)addLog('sale','',`โหลดยอดขาย ${days} วัน: ${s.bills} บิล ฿${fmt(s.total)}`);
-  }catch(e){addLog('error','',`loadSales error: ${e.message}`);}
-}
-
-// ══════════════════════════════════════
-// BILL DELETIONS
-// ══════════════════════════════════════
-async function loadDeletions(){
-  const days=document.getElementById('del-days').value;
-  document.getElementById('del-tbody').innerHTML='<tr><td colspan="7" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>';
-  document.getElementById('del-shop-summary').innerHTML='';
-  const d=await api(`/api/admin/bill-deletions?days=${days}&limit=500`);
-  if(!d.ok){showToast('โหลดข้อมูลไม่ได้',true);return;}
-  allDelLogs=d.logs||[];
-  delSummary=d.shops_summary||[];
-  const totalAmt=allDelLogs.reduce((s,r)=>s+(parseInt(r.bill_total)||0),0);
-  document.getElementById('del-total').textContent=fmt(d.total_deletions);
-  document.getElementById('del-amount').textContent=fmt(totalAmt)+'฿';
-  document.getElementById('del-shops').textContent=delSummary.length;
-  if(d.total_deletions>0){const b=document.getElementById('del-badge');b.textContent=d.total_deletions>99?'99+':d.total_deletions;b.style.display='inline-block';}
-  const shopSel=document.getElementById('del-shop-filter');
-  shopSel.innerHTML='<option value="">ทุกร้าน</option>'+delSummary.map(s=>`<option value="${s.shop_id}">${esc(s.shop_name)}</option>`).join('');
-  const grid=document.getElementById('del-shop-summary');
-  if(!delSummary.length){grid.innerHTML='<div style="color:var(--text3);font-size:13px;padding:10px 0;">ไม่พบการลบบิลในช่วงนี้ ✅</div>';}
-  else{grid.innerHTML=delSummary.map(s=>`<div class="shop-del-card" onclick="filterByShop('${s.shop_id}')"><div class="shop-del-name">${esc(s.shop_name)}</div><div class="shop-del-count">${s.count}</div><div class="shop-del-amt">มูลค่า ${fmt(s.total_amt)}฿</div></div>`).join('');}
-  filterDeletionLogs();
-}
-function filterByShop(shopId){
-  document.getElementById('del-shop-filter').value=shopId;
-  document.querySelectorAll('.shop-del-card').forEach(c=>{c.classList.toggle('selected',c.onclick.toString().includes(`'${shopId}'`));});
-  filterDeletionLogs();
-}
-function filterDeletionLogs(){
-  const sf=document.getElementById('del-shop-filter').value;
-  const logs=sf?allDelLogs.filter(r=>r.shop_id===sf):allDelLogs;
-  const tbody=document.getElementById('del-tbody');
-  if(!logs.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="icon">✅</div><div>ไม่พบการลบบิล</div></div></td></tr>';return;}
-  tbody.innerHTML=logs.map(r=>{
-    let itemsHtml='—';
-    try{const items=typeof r.bill_items==='string'?JSON.parse(r.bill_items):(r.bill_items||[]);if(items.length)itemsHtml=`<div class="items-tags">${items.map(i=>`<span class="item-tag">${esc(i.name)} ×${i.qty}</span>`).join('')}</div>`;}catch(e){}
-    const delAt=r.deleted_at?new Date(r.deleted_at).toLocaleString('th-TH'):'—';
-    const billTime=r.bill_time?String(r.bill_time).replace('T',' ').slice(0,16):'—';
-    return `<tr>
-      <td><span class="mono" style="font-size:11px">${delAt}</span></td>
-      <td><strong>${esc(r.shop_name||r.shop_id||'—')}</strong></td>
-      <td><span class="mono" style="font-size:12px">${esc(r.username||'—')}</span></td>
-      <td style="font-size:12px;color:var(--text3)">${billTime}</td>
-      <td><span class="mono" style="color:var(--red)">฿${fmt(r.bill_total)}</span></td>
-      <td>${itemsHtml}</td>
-      <td><span class="pill ${r.bill_pay==='cash'?'pill-green':'pill-blue'}">${esc(r.bill_pay||'—')}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════
-// MENU TREND
-// ══════════════════════════════════════
-async function loadMenuTrend(){
-  const days=document.getElementById('menu-days').value;
-  document.getElementById('menu-trend-list').innerHTML='<div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>';
-  document.getElementById('menu-tbody').innerHTML='<tr><td colspan="6" class="loading-row"><span class="spin">⟳</span></td></tr>';
-  const d=await api(`/api/admin/new-menus?days=${days}&limit=50`);
-  if(!d.ok){showToast('โหลดเมนูไม่ได้',true);return;}
-  const trend=d.trend||[];
-  const overlap=trend.filter(r=>r.shop_count>=2).length;
-  document.getElementById('menu-total').textContent=trend.length;
-  document.getElementById('menu-overlap').textContent=overlap;
-  const maxShops=trend.length?Math.max(...trend.map(r=>r.shop_count)):1;
-  const listEl=document.getElementById('menu-trend-list');
-  if(!trend.length){listEl.innerHTML='<div class="empty-state"><div class="icon">🌱</div><div>ยังไม่มีข้อมูลเมนูใหม่</div></div>';
-  }else{
-    listEl.innerHTML=trend.slice(0,30).map((r,i)=>`
-      <div class="trend-bar-row">
-        <div class="trend-rank">${i+1}</div>
-        <div class="trend-name">${esc(r.item_name)}</div>
-        <div class="trend-bar-wrap"><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:${Math.round(r.shop_count/maxShops*100)}%"></div></div></div>
-        <div class="trend-shops">${r.shop_count} ร้าน</div>
-        <div class="trend-price">${r.avg_price?fmt(r.avg_price)+'฿':'—'}</div>
-      </div>`).join('');
-  }
-  document.getElementById('menu-tbody').innerHTML=trend.map((r,i)=>`
-    <tr>
-      <td><span class="mono" style="font-size:12px">${i+1}</span></td>
-      <td><strong>${esc(r.item_name)}</strong>${r.shop_count>=3?'<span class="pill pill-orange" style="margin-left:6px;">🔥 มาแรง</span>':r.shop_count===2?'<span class="pill pill-blue" style="margin-left:6px;">👀 น่าจับตา</span>':''}</td>
-      <td><span class="mono" style="color:var(--blue2)">${r.shop_count}</span></td>
-      <td><span class="mono">${r.total_additions}</span></td>
-      <td><span class="mono">${r.avg_price?fmt(r.avg_price)+'฿':'—'}</span></td>
-      <td style="font-size:11px;color:var(--text3)">${esc(r.last_seen||'—')}</td>
-    </tr>`).join('');
-}
-
-// ══════════════════════════════════════
-// POPULAR ITEMS
-// ══════════════════════════════════════
-async function loadPopular(){
-  const days=document.getElementById('pop-days').value;
-  document.getElementById('popular-list').innerHTML='<div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>';
-  const d=await api(`/api/admin/popular-items?days=${days}&limit=20`);
-  if(!d.ok){showToast('โหลดไม่ได้',true);return;}
-  document.getElementById('pop-shop-count').textContent=`ข้อมูลจาก ${d.shop_count} ร้าน | ${d.date_from} → ${d.date_to}`;
-  const items=d.global_top||[];
-  const maxQty=items.length?items[0].qty:1;
-  const listEl=document.getElementById('popular-list');
-  if(!items.length){listEl.innerHTML='<div class="empty-state"><div class="icon">📊</div>ไม่มีข้อมูลยอดขายในช่วงนี้</div>';return;}
-  listEl.innerHTML=items.map(item=>`
-    <div class="trend-bar-row">
-      <div class="trend-rank">${item.rank}</div>
-      <div class="trend-name">${esc(item.name)}</div>
-      <div class="trend-bar-wrap"><div class="trend-bar-bg"><div class="trend-bar-fill" style="width:${Math.round(item.qty/maxQty*100)}%;background:linear-gradient(90deg,var(--green),#a8d8a8)"></div></div></div>
-      <div class="trend-shops" style="color:var(--green)">${fmt(item.qty)} ชิ้น</div>
-    </div>`).join('');
-}
-
-// ══════════════════════════════════════
-// AI USAGE TABLE
-// ══════════════════════════════════════
-function renderAIUsageTable(users){
-  const limit=20;
-  document.getElementById('ai-usage-body').innerHTML=users.map(u=>{
-    const used=u.ai_today||0,isPro=u.plan==='pro';
-    const rem=isPro?'∞':Math.max(0,limit-used);
-    const pct=isPro?0:Math.min(used/limit*100,100);
-    return `<tr>
-      <td style="font-weight:600">${esc(u.shop_name)}</td>
-      <td class="mono" style="font-size:12px;color:var(--gold2)">${esc(u.username)}</td>
-      <td><span class="pill ${u.plan==='pro'?'pill-purple':'pill-blue'}">${u.plan}</span></td>
-      <td class="mono" style="color:${used>15?'var(--gold)':'var(--text)'}">${used}</td>
-      <td class="mono" style="color:${isPro?'var(--purple)':used>15?'var(--red)':'var(--green)'}">${rem}</td>
-      <td style="min-width:120px"><div class="bar-track"><div class="bar-fill" style="background:${pct>75?'var(--red)':pct>50?'var(--gold)':'var(--green)'};width:${isPro?0:pct}%"></div></div></td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="6"><div class="empty-state"><div class="icon">📊</div>ไม่มีข้อมูล</div></td></tr>';
-}
-
-// ══════════════════════════════════════
-// BACKUPS + CHAT
-// ══════════════════════════════════════
-async function loadShopBackups(users){
-  document.getElementById('backup-count').textContent=`${users.length} ร้าน`;
-  const backupRows=users.slice(0,15).map(u=>`
-    <tr>
-      <td style="font-weight:600">${esc(u.shop_name)}</td>
-      <td><a href="${BASE_URL}/admin/backup/${encodeURIComponent(u.username)}/?key=${ADMIN_KEY}" target="_blank" style="color:var(--blue2);font-size:12px">📂 ดูรายการ</a></td>
-      <td class="mono" style="font-size:11px;color:var(--text3)">—</td>
-      <td><a href="${BASE_URL}/admin/analyze/${encodeURIComponent(u.username)}?key=${ADMIN_KEY}" target="_blank" class="act-btn act-btn-blue btn-sm" style="text-decoration:none">🤖 วิเคราะห์</a></td>
-    </tr>`).join('');
-  document.getElementById('backup-body').innerHTML=backupRows||'<tr><td colspan="4"><div class="empty-state"><div class="icon">📁</div>ไม่มีข้อมูล</div></td></tr>';
-  const syncRows=users.slice(0,15).map(u=>`
-    <tr>
-      <td style="font-weight:600">${esc(u.shop_name)}</td>
-      <td class="mono" style="font-size:12px;color:var(--gold2)">${esc(u.username)}</td>
-      <td class="mono" style="font-size:12px;color:var(--text3)">${timeAgo(u.last_sync)||'—'}</td>
-      <td class="mono">—</td>
-      <td><span class="pill pill-blue">—</span></td>
-      <td><span class="pill pill-blue">—</span></td>
-      <td><span class="pill pill-blue">—</span></td>
-    </tr>`).join('');
-  document.getElementById('sync-body').innerHTML=syncRows||'<tr><td colspan="7"><div class="empty-state"><div class="icon">🔄</div>ไม่มีข้อมูล</div></td></tr>';
-  buildChatFilters(users);
-  await buildChatEntries(users);
-}
-
-// ══════════════════════════════════════
-// CHAT LOG
-// ══════════════════════════════════════
-function buildChatFilters(users){
-  const wrap=document.getElementById('chat-shop-filters');
-  const existing=Array.from(wrap.querySelectorAll('[data-shop]')).map(b=>b.dataset.shop);
-  users.forEach(u=>{
-    if(!existing.includes(u.username)){
-      const btn=document.createElement('button');
-      btn.className='chat-filter-btn';
-      btn.dataset.shop=u.username;
-      btn.textContent=u.shop_name||u.username;
-      btn.onclick=()=>filterChats(u.username);
-      wrap.appendChild(btn);
-    }
+function filterUsers() {
+  const q = document.getElementById('user-search').value.toLowerCase();
+  const st = document.getElementById('user-status-filter').value;
+  const pl = document.getElementById('user-plan-filter').value;
+  const filtered = allUsers.filter(u => {
+    const matchQ = !q || u.username.includes(q) || u.shop_name.toLowerCase().includes(q) || (u.phone||'').includes(q);
+    const matchSt = !st || u.status === st;
+    const matchPl = !pl || u.plan === pl;
+    return matchQ && matchSt && matchPl;
   });
+  renderUsers(filtered);
 }
-function filterChats(shop){
-  currentChatShop=shop;
-  document.querySelectorAll('.chat-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.shop===shop));
-  renderChatEntries();
+
+function renderUsers(users) {
+  if (!users.length) {
+    setHtml('users-table-wrap', '<div class="empty-box">ไม่พบร้านค้า</div>');
+    return;
+  }
+  setHtml('users-table-wrap', `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ร้าน</th><th>Username</th><th>เบอร์</th>
+            <th>Plan</th><th>สถานะ</th><th>AI วันนี้</th>
+            <th>Last Sync</th><th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${users.map(u => `
+            <tr>
+              <td><div style="font-weight:700;font-size:14px">${esc(u.shop_name)}</div>
+                  <div style="font-size:11px;color:var(--muted);font-family:'Fira Code',monospace">${esc(u.shop_id)}</div></td>
+              <td style="font-family:'Fira Code',monospace;color:var(--accent2)">${esc(u.username)}</td>
+              <td style="color:var(--muted)">${esc(u.phone||'-')}</td>
+              <td><span class="badge badge-${u.plan}">${u.plan} ${u.price}฿</span></td>
+              <td><span class="badge badge-${u.status}">${u.status}</span></td>
+              <td style="text-align:center;font-family:'Fira Code',monospace">${u.ai_today||0}</td>
+              <td style="font-size:12px;color:var(--muted)">${u.last_sync ? u.last_sync.substring(0,16) : '-'}</td>
+              <td>
+                <div style="display:flex;gap:5px;flex-wrap:nowrap">
+                  ${u.status==='pending'
+                    ? `<button class="btn btn-success btn-sm" onclick="approveUser('${esc(u.username)}')">✓</button>`
+                    : `<button class="btn btn-warning btn-sm" onclick="suspendUser('${esc(u.username)}')">⏸</button>`}
+                  <button class="btn btn-ghost btn-sm" onclick="openEdit(${JSON.stringify(u).replace(/'/g,"&#39;")})">✏️</button>
+                  <button class="btn btn-ghost btn-sm" onclick="openResetPw('${esc(u.username)}')">🔑</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.username)}','${esc(u.shop_name)}')">🗑</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="padding:10px 0;font-size:12px;color:var(--muted)">แสดง ${users.length} ร้าน</div>
+  `);
 }
-async function buildChatEntries(users){
-  const wrap=document.getElementById('chat-entries-wrap');
-  wrap.innerHTML='<div class="empty-state"><div class="icon">⏳</div>กำลังโหลด Chat Log...</div>';
-  try{
-    const r=await fetch(`${BASE_URL}/api/admin/chat-logs`,{headers:{'X-Admin-Key':ADMIN_KEY},credentials:'include'});
-    const d=await r.json();
-    if(!d.ok){wrap.innerHTML='<div class="empty-state"><div class="icon">❌</div>ไม่มีสิทธิ์เข้าถึง Chat Log</div>';return;}
-    const allEntries=[];
-    for(const [uname,info] of Object.entries(d.data||{})){
-      (info.logs||[]).forEach(log=>{allEntries.push({shop:uname,shop_name:info.shop_name||uname,plan:info.plan||'starter',ts:log.ts||'',user_msg:log.user_msg||'',ai_reply:log.ai_reply||''});});
-    }
-    allEntries.sort((a,b)=>b.ts.localeCompare(a.ts));
-    chatData._all=allEntries;
-    if(allEntries.length)addLog('chat','',`โหลด Chat Log สำเร็จ: ${allEntries.length} รายการ`);
-    renderChatEntries();
-  }catch(e){
-    wrap.innerHTML='<div class="empty-state"><div class="icon">❌</div>โหลด Chat Log ไม่สำเร็จ: '+esc(e.message)+'</div>';
-    addLog('error','',`Chat Log error: ${e.message}`);
+
+async function approveUser(username) {
+  const r = await api(`/api/admin/approve/${username}`, 'POST');
+  toast(r?.msg || 'อนุมัติแล้ว', 'success');
+  if (currentTab==='users') loadUsers();
+  else loadDashboard();
+}
+
+async function suspendUser(username) {
+  if (!confirm(`ระงับ ${username}?`)) return;
+  const r = await api(`/api/admin/suspend/${username}`, 'POST');
+  toast(r?.msg || 'ระงับแล้ว', 'success');
+  loadUsers();
+}
+
+async function deleteUser(username, shopName) {
+  if (!confirm(`⚠️ ลบร้าน "${shopName}" (${username}) จริงๆ ไหม?\nข้อมูลจะหายถาวร`)) return;
+  const r = await api(`/api/admin/delete/${username}`, 'POST');
+  toast(r?.msg || 'ลบแล้ว', 'success');
+  loadUsers();
+}
+
+function openEdit(u) {
+  document.getElementById('edit-username').value = u.username;
+  document.getElementById('edit-shop-name').value = u.shop_name;
+  document.getElementById('edit-phone').value = u.phone || '';
+  document.getElementById('edit-plan').value = u.plan;
+  document.getElementById('edit-status').value = u.status;
+  openModal('modal-edit');
+}
+
+async function submitEdit() {
+  const username = document.getElementById('edit-username').value;
+  const r = await api(`/api/admin/edit/${username}`, 'POST', {
+    shop_name: document.getElementById('edit-shop-name').value,
+    phone:     document.getElementById('edit-phone').value,
+    plan:      document.getElementById('edit-plan').value,
+    status:    document.getElementById('edit-status').value,
+  });
+  toast(r?.msg || 'อัปเดตแล้ว', 'success');
+  closeModal('modal-edit');
+  loadUsers();
+}
+
+function openResetPw(username) {
+  document.getElementById('reset-username').value = username;
+  document.getElementById('reset-pw').value = '';
+  openModal('modal-reset-pw');
+}
+
+async function submitResetPw() {
+  const username = document.getElementById('reset-username').value;
+  const password = document.getElementById('reset-pw').value.trim();
+  if (!password) return toast('กรอกรหัสผ่านก่อน','error');
+  const r = await api(`/api/admin/reset_password/${username}`, 'POST', {password});
+  toast(r?.msg || 'รีเซ็ตแล้ว', 'success');
+  closeModal('modal-reset-pw');
+}
+
+// ════════════════════════════════════════════════════════
+// SALES
+// ════════════════════════════════════════════════════════
+async function loadSales() {
+  setHtml('sales-list', loading());
+  setHtml('sales-summary', '');
+  const date = document.getElementById('sales-date').value;
+  const days = document.getElementById('sales-days').value;
+  const params = date ? `?date=${date}` : `?days=${days}`;
+  const data = await api('/api/admin/sales'+params);
+
+  const sum = data?.summary || {};
+  setHtml('sales-summary', `
+    <div class="stat-card"><div class="stat-label">ยอดรวม</div><div class="stat-value">${fmt(sum.total||0)}</div><div class="stat-sub">บาท</div></div>
+    <div class="stat-card"><div class="stat-label">จำนวนบิล</div><div class="stat-value">${sum.bills||0}</div></div>
+    <div class="stat-card"><div class="stat-label">เงินสด</div><div class="stat-value" style="color:var(--green)">${fmt(sum.cash||0)}</div></div>
+    <div class="stat-card"><div class="stat-label">โอนเงิน</div><div class="stat-value" style="color:var(--blue)">${fmt(sum.transfer||0)}</div></div>
+  `);
+
+  const shops = data?.shops || {};
+  const entries = Object.entries(shops).sort((a,b)=>b[1].total-a[1].total);
+  if (!entries.length) { setHtml('sales-list','<div class="empty-box">ไม่มีข้อมูลยอดขาย</div>'); return; }
+
+  setHtml('sales-list', entries.map(([username, d]) => `
+    <div class="shop-sale-card">
+      <div class="shop-sale-head" onclick="toggleEl('sale-body-${username}')">
+        <div class="shop-sale-name">${esc(d.shop_name)}</div>
+        <span class="badge badge-${d.plan}">${d.plan}</span>
+        <span class="money" style="margin-left:auto">${fmt(d.total)} ฿</span>
+        <span style="color:var(--muted);font-size:13px;margin-left:8px">${d.bills} บิล ▾</span>
+      </div>
+      <div class="shop-sale-body" id="sale-body-${username}">
+        <div class="sale-meta-grid">
+          <div class="sale-meta-item"><div class="sale-meta-label">ยอดรวม</div><div class="sale-meta-val money">${fmt(d.total)} ฿</div></div>
+          <div class="sale-meta-item"><div class="sale-meta-label">เงินสด</div><div class="sale-meta-val">${fmt(d.cash)} ฿</div></div>
+          <div class="sale-meta-item"><div class="sale-meta-label">โอน</div><div class="sale-meta-val">${fmt(d.transfer)} ฿</div></div>
+          <div class="sale-meta-item"><div class="sale-meta-label">ฟรี</div><div class="sale-meta-val">${d.free||0} บิล</div></div>
+          ${d.debt ? `<div class="sale-meta-item"><div class="sale-meta-label">หนี้ค้างชำระ</div><div class="sale-meta-val" style="color:var(--red)">${fmt(d.debt)} ฿</div></div>` : ''}
+        </div>
+        ${d.top_items?.length ? `
+          <div style="margin-bottom:10px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">สินค้าขายดี</div>
+            ${d.top_items.map(it=>`
+              <div style="font-size:13px;color:var(--text2);padding:3px 0">
+                ${esc(it.name)} <span style="color:var(--accent2);font-family:'Fira Code',monospace">×${it.qty}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        ${d.sales?.length ? `
+          <details>
+            <summary style="font-size:12px;color:var(--muted);cursor:pointer;margin-bottom:8px">ดู ${d.sales.length} บิลล่าสุด ▾</summary>
+            <div class="table-wrap" style="margin-top:8px">
+              <table>
+                <thead><tr><th>เวลา</th><th>รายการ</th><th>ยอด</th><th>ชำระ</th></tr></thead>
+                <tbody>${d.sales.slice().reverse().map(s=>`
+                  <tr>
+                    <td style="font-size:12px;font-family:'Fira Code',monospace;color:var(--muted)">${(s._ts||'').substring(11,16)}</td>
+                    <td style="font-size:12px">${(s.items||[]).slice(0,3).map(it=>esc(it.name)).join(', ')}${(s.items||[]).length>3?'...':''}</td>
+                    <td class="money" style="font-size:13px">${fmt(s.total)} ฿</td>
+                    <td><span class="badge badge-${s.pay==='cash'?'ok':s.pay==='free'?'warning':'active'}">${s.pay||'-'}</span></td>
+                  </tr>
+                `).join('')}</tbody>
+              </table>
+            </div>
+          </details>
+        ` : ''}
+      </div>
+    </div>
+  `).join(''));
+}
+
+// ════════════════════════════════════════════════════════
+// CHAT LOGS
+// ════════════════════════════════════════════════════════
+async function loadChatLogs() {
+  setHtml('chatlogs-list', loading());
+  const data = await api('/api/admin/chat-logs');
+  const shops = data?.data || {};
+  const entries = Object.entries(shops).filter(([,d])=>d.logs?.length);
+  if (!entries.length) { setHtml('chatlogs-list','<div class="empty-box">ไม่มี chat log</div>'); return; }
+
+  setHtml('chatlogs-list', entries.map(([username, d])=>`
+    <div class="chat-shop-block">
+      <div class="chat-shop-head" onclick="toggleEl('chat-logs-${username}')">
+        <span style="font-size:16px">💬</span>
+        <span class="chat-shop-name">${esc(d.shop_name)}</span>
+        <span class="badge badge-${d.plan}">${d.plan}</span>
+        <span class="chat-count">${d.logs.length} รายการ ▾</span>
+      </div>
+      <div class="chat-logs-body" id="chat-logs-${username}">
+        ${d.logs.map(l=>`
+          <div class="chat-row">
+            <div class="chat-ts">${l.ts||''}</div>
+            <div class="chat-user"><span>User:</span> ${esc(l.user_msg||'')}</div>
+            <div class="chat-ai"><span>AI:</span> ${esc(l.ai_reply||'').substring(0,200)}${(l.ai_reply||'').length>200?'…':''}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join(''));
+}
+
+// ════════════════════════════════════════════════════════
+// RESTOCK
+// ════════════════════════════════════════════════════════
+async function loadRestock() {
+  setHtml('restock-list', loading());
+  const data = await api('/api/admin/restock-alerts');
+  const shops = data?.shops || [];
+  if (!shops.length) {
+    setHtml('restock-list','<div class="empty-box">✅ ไม่มีสต็อกวิกฤตในขณะนี้</div>');
+    return;
+  }
+  setHtml('restock-list', `
+    <div style="margin-bottom:12px;color:var(--muted);font-size:13px">พบ ${shops.length} ร้านที่มีสต็อกน่าเป็นห่วง</div>
+    <div class="restock-grid">
+      ${shops.map(s=>`
+        <div class="restock-card ${s.alerts.some(a=>a.urgency==='critical')?'critical':'warning'}">
+          <div class="restock-shop">🏪 ${esc(s.shop_name)}</div>
+          ${s.alerts.map(a=>`
+            <div class="restock-item">
+              <span class="badge badge-${a.urgency}" style="margin-right:8px;flex-shrink:0">${a.urgency==='critical'?'🔴':'🟡'}</span>
+              <span class="restock-name">${esc(a.product_name)}</span>
+              <span class="restock-stat">เหลือ ${a.current_stock} | ~${Math.round(a.days_left)} วัน</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `);
+}
+
+// ════════════════════════════════════════════════════════
+// TREND
+// ════════════════════════════════════════════════════════
+async function loadTrend() {
+  setHtml('trend-popular','<div class="loading-box"><div class="spinner"></div></div>');
+  setHtml('trend-new-menus','<div class="loading-box"><div class="spinner"></div></div>');
+  const days = document.getElementById('trend-days').value;
+  const [pop, menus] = await Promise.all([
+    api(`/api/admin/popular-items?days=${days}&limit=20`),
+    api(`/api/admin/new-menus?days=${days}&limit=30`),
+  ]);
+
+  const items = pop?.global_top || [];
+  const maxQty = items[0]?.qty || 1;
+  setHtml('trend-popular', items.length
+    ? `<div class="table-wrap" style="padding:16px">` +
+      items.map((it,i)=>`
+        <div class="trend-bar-wrap">
+          <div class="trend-bar-label">${i+1}. ${esc(it.name)}</div>
+          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:${Math.round(it.qty/maxQty*100)}%"></div></div>
+          <div class="trend-bar-val">${it.qty}</div>
+        </div>
+      `).join('') + `</div>`
+    : '<div class="empty-box">ไม่มีข้อมูล</div>'
+  );
+
+  const trend = menus?.trend || [];
+  const maxAdd = trend[0]?.total_additions || 1;
+  setHtml('trend-new-menus', trend.length
+    ? `<div class="table-wrap" style="padding:16px">` +
+      trend.map(it=>`
+        <div class="trend-bar-wrap">
+          <div class="trend-bar-label">${esc(it.item_name)}</div>
+          <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:${Math.round(it.total_additions/maxAdd*100)}%;background:var(--green)"></div></div>
+          <div class="trend-bar-val" style="color:var(--green)">${it.shop_count}ร้าน</div>
+        </div>
+      `).join('') + `</div>`
+    : '<div class="empty-box">ไม่มีข้อมูล</div>'
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// BILL DELETIONS
+// ════════════════════════════════════════════════════════
+async function loadDeletions() {
+  setHtml('del-list', loading());
+  setHtml('del-summary','');
+  const days = document.getElementById('del-days').value;
+  const data = await api(`/api/admin/bill-deletions?days=${days}&limit=300`);
+
+  const summary = data?.shops_summary || [];
+  setHtml('del-summary', summary.length ? summary.slice(0,4).map(s=>`
+    <div class="stat-card">
+      <div class="stat-label" style="color:var(--red)">${esc(s.shop_name||s.shop_id)}</div>
+      <div class="stat-value" style="color:var(--red)">${s.count}</div>
+      <div class="stat-sub">ลบไป ${fmt(s.total_amt)} ฿</div>
+    </div>
+  `).join('') : '');
+
+  const logs = data?.logs || [];
+  if (!logs.length) { setHtml('del-list','<div class="empty-box">ไม่มีการลบบิลในช่วงนี้ ✅</div>'); return; }
+
+  setHtml('del-list', `
+    <div class="section-head">
+      <div class="section-title">ทั้งหมด ${data.total_deletions} รายการ</div>
+    </div>
+    <div class="table-wrap">
+      <div style="padding:14px 16px">
+        ${logs.map(l=>`
+          <div class="del-row">
+            <div class="del-icon">🗑️</div>
+            <div class="del-detail">
+              <div class="del-shop">${esc(l.shop_name||l.shop_id)} <span style="color:var(--muted);font-size:12px">@${esc(l.username||'')}</span></div>
+              <div style="font-size:13px;color:var(--text2)">บิลเวลา ${esc(l.bill_time||'-')} · ${esc(l.bill_pay||'-')}</div>
+              <div class="del-time">${fmtTs(l.deleted_at)}</div>
+            </div>
+            <div class="del-amt">${fmt(l.bill_total||0)} ฿</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `);
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+async function api(url, method='GET', body=null) {
+  try {
+    const opts = {method, headers:{'Content-Type':'application/json'}};
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(url, opts);
+    return await r.json();
+  } catch(e) {
+    toast('เชื่อมต่อ server ไม่ได้','error');
+    return null;
   }
 }
-function renderChatEntries(){
-  const entries=chatData._all||[];
-  const filtered=currentChatShop==='all'?entries:entries.filter(e=>e.shop===currentChatShop);
-  const wrap=document.getElementById('chat-entries-wrap');
-  if(!filtered.length){wrap.innerHTML='<div class="empty-state"><div class="icon">💬</div>ไม่พบประวัติ AI Chat<br><small style="color:var(--text3)">ยังไม่มีการใช้งาน AI</small></div>';return;}
-  wrap.innerHTML=filtered.map(e=>`
-    <div class="chat-entry">
-      <div class="chat-entry-hdr">
-        <span class="chat-entry-shop">🏪 ${esc(e.shop_name)} <span style="color:var(--text3);font-weight:400;font-size:11px">@${esc(e.shop)}</span></span>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span class="pill ${e.plan==='pro'?'pill-purple':'pill-blue'}">${esc(e.plan)}</span>
-          <span class="chat-entry-ts">${esc(e.ts)}</span>
-        </div>
-      </div>
-      ${e.user_msg?`<div class="chat-bubble-user"><div class="role-lbl">👤 USER</div>${esc(e.user_msg)}</div>`:''}
-      ${e.ai_reply?`<div class="chat-bubble-ai"><div class="role-lbl">🤖 AI</div>${esc(e.ai_reply)}</div>`:''}
-    </div>`).join('');
+
+function fmt(n) { return Number(n).toLocaleString('th-TH'); }
+
+function fmtTs(ts) {
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleString('th-TH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch(e) { return ts; }
 }
 
-// ══════════════════════════════════════
-// USER ACTIONS
-// ══════════════════════════════════════
-async function approveUser(username){
-  if(!confirm(`อนุมัติ ${username}?`))return;
-  const d=await api(`/api/admin/approve/${encodeURIComponent(username)}`,{method:'POST'});
-  showToast(d.msg||(d.ok?'✅ อนุมัติแล้ว':'❌ ผิดพลาด'),!d.ok);
-  addLog('login',username,'✅ อนุมัติแล้ว');
-  if(d.ok)setTimeout(loadUsers,500);
-}
-async function suspendUser(username){
-  if(!confirm(`ระงับ ${username}?`))return;
-  const d=await api(`/api/admin/suspend/${encodeURIComponent(username)}`,{method:'POST'});
-  showToast(d.msg||(d.ok?'⏸ ระงับแล้ว':'❌ ผิดพลาด'),!d.ok);
-  addLog('login',username,'⏸ ระงับแล้ว');
-  if(d.ok)setTimeout(loadUsers,500);
-}
-async function deleteUser(username,shopName){
-  if(!confirm(`⚠️ ลบร้าน "${shopName}" (@${username}) ออกจากระบบ?\nข้อมูลทั้งหมดจะหายไป!`))return;
-  const d=await api(`/api/admin/delete/${encodeURIComponent(username)}`,{method:'POST'});
-  showToast(d.msg||(d.ok?'🗑️ ลบแล้ว':'❌ ผิดพลาด'),!d.ok);
-  addLog('error',username,'🗑️ ลบออกจากระบบ');
-  if(d.ok)setTimeout(loadUsers,500);
-}
-function openEdit(username){
-  const u=allUsersData.find(x=>x.username===username);if(!u)return;
-  document.getElementById('edit-username').value=username;
-  document.getElementById('edit-shop-name').value=u.shop_name||'';
-  document.getElementById('edit-phone').value=u.phone||'';
-  document.getElementById('edit-plan').value=u.plan||'starter';
-  document.getElementById('edit-status').value=u.status||'active';
-  document.getElementById('edit-modal').classList.add('open');
-}
-function closeEditModal(){document.getElementById('edit-modal').classList.remove('open');}
-async function submitEdit(){
-  const username=document.getElementById('edit-username').value;
-  const shop_name=document.getElementById('edit-shop-name').value.trim();
-  const phone=document.getElementById('edit-phone').value.trim();
-  const plan=document.getElementById('edit-plan').value;
-  const status=document.getElementById('edit-status').value;
-  const d=await api(`/api/admin/edit/${username}`,{method:'POST',body:JSON.stringify({shop_name,phone,plan,status})});
-  showToast(d.msg||(d.ok?'บันทึกแล้ว ✅':'ผิดพลาด'),!d.ok);
-  if(d.ok){closeEditModal();loadUsers();}
-}
-function openReset(username,shop_name){
-  document.getElementById('reset-username').value=username;
-  document.getElementById('reset-shop-label').textContent=`ร้าน: ${shop_name} (${username})`;
-  document.getElementById('reset-pw').value='';
-  document.getElementById('reset-modal').classList.add('open');
-}
-async function submitReset(){
-  const username=document.getElementById('reset-username').value;
-  const password=document.getElementById('reset-pw').value.trim();
-  if(password.length<4){showToast('รหัสผ่านต้องมีอย่างน้อย 4 ตัว',true);return;}
-  const d=await api(`/api/admin/reset_password/${username}`,{method:'POST',body:JSON.stringify({password})});
-  showToast(d.msg||(d.ok?'รีเซ็ตรหัสผ่านแล้ว ✅':'ผิดพลาด'),!d.ok);
-  if(d.ok)document.getElementById('reset-modal').classList.remove('open');
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ══════════════════════════════════════
-// LOG
-// ══════════════════════════════════════
-function addLog(type,shop,msg){
-  const ts=new Date().toLocaleTimeString('th-TH');
-  logLines.unshift({type,shop,msg,ts});
-  if(logLines.length>200)logLines.pop();
-  const panel=document.getElementById('log-panel');
-  const div=document.createElement('div');
-  div.className='log-line';
-  div.innerHTML=`<span class="log-ts">${ts}</span>${shop?`<span class="log-shop">[${esc(shop)}]</span>`:''}<span class="log-msg ${type}">${esc(msg)}</span>`;
-  panel.insertBefore(div,panel.firstChild);
-  while(panel.children.length>100)panel.removeChild(panel.lastChild);
-  document.getElementById('log-count').textContent=`${logLines.length} events`;
-}
-function clearLog(){
-  logLines=[];
-  document.getElementById('log-panel').innerHTML='<div class="log-line"><span class="log-ts">--:--:--</span><span class="log-msg system">ล้าง log แล้ว</span></div>';
-  document.getElementById('log-count').textContent='0 events';
+function setHtml(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
 }
 
-// ══════════════════════════════════════
-// AUTO CHECK SESSION
-// ══════════════════════════════════════
-(async function(){
-  try{
-    BASE_URL=window.location.origin;
-    const d=await api('/api/admin/me');
-    if(d.ok){
-      document.getElementById('lock-screen').style.display='none';
-      document.getElementById('topbar').style.display='flex';
-      document.getElementById('nav-tabs').style.display='flex';
-      document.getElementById('main-content').style.display='block';
-      init();
-    }
-  }catch(e){}
-})();
+function loading() {
+  return '<div class="loading-box"><div class="spinner"></div> กำลังโหลด...</div>';
+}
+
+function toggleEl(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// ── Toast ──
+let toastTimer;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.className='', 2800);
+}
+
+// ── Set today's date as default ──
+document.getElementById('sales-date').value = new Date().toISOString().substring(0,10);
 </script>
 </body>
 </html>
