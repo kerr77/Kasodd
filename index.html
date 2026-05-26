@@ -1118,6 +1118,18 @@
   }
   .admin-btn:last-child { margin-bottom: 0; }
   .admin-btn.danger { border-color: rgba(192,84,74,0.6); color: var(--red); background: rgba(192,84,74,0.06); }
+  .btn-logout {
+    display: block; width: 100%; margin-top: 12px;
+    padding: 10px 20px;
+    background: transparent;
+    border: 1.5px solid var(--red);
+    color: var(--red);
+    border-radius: var(--radius-sm);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; text-align: center;
+  }
+  .btn-logout:active { opacity: 0.7; }
 
   /* Product editor */
   .prod-edit-item {
@@ -1912,6 +1924,7 @@
       <button class="admin-btn danger" onclick="adminClearHistory()">🗑️ ล้างประวัติทั้งหมด</button>
       <button class="admin-btn danger" onclick="adminResetAll()">💥 รีเซ็ตระบบทั้งหมด</button>
       <button class="admin-btn" onclick="lockScreen()" style="margin-top:6px;border-color:var(--muted);color:var(--muted);">🔒 ล็อกหน้าจอ</button>
+      <button class="btn-logout" onclick="logoutUser()">🚪 ออกจากระบบ</button>
     </div>
   </div>
 </div>
@@ -2170,22 +2183,18 @@ const LS_STOCK = 'pos_stock_v2';
 const LS_HISTORY = 'pos_history_v2';
 
 function loadStock() {
-  try { stock = JSON.parse(localStorage.getItem(LS_STOCK)) || {}; } catch { stock = {}; }
+  stock = nsGet(LS_STOCK, {});
   // Initialize stock keys for any effective products not yet in stock
   getEffectiveProducts().forEach(p => { if (!(p.key in stock)) stock[p.key] = 0; });
 }
-function saveStock() { localStorage.setItem(LS_STOCK, JSON.stringify(stock)); }
-function loadHistory() {
-  try { return JSON.parse(localStorage.getItem(LS_HISTORY)) || []; } catch { return []; }
-}
-function saveHistory(h) { localStorage.setItem(LS_HISTORY, JSON.stringify(h)); }
+function saveStock() { nsSet(LS_STOCK, stock); }
+function loadHistory() { return nsGet(LS_HISTORY, []); }
+function saveHistory(h) { nsSet(LS_HISTORY, h); }
 
 // ===== DELIVERY LOG =====
 const LS_DELIVERY = 'pos_delivery_v1';
-function loadDelivery() {
-  try { return JSON.parse(localStorage.getItem(LS_DELIVERY)) || []; } catch { return []; }
-}
-function saveDelivery(d) { localStorage.setItem(LS_DELIVERY, JSON.stringify(d)); }
+function loadDelivery() { return nsGet(LS_DELIVERY, []); }
+function saveDelivery(d) { nsSet(LS_DELIVERY, d); }
 
 function initDeliverySelect() {
   const dl = document.getElementById('delivery-product-list');
@@ -2555,14 +2564,14 @@ async function autoSyncToServer() {
   try {
     const payload = {
       history:  loadHistory(),
-      products: (() => { try { return JSON.parse(localStorage.getItem(LS_PRODUCTS)) || []; } catch { return []; } })(),
-      members:  (() => { try { return JSON.parse(localStorage.getItem(LS_MEMBERS))  || []; } catch { return []; } })(),
+      products: nsGet(LS_PRODUCTS, []),
+      members:  nsGet(LS_MEMBERS, []),
       stock:    stock,
-      delivery: (() => { try { return JSON.parse(localStorage.getItem(LS_DELIVERY)) || []; } catch { return []; } })(),
+      delivery: nsGet(LS_DELIVERY, []),
       settings: {
-        shopName:      localStorage.getItem('pos_shop_name') || '',
-        assistantName: localStorage.getItem('pos_assistant_name') || '',
-        loyaltyN:      parseInt(localStorage.getItem(LS_LOYALTY)) || 10,
+        shopName:      nsGet('pos_shop_name') || '',
+        assistantName: nsGet('pos_assistant_name') || '',
+        loyaltyN:      parseInt(nsGet(LS_LOYALTY)) || 10,
       },
     };
     // v6: ใช้ /api/shop/sync (เก็บแยกไฟล์ต่อ key)
@@ -2606,7 +2615,7 @@ async function restoreFromCloud() {
     let restored = [];
 
     if (d.products && d.products.length) {
-      localStorage.setItem(LS_PRODUCTS, JSON.stringify(d.products));
+      nsSet(LS_PRODUCTS, d.products);
       restored.push('สินค้า ' + d.products.length + ' รายการ');
     }
     if (d.stock && Object.keys(d.stock).length) {
@@ -2619,17 +2628,17 @@ async function restoreFromCloud() {
       restored.push('ประวัติ ' + d.history.length + ' บิล');
     }
     if (d.members && d.members.length) {
-      localStorage.setItem(LS_MEMBERS, JSON.stringify(d.members));
+      nsSet(LS_MEMBERS, d.members);
       restored.push('สมาชิก ' + d.members.length + ' คน');
     }
     if (d.delivery && d.delivery.length) {
-      localStorage.setItem(LS_DELIVERY, JSON.stringify(d.delivery));
+      nsSet(LS_DELIVERY, d.delivery);
       restored.push('Delivery ' + d.delivery.length + ' รายการ');
     }
     if (d.settings) {
-      if (d.settings.shopName)      localStorage.setItem('pos_shop_name', d.settings.shopName);
-      if (d.settings.assistantName) localStorage.setItem('pos_assistant_name', d.settings.assistantName);
-      if (d.settings.loyaltyN)      localStorage.setItem(LS_LOYALTY, d.settings.loyaltyN);
+      if (d.settings.shopName)      nsSet('pos_shop_name', d.settings.shopName);
+      if (d.settings.assistantName) nsSet('pos_assistant_name', d.settings.assistantName);
+      if (d.settings.loyaltyN)      nsSet(LS_LOYALTY, d.settings.loyaltyN);
     }
 
     if (restored.length) {
@@ -3105,8 +3114,8 @@ function showToast(msg, isError = false) {
 
 function buildShopSystem() {
   const effProds = getEffectiveProducts();
-  const shopName = localStorage.getItem('pos_shop_name') || 'ร้านนี้';
-  const assistantName = localStorage.getItem('pos_assistant_name') || 'ผู้ช่วย AI';
+  const shopName = nsGet('pos_shop_name') || 'ร้านนี้';
+  const assistantName = nsGet('pos_assistant_name') || 'ผู้ช่วย AI';
   
   const prodLines = effProds.filter(p => !p.promoBase).map(p => {
     let line = `- ${p.name}: ฿${p.price}`;
@@ -3382,8 +3391,7 @@ let pinBuffer = '';
 let pinRoleSelected = 'staff';
 
 function getPins() {
-  try { return JSON.parse(localStorage.getItem(LS_PINS)) || { staff: '1234', owner: '0000' }; }
-  catch { return { staff: '1234', owner: '0000' }; }
+  return nsGet(LS_PINS) || { staff: '1234', owner: '0000' };
 }
 
 function selectPinRole(role) {
@@ -3468,12 +3476,10 @@ function loadCustomProducts() {
 
 function getEffectiveProducts() {
   // v12: ทั้งหมดมาจาก localStorage — ไม่มี hardcode egg
-  try {
-    const saved = JSON.parse(localStorage.getItem(LS_PRODUCTS));
-    if (saved && Array.isArray(saved) && saved.length > 0) {
-      return saved;
-    }
-  } catch {}
+  const saved = nsGet(LS_PRODUCTS, []);
+  if (saved && Array.isArray(saved) && saved.length > 0) {
+    return saved;
+  }
   return [];
 }
 
@@ -3512,7 +3518,7 @@ function updateProductField(idx, field, val) {
 }
 
 function saveCustomProducts(prods) {
-  localStorage.setItem(LS_PRODUCTS, JSON.stringify(prods));
+  nsSet(LS_PRODUCTS, prods);
   autoSyncToServer();
 }
 
@@ -3691,14 +3697,14 @@ function saveNewProduct() {
 function saveShopSettings() {
   const shopName = document.getElementById('admin-shop-name').value.trim();
   const assistantName = document.getElementById('admin-assistant-name').value.trim();
-  if (shopName) localStorage.setItem('pos_shop_name', shopName);
+  if (shopName) nsSet('pos_shop_name', shopName);
   if (assistantName) {
-    const prevName = localStorage.getItem('pos_assistant_name') || '';
-    localStorage.setItem('pos_assistant_name', assistantName);
+    const prevName = nsGet('pos_assistant_name') || '';
+    nsSet('pos_assistant_name', assistantName);
     // Generate new avatar if name changed
     if (prevName !== assistantName) {
       const newAvatar = generateAiAvatar(assistantName);
-      localStorage.setItem('pos_assistant_avatar', newAvatar);
+      nsSet('pos_assistant_avatar', newAvatar);
       applyAiAvatar(newAvatar);
     }
   }
@@ -3736,17 +3742,17 @@ function previewAiAvatar(name) {
 
 function savePersonality() {
   const checked = [...document.querySelectorAll('#personality-grid input:checked')].map(i => i.value);
-  localStorage.setItem('pos_ai_personality', JSON.stringify(checked));
+  nsSet('pos_ai_personality', checked);
 }
 
 function loadPersonality() {
-  try { return JSON.parse(localStorage.getItem('pos_ai_personality') || '[]'); } catch { return []; }
+  return nsGet('pos_ai_personality', []);
 }
 
 function loadShopSettingsUI() {
-  const shopName = localStorage.getItem('pos_shop_name') || '';
-  const assistantName = localStorage.getItem('pos_assistant_name') || '';
-  const avatar = localStorage.getItem('pos_assistant_avatar') || generateAiAvatar(assistantName);
+  const shopName = nsGet('pos_shop_name') || '';
+  const assistantName = nsGet('pos_assistant_name') || '';
+  const avatar = nsGet('pos_assistant_avatar') || generateAiAvatar(assistantName);
   const shopEl = document.getElementById('admin-shop-name');
   if (shopEl) shopEl.value = shopName;
   const assistEl = document.getElementById('admin-assistant-name');
@@ -3766,7 +3772,7 @@ function loadShopSettingsUI() {
 
 function loadShopSettings() {
   loadShopSettingsUI();
-  const shopName = localStorage.getItem('pos_shop_name') || '';
+  const shopName = nsGet('pos_shop_name') || '';
   if (shopName) document.title = shopName + ' POS';
 }
 
@@ -3777,7 +3783,7 @@ function saveAdminPins() {
   const pins = getPins();
   if (sp) pins.staff = sp;
   if (op) pins.owner = op;
-  localStorage.setItem(LS_PINS, JSON.stringify(pins));
+  nsSet(LS_PINS, pins);
   document.getElementById('admin-staff-pin').value = '';
   document.getElementById('admin-owner-pin').value = '';
   showToast('บันทึก PIN แล้ว ✅');
@@ -3792,17 +3798,15 @@ function adminClearHistory() {
 function adminResetAll() {
   if (!confirm('รีเซ็ตทั้งหมด?\nข้อมูลสต็อก ประวัติ สมาชิก จะหายหมด!')) return;
   if (!confirm('ยืนยันอีกครั้ง — รีเซ็ตจริงหรือ?')) return;
-  [LS_STOCK, LS_HISTORY, LS_PRODUCTS, LS_MEMBERS, LS_PETTY, LS_SHIFT, LS_DELIVERY, LS_LOYALTY].forEach(k => localStorage.removeItem(k));
+  [LS_STOCK, LS_HISTORY, LS_PRODUCTS, LS_MEMBERS, LS_PETTY, LS_SHIFT, LS_DELIVERY, LS_LOYALTY].forEach(k => nsRemove(k));
   location.reload();
 }
 
 // ===================================================================
 // 🕐 SHIFT MANAGEMENT
 // ===================================================================
-function getShift() {
-  try { return JSON.parse(localStorage.getItem(LS_SHIFT)) || null; } catch { return null; }
-}
-function saveShift(s) { localStorage.setItem(LS_SHIFT, JSON.stringify(s)); }
+function getShift() { return nsGet(LS_SHIFT, null); }
+function saveShift(s) { nsSet(LS_SHIFT, s); }
 
 function renderShiftBar() {
   const bar = document.getElementById('shift-bar');
@@ -3902,10 +3906,8 @@ function confirmCloseShift() {
 // ===================================================================
 // 💸 PETTY CASH
 // ===================================================================
-function loadPetty() {
-  try { return JSON.parse(localStorage.getItem(LS_PETTY)) || []; } catch { return []; }
-}
-function savePetty(p) { localStorage.setItem(LS_PETTY, JSON.stringify(p)); }
+function loadPetty() { return nsGet(LS_PETTY, []); }
+function savePetty(p) { nsSet(LS_PETTY, p); }
 
 function addPettyCash() {
   const desc = document.getElementById('petty-desc').value.trim();
@@ -3952,17 +3954,15 @@ function deletePetty(i) {
 // ===================================================================
 // 👤 CRM — ระบบสมาชิกสะสมแต้ม
 // ===================================================================
-function getMembers() {
-  try { return JSON.parse(localStorage.getItem(LS_MEMBERS)) || []; } catch { return []; }
-}
-function saveMembers(m) { localStorage.setItem(LS_MEMBERS, JSON.stringify(m)); autoSyncToServer(); }
+function getMembers() { return nsGet(LS_MEMBERS, []); }
+function saveMembers(m) { nsSet(LS_MEMBERS, m); autoSyncToServer(); }
 
 function getLoyaltyN() {
-  try { return parseInt(localStorage.getItem(LS_LOYALTY)) || 10; } catch { return 10; }
+  return parseInt(nsGet(LS_LOYALTY)) || 10;
 }
 function saveLoyaltySettings() {
   const n = parseInt(document.getElementById('loyalty-n').value) || 10;
-  localStorage.setItem(LS_LOYALTY, n);
+  nsSet(LS_LOYALTY, n);
   showToast(`✅ บันทึก: ซื้อครบ ${n} ครั้ง ฟรี 1`);
 }
 
@@ -4159,12 +4159,17 @@ function lookupMemberInfo() {
 // ===================================================================
 const LOW_THRESHOLD_DEFAULT = 3;
 const LS_LOW_THRESH = 'pos_low_thresh_v1';
-let LOW_THRESHOLD = (() => { try { return parseInt(localStorage.getItem(LS_LOW_THRESH)) || LOW_THRESHOLD_DEFAULT; } catch { return LOW_THRESHOLD_DEFAULT; } })();
+// โหลดค่าจริงหลัง initShopSession() เสร็จ (ใน initPosApp)
+let LOW_THRESHOLD = LOW_THRESHOLD_DEFAULT;
+
+function loadLowThreshold() {
+  LOW_THRESHOLD = parseInt(nsGet(LS_LOW_THRESH)) || LOW_THRESHOLD_DEFAULT;
+}
 
 function saveLowThreshold() {
   const val = parseInt(document.getElementById('low-thresh-input').value) || LOW_THRESHOLD_DEFAULT;
   LOW_THRESHOLD = val;
-  localStorage.setItem(LS_LOW_THRESH, val);
+  nsSet(LS_LOW_THRESH, val);
   checkLowStockAlert();
   showToast(`✅ ตั้งแจ้งเตือนที่ ≤ ${val}`);
 }
@@ -4562,7 +4567,7 @@ function renderLowStockAlert() {
 function saveLowThreshQuick() {
   const val = parseInt(document.getElementById('low-thresh-quick')?.value) || LOW_THRESHOLD_DEFAULT;
   LOW_THRESHOLD = Math.max(1, val);
-  localStorage.setItem(LS_LOW_THRESH, LOW_THRESHOLD);
+  nsSet(LS_LOW_THRESH, LOW_THRESHOLD);
   renderLowStockAlert();
   renderProducts();
   // sync admin tab input if open
@@ -4606,9 +4611,9 @@ renderCart();
 const LS_PROMOS = 'pos_promos_v1';
 
 function loadPromos() {
-  try { return JSON.parse(localStorage.getItem(LS_PROMOS)) || []; } catch { return []; }
+  return nsGet(LS_PROMOS, []);
 }
-function savePromos(p) { localStorage.setItem(LS_PROMOS, JSON.stringify(p)); }
+function savePromos(p) { nsSet(LS_PROMOS, p); }
 
 // Calculate applied promotions for current cart
 // Returns: { discount: number, appliedPromos: [{promo, timesApplied}] }
@@ -5072,12 +5077,8 @@ let popupSessionId = null;
 const SESSIONS_KEY = 'pos_chat_sessions';
 
 // --- Session Storage Helpers ---
-function loadSessions() {
-  try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
-}
-function saveSessions(sessions) {
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions.slice(0, 30)));
-}
+function loadSessions() { return nsGet(SESSIONS_KEY, []); }
+function saveSessions(sessions) { nsSet(SESSIONS_KEY, sessions.slice(0, 30)); }
 function saveCurrentSession(title) {
   if (!popupSessionId || popupChatHist.length === 0) return;
   const sessions = loadSessions();
@@ -5098,7 +5099,7 @@ function saveCurrentSession(title) {
 function openAiPopup() {
   document.getElementById('ai-popup-overlay').classList.add('open');
   document.getElementById('popup-assistant-name').textContent =
-    localStorage.getItem('pos_assistant_name') || 'ผู้ช่วย AI ประจำร้าน';
+    nsGet('pos_assistant_name') || 'ผู้ช่วย AI ประจำร้าน';
 
   if (document.getElementById('popup-chat-history').children.length === 0) {
     popupInitChat();
@@ -5124,7 +5125,7 @@ function popupInitChat(keepHistory) {
     popupChatHist = [];
     document.getElementById('popup-chat-history').innerHTML = '';
   }
-  const aiName = localStorage.getItem('pos_assistant_name') || 'AI ประจำร้าน';
+  const aiName = nsGet('pos_assistant_name') || 'AI ประจำร้าน';
   popupAppendMsg('bot', `☀️ สวัสดีค่ะ! ฉันคือ ${aiName}\nจะถามเรื่องสินค้า ราคา สต็อก หรือให้ช่วยคำนวณอะไรก็ได้เลยค่ะ 😊`);
 }
 
@@ -6015,7 +6016,7 @@ async function popupSendChat() {
           // --- N1. ตั้งค่าแจ้งเตือนสต็อกต่ำ ---
           else if (action.type === 'low_stock_alert' && action.limit >= 0) {
             LOW_THRESHOLD = action.limit;
-            localStorage.setItem(LS_LOW_THRESH, action.limit);
+            nsSet(LS_LOW_THRESH, action.limit);
             // sync UI inputs
             const lti = document.getElementById('low-thresh-input');
             if (lti) lti.value = action.limit;
@@ -6299,24 +6300,104 @@ function popupChatKeyDown(e) {
 </script>
 
 <script>
+// ══════════════════════════════════════════════════════════════════════
+// NAMESPACED STORAGE — แยกข้อมูลตาม shop_id เพื่อรองรับหลาย account
+// ══════════════════════════════════════════════════════════════════════
+let CURRENT_SHOP_ID = null;
+
+function nsKey(key) {
+  if (!CURRENT_SHOP_ID) throw new Error('CURRENT_SHOP_ID ยังไม่ถูก set');
+  return `${CURRENT_SHOP_ID}:${key}`;
+}
+function nsGet(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(nsKey(key));
+    return raw !== null ? JSON.parse(raw) : fallback;
+  } catch { return fallback; }
+}
+function nsSet(key, value) {
+  localStorage.setItem(nsKey(key), JSON.stringify(value));
+}
+function nsRemove(key) {
+  localStorage.removeItem(nsKey(key));
+}
+
+async function initShopSession() {
+  try {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    if (!data.ok) { window.location.href = '/'; return; }
+    CURRENT_SHOP_ID = data.shop_id;
+    window.CURRENT_USERNAME  = data.username;
+    window.CURRENT_SHOP_NAME = data.shop_name;
+
+    // ── Migration: ย้าย key เก่า (ไม่มี namespace) → namespace ใหม่ ──
+    const MIGRATE_KEYS = [
+      'pos_stock_v2', 'pos_history_v2', 'pos_products_v1',
+      'pos_members_v1', 'pos_shift_v1', 'pos_pins_v1',
+      'pos_petty_v1', 'pos_loyalty_v1', 'pos_delivery_v1',
+      'pos_promos_v1', 'pos_low_thresh_v1', 'pos_session_v1',
+      'pos_chat_sessions', 'pos_shop_name', 'pos_assistant_name',
+      'pos_assistant_avatar', 'pos_ai_personality',
+    ];
+    const MIGRATED_FLAG = `${CURRENT_SHOP_ID}:_migrated_v1`;
+    if (!localStorage.getItem(MIGRATED_FLAG)) {
+      MIGRATE_KEYS.forEach(k => {
+        const old = localStorage.getItem(k);
+        const newKey = `${CURRENT_SHOP_ID}:${k}`;
+        if (old !== null && localStorage.getItem(newKey) === null) {
+          localStorage.setItem(newKey, old);
+        }
+      });
+      localStorage.setItem(MIGRATED_FLAG, '1');
+    }
+  } catch {
+    window.location.href = '/';
+  }
+}
+
+async function logoutUser() {
+  if (!confirm('ออกจากระบบ?\nข้อมูลของร้านนี้จะยังอยู่ในเครื่อง (login กลับมาได้)')) return;
+  await fetch('/api/logout', { method: 'POST' }).catch(() => {});
+  // ล้างเฉพาะ key ของ shop_id ปัจจุบัน — shop อื่นไม่กระทบ
+  const BASE_KEYS = [
+    'pos_stock_v2', 'pos_history_v2', 'pos_delivery_v1',
+    'pos_pins_v1', 'pos_session_v1', 'pos_products_v1',
+    'pos_members_v1', 'pos_petty_v1', 'pos_shift_v1',
+    'pos_loyalty_v1', 'pos_low_thresh_v1', 'pos_promos_v1',
+    'pos_chat_sessions', 'pos_shop_name', 'pos_assistant_name',
+    'pos_assistant_avatar', 'pos_ai_personality',
+  ];
+  if (CURRENT_SHOP_ID) {
+    BASE_KEYS.forEach(k => localStorage.removeItem(`${CURRENT_SHOP_ID}:${k}`));
+    localStorage.removeItem(`${CURRENT_SHOP_ID}:_migrated_v1`);
+  }
+  CURRENT_SHOP_ID = null;
+  window.location.href = '/';
+}
+</script>
+
+<script>
 // ══ NEON MANTIS — init avatar + personality on page load ══
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // ── รอ initShopSession ก่อน — ต้องได้ CURRENT_SHOP_ID ก่อน nsGet/nsSet ทุกตัว ──
+  await initShopSession();
+  loadLowThreshold(); // โหลดค่าหลัง CURRENT_SHOP_ID พร้อม
+
   // Apply stored AI avatar immediately
-  const storedAvatar = localStorage.getItem('pos_assistant_avatar');
-  const storedName = localStorage.getItem('pos_assistant_name') || '';
+  const storedAvatar = nsGet('pos_assistant_avatar');
+  const storedName = nsGet('pos_assistant_name') || '';
   const avatar = storedAvatar || (storedName ? generateAiAvatar(storedName) : '🤖');
   // Apply to FAB and popup header (if they exist yet)
   setTimeout(() => applyAiAvatar(avatar), 50);
-  
+
   // Apply shop name to pin screen
-  const shopName = localStorage.getItem('pos_shop_name') || '';
+  const shopName = nsGet('pos_shop_name') || '';
   const pinShop = document.getElementById('pin-shop-display');
   if (pinShop && shopName) pinShop.textContent = '⚡ ' + shopName;
 
   // ★ โหลดข้อมูลจาก Cloud เมื่อ localStorage ว่าง (เครื่องใหม่/ย้ายเครื่อง)
-  const hasLocalProducts = (() => {
-    try { return (JSON.parse(localStorage.getItem(LS_PRODUCTS)) || []).length > 0; } catch { return false; }
-  })();
+  const hasLocalProducts = (nsGet(LS_PRODUCTS, []).length > 0);
   if (!hasLocalProducts) {
     // เครื่องใหม่ — ดึงจาก cloud อัตโนมัติ
     setTimeout(() => restoreFromCloud(), 1000);
