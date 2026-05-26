@@ -16,7 +16,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'kaasod-secret-2026')
 
 ADMIN_KEY           = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
 GEMINI_KEY          = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL        = 'gemini-3.1-flash-lite'
+GEMINI_MODEL        = 'gemini-3.5-flash-lite'
 STARTER_DAILY_LIMIT = 20
 
 # ── สร้าง DB schema ตอน startup (ถ้า DB_ENABLED) ─────────────────
@@ -265,6 +265,12 @@ def shop_sync_push():
     allowed = ['products', 'stock', 'history', 'members', 'delivery', 'settings']
     for key in allowed:
         if key in payload:
+            # ── ตรวจ menu ใหม่ก่อน write (เปรียบเทียบกับของเดิม) ──────
+            if key == 'products':
+                new_items = DB.detect_new_menu_items(shop_id, payload[key])
+                if new_items:
+                    username = session.get('username', '')
+                    DB.log_menu_additions(shop_id, username, new_items)
             DB.write_shop_data(shop_id, key, payload[key])
 
     meta = DB.read_shop_data(shop_id, 'sync_meta', {})
@@ -319,8 +325,24 @@ def record_sale_endpoint():
     return jsonify({'ok': True, 'ts': ts})
 
 
-@app.route('/api/admin/sales')
-def admin_sales():
+@app.route('/api/shop/sale/delete', methods=['POST'])
+def delete_sale_endpoint():
+    """
+    ร้านส่งข้อมูลบิลที่ถูกลบมาบันทึก — server admin จะเห็นได้
+    body: { bill: { time, total, items, pay } }
+    """
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+
+    shop_id  = session['shop_id']
+    username = session.get('username', '')
+    d        = request.get_json(silent=True) or {}
+    bill     = d.get('bill', d)   # รองรับทั้ง {bill: ...} และส่ง bill ตรงๆ
+
+    DB.log_bill_deletion(shop_id, username, bill)
+    return jsonify({'ok': True})
+
+
     if not is_admin():
         return jsonify({'ok': False}), 401
 
@@ -843,8 +865,92 @@ def admin_popular_items():
     })
 
 
-@app.route('/api/health')
-def health():
+
+@app.route('/api/admin/bill-deletions')
+def admin_bill_deletions():
+    """
+    ดู log การลบบิลของทุกร้าน (หรือร้านใดร้านหนึ่ง)
+    Query params:
+      username=''   — กรองร้านเดียว
+      days=7        — ย้อนหลังกี่วัน (DB mode)
+      limit=200     — จำนวน record สูงสุด
+    """
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+
+    days     = int(request.args.get('days', 7))
+    limit    = int(request.args.get('limit', 200))
+    target_u = request.args.get('username', '').strip()
+
+    if target_u:
+        # ดูเฉพาะร้านเดียว
+        users = DB.load_users()
+        u     = users.get(target_u)
+        if not u:
+            return jsonify({'ok': False, 'msg': f'ไม่พบ {target_u}'}), 404
+        logs = DB.get_bill_deletions(u['shop_id'], limit=limit)
+        for row in logs:
+            row['shop_name'] = u['shop_name']
+            row['username']  = target_u
+        return jsonify({'ok': True, 'count': len(logs), 'logs': logs})
+
+    # ดูทุกร้าน
+    logs = DB.get_all_bill_deletions(days=days, limit=limit)
+
+    # สรุปสถิติ per shop
+    summary: dict = {}
+    for row in logs:
+        sid = row.get('shop_id', '')
+        if sid not in summary:
+            summary[sid] = {
+                'shop_id':   sid,
+                'shop_name': row.get('shop_name', sid),
+                'count':     0,
+                'total_amt': 0,
+            }
+        summary[sid]['count']     += 1
+        summary[sid]['total_amt'] += int(row.get('bill_total', 0))
+
+    return jsonify({
+        'ok':           True,
+        'days':         days,
+        'total_deletions': len(logs),
+        'shops_summary': sorted(summary.values(), key=lambda x: -x['count']),
+        'logs':          logs,
+    })
+
+
+@app.route('/api/admin/new-menus')
+def admin_new_menus():
+    """
+    ดูเมนูใหม่ที่ร้านต่างๆ เพิ่งเพิ่มเข้ามา — วิเคราะห์แนวโน้มเมนูยอดฮิต
+    Query params:
+      days=30       — ย้อนหลังกี่วัน
+      limit=50      — จำนวน item สูงสุดใน trend
+    """
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+
+    days  = int(request.args.get('days', 30))
+    limit = int(request.args.get('limit', 50))
+
+    trend = DB.get_menu_additions_trend(days=days, limit=limit)
+
+    # แปลง Decimal / datetime เป็น str/float สำหรับ JSON
+    for row in trend:
+        if 'avg_price' in row and row['avg_price'] is not None:
+            row['avg_price'] = float(row['avg_price'])
+        if 'last_seen' in row and hasattr(row['last_seen'], 'strftime'):
+            row['last_seen'] = row['last_seen'].strftime('%Y-%m-%d %H:%M')
+
+    return jsonify({
+        'ok':    True,
+        'days':  days,
+        'count': len(trend),
+        'trend': trend,
+    })
+
+
     users = DB.load_users()
     return jsonify({
         'status':  'ok',
