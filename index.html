@@ -2894,12 +2894,6 @@ function deleteBill(idx) {
   renderProducts();
   renderStock();
   showToast('ลบบิลและคืนสต็อกแล้ว ✅');
-  // ── แจ้ง server ว่ามีการลบบิล (เพื่อให้ admin วิเคราะห์ได้) ──
-  fetch('/api/shop/sale/delete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ bill }),
-  }).catch(() => {});
 }
 
 // ===== EDIT BILL MODAL =====
