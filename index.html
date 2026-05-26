@@ -4932,7 +4932,7 @@ function confirmSale(method) {
   }
 
   const history = loadHistory();
-  history.unshift({ time: new Date().toLocaleString('th-TH'), items, total: realTotal, pay: method, member: memberInput, redeem: redeemFlag, promoDiscount: discount });
+  history.unshift({ time: new Date().toLocaleString('th-TH'), _date: new Date().toISOString().slice(0,10), items, total: realTotal, pay: method, member: memberInput, redeem: redeemFlag, promoDiscount: discount });
   saveHistory(history);
 
   // CRM แต้ม
@@ -4967,6 +4967,7 @@ function confirmSale(method) {
   recordSaleToServer({
     items, total: realTotal, pay: method, member: memberInput,
     discount: discount, time: new Date().toLocaleString('th-TH'),
+    _date: new Date().toISOString().slice(0,10),
   });
   autoSyncToServer();
 }
@@ -5556,9 +5557,10 @@ async function popupSendChat() {
             if (billItems.length > 0) {
               saveStock();
               const saleTime = new Date().toLocaleString('th-TH');
+              const saleDate = new Date().toISOString().slice(0,10);
               const history = loadHistory();
               history.unshift({
-                time: saleTime,
+                time: saleTime, _date: saleDate,
                 items: billItems, total, pay: payMethod,
                 member: memberVal, redeem: payMethod === 'free'
               });
@@ -5567,7 +5569,7 @@ async function popupSendChat() {
               // ★ บันทึกยอดขายขึ้น server ทันที (admin monitor + analytics)
               recordSaleToServer({
                 items: billItems, total, pay: payMethod, member: memberVal,
-                time: saleTime, source: 'ai_chat',
+                time: saleTime, _date: saleDate, source: 'ai_chat',
               });
 
               // อัปเดตแต้มสมาชิก (ถ้าไม่ใช่ทั่วไป)
