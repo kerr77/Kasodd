@@ -5549,13 +5549,20 @@ async function popupSendChat() {
 
             if (billItems.length > 0) {
               saveStock();
+              const saleTime = new Date().toLocaleString('th-TH');
               const history = loadHistory();
               history.unshift({
-                time: new Date().toLocaleString('th-TH'),
+                time: saleTime,
                 items: billItems, total, pay: payMethod,
                 member: memberVal, redeem: payMethod === 'free'
               });
               saveHistory(history);
+
+              // ★ บันทึกยอดขายขึ้น server ทันที (admin monitor + analytics)
+              recordSaleToServer({
+                items: billItems, total, pay: payMethod, member: memberVal,
+                time: saleTime, source: 'ai_chat',
+              });
 
               // อัปเดตแต้มสมาชิก (ถ้าไม่ใช่ทั่วไป)
               if (memberVal !== 'ทั่วไป') {

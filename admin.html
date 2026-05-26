@@ -665,6 +665,33 @@ tr:hover td { background: var(--bg3) !important; }
   <!-- per-shop breakdown -->
   <div id="sales-shops-list"></div>
 
+  <!-- สินค้ายอดนิยม (Analytics) -->
+  <div class="card" style="margin-top:16px;">
+    <div class="sec-hdr" style="flex-wrap:wrap;gap:8px;">
+      <h3>🏆 สินค้ายอดนิยม (ทุกร้าน)</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="popular-days" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:4px 8px;border-radius:6px;font-size:12px;">
+          <option value="7">7 วัน</option>
+          <option value="30">30 วัน</option>
+          <option value="90">90 วัน</option>
+        </select>
+        <button onclick="loadPopularItems()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--gold);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">📊 วิเคราะห์</button>
+      </div>
+    </div>
+    <div id="popular-meta" style="font-size:11px;color:var(--text3);margin-bottom:10px;"></div>
+
+    <!-- Global top -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🌐 รวมทุกร้าน</div>
+      <div id="popular-global" style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="color:var(--text3);font-size:12px;">กด "วิเคราะห์" เพื่อโหลดข้อมูล</span>
+      </div>
+    </div>
+
+    <!-- By shop type -->
+    <div id="popular-by-type"></div>
+  </div>
+
   <!-- บิลล่าสุด -->
   <div class="card" style="margin-top:16px;">
     <div class="sec-hdr"><h3>🧾 บิลล่าสุด</h3><span class="badge" id="sales-bill-count">—</span></div>
@@ -1008,6 +1035,80 @@ async function loadSales(live = false) {
 
   } catch (e) {
     addLog('error', '', `loadSales error: ${e.message}`);
+  }
+}
+
+// ──────────────────────────────────────
+// POPULAR ITEMS ANALYTICS
+// ──────────────────────────────────────
+async function loadPopularItems() {
+  const days  = document.getElementById('popular-days')?.value || 7;
+  const url   = `${BASE_URL}/api/admin/popular-items?days=${days}&limit=20`;
+  const globalEl  = document.getElementById('popular-global');
+  const byTypeEl  = document.getElementById('popular-by-type');
+  const metaEl    = document.getElementById('popular-meta');
+
+  globalEl.innerHTML  = '<span style="color:var(--text3);font-size:12px;">⏳ กำลังโหลด...</span>';
+  byTypeEl.innerHTML  = '';
+  metaEl.textContent  = '';
+
+  try {
+    const r    = await fetch(url);
+    const data = await r.json();
+    if (!data.ok) { globalEl.innerHTML = '<span style="color:var(--red);">โหลดไม่สำเร็จ</span>'; return; }
+
+    metaEl.textContent = `ข้อมูลจาก ${data.shop_count} ร้าน | ${data.date_from} ถึง ${data.date_to}`;
+
+    // ── Global top items ──
+    if (!data.global_top || data.global_top.length === 0) {
+      globalEl.innerHTML = '<span style="color:var(--text3);font-size:12px;">ยังไม่มีข้อมูลยอดขาย</span>';
+    } else {
+      const maxQty = data.global_top[0]?.qty || 1;
+      globalEl.innerHTML = data.global_top.map(it => {
+        const pct   = Math.round((it.qty / maxQty) * 100);
+        const medal = it.rank === 1 ? '🥇' : it.rank === 2 ? '🥈' : it.rank === 3 ? '🥉' : `#${it.rank}`;
+        const barColor = it.rank <= 3
+          ? 'linear-gradient(90deg,#C9A227,#E8C96A)'
+          : 'linear-gradient(90deg,#2E3415,#3D4520)';
+        return `
+          <div style="width:100%;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+              <span style="font-size:13px;width:28px;text-align:center;">${medal}</span>
+              <span style="font-size:13px;font-weight:600;flex:1;">${it.name}</span>
+              <span style="font-size:13px;font-weight:700;color:var(--gold);">${it.qty.toLocaleString()} ชิ้น</span>
+            </div>
+            <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;margin-left:36px;">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .4s;"></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── By shop type ──
+    const types = Object.entries(data.by_shop_type || {});
+    if (types.length > 1) {
+      byTypeEl.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:12px 0 8px;">📂 แยกตามประเภทร้าน</div>`;
+      types.forEach(([stype, items]) => {
+        if (!items || items.length === 0) return;
+        const top5  = items.slice(0, 5);
+        const chips = top5.map((it, i) => {
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+          return `<span style="background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:4px;font-size:11px;">${medal} ${it.name} ×${it.qty}</span>`;
+        }).join('');
+        byTypeEl.innerHTML += `
+          <div style="margin-bottom:10px;">
+            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;">🏷️ ${stype}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>
+          </div>`;
+      });
+    } else if (types.length === 1) {
+      byTypeEl.innerHTML = ''; // ถ้ามีแค่ประเภทเดียว ไม่ต้องแยก
+    }
+
+    addLog('info', '', `Popular items loaded: ${data.global_top?.length || 0} items from ${data.shop_count} shops`);
+  } catch (e) {
+    globalEl.innerHTML = `<span style="color:var(--red);">Error: ${e.message}</span>`;
+    addLog('error', '', `loadPopularItems error: ${e.message}`);
   }
 }
 

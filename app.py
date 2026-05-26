@@ -16,7 +16,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'kaasod-secret-2026')
 
 ADMIN_KEY           = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
 GEMINI_KEY          = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL        = 'gemini-3.1-flash-lite'
+GEMINI_MODEL        = 'gemini-3.5-flash-lite'
 STARTER_DAILY_LIMIT = 20
 
 # ── สร้าง DB schema ตอน startup (ถ้า DB_ENABLED) ─────────────────
@@ -745,6 +745,102 @@ def restock_branch_alerts():
     return jsonify({'ok': True, 'shops': result})
 
 
+
+
+@app.route('/api/admin/popular-items')
+def admin_popular_items():
+    """
+    สถิติสินค้ายอดนิยมข้ามร้านทุกร้าน
+    Query params:
+      days=7        — ย้อนหลังกี่วัน (default 7)
+      shop_type=''  — กรองตามประเภทร้าน (ถ้าร้านเก็บ settings.shop_type)
+      limit=20      — จำนวนสินค้าสูงสุด
+    Response:
+      global_top   — top items รวมทุกร้าน
+      by_shop_type — top items แยกตามประเภทร้าน
+      shop_count   — จำนวนร้านที่มีข้อมูล
+    """
+    if not is_admin():
+        return jsonify({'ok': False}), 401
+
+    from datetime import timedelta
+    days      = int(request.args.get('days', 7))
+    limit     = int(request.args.get('limit', 20))
+    shop_type = request.args.get('shop_type', '').strip()
+
+    today      = datetime.now().date()
+    date_range = [today - timedelta(days=i) for i in range(days)]
+
+    users = DB.load_users()
+    active_users = {u: d for u, d in users.items() if d.get('status') == 'active'}
+
+    global_count: dict = {}          # item_name → total_qty (all shops)
+    by_type_count: dict = {}         # shop_type → {item_name → qty}
+    shops_with_data = set()
+
+    for username, user in active_users.items():
+        sid = user.get('shop_id', '')
+        if not sid:
+            continue
+
+        # ดึง shop_type จาก settings (ถ้ามี)
+        settings  = DB.read_shop_data(sid, 'settings', {})
+        this_type = (settings.get('shop_type') or settings.get('type') or 'ทั่วไป').strip()
+
+        # กรองตาม shop_type ถ้าระบุ
+        if shop_type and this_type != shop_type:
+            continue
+
+        sales = DB.get_sales(sid, date_range)
+        if not sales:
+            continue
+
+        shops_with_data.add(sid)
+        for sale in sales:
+            for item in sale.get('items', []):
+                # ข้าม item ที่ราคาติดลบ (เช่น discount line) หรือ promo marker
+                if item.get('price', 0) < 0:
+                    continue
+                if item.get('key', '') == '_promo_':
+                    continue
+                name = item.get('name', '').strip()
+                qty  = int(item.get('qty', 1))
+                if not name:
+                    continue
+
+                # global
+                global_count[name] = global_count.get(name, 0) + qty
+
+                # by_type
+                if this_type not in by_type_count:
+                    by_type_count[this_type] = {}
+                by_type_count[this_type][name] = by_type_count[this_type].get(name, 0) + qty
+
+    # เรียง + จำกัดจำนวน
+    global_top = sorted(
+        [{'name': k, 'qty': v, 'rank': 0} for k, v in global_count.items()],
+        key=lambda x: -x['qty']
+    )[:limit]
+    for i, it in enumerate(global_top):
+        it['rank'] = i + 1
+
+    by_type_result = {}
+    for stype, counts in by_type_count.items():
+        ranked = sorted(
+            [{'name': k, 'qty': v} for k, v in counts.items()],
+            key=lambda x: -x['qty']
+        )[:limit]
+        by_type_result[stype] = ranked
+
+    return jsonify({
+        'ok':          True,
+        'days':        days,
+        'date_from':   date_range[-1].strftime('%Y-%m-%d'),
+        'date_to':     date_range[0].strftime('%Y-%m-%d'),
+        'shop_count':  len(shops_with_data),
+        'global_top':  global_top,
+        'by_shop_type': by_type_result,
+    })
 
 
 @app.route('/api/health')
