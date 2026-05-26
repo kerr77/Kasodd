@@ -20,7 +20,7 @@ for d in [DATA_DIR, SHOPS_DIR]:
 
 ADMIN_KEY          = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
 GEMINI_KEY         = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL       = 'gemini-2.0-flash-lite'
+GEMINI_MODEL       = 'gemini-3.1-flash-lite'
 STARTER_DAILY_LIMIT = 20
 
 # ══════════════════════════════════════════════════════
