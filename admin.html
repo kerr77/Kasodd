@@ -433,17 +433,109 @@
   }
   .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
 
-  @media (max-width: 600px) {
-    .topbar { padding: 0 12px; }
-    .nav-tabs { padding: 10px 12px 0; }
-    .tab-content { padding: 14px 12px; }
-    .stats-row { grid-template-columns: 1fr 1fr; }
-    .stat-value { font-size: 22px; }
-    .deletion-summary-grid { grid-template-columns: 1fr 1fr; }
-    .data-table { font-size: 12px; }
-    .data-table th, .data-table td { padding: 8px 10px; }
-    .trend-bar-wrap { display: none; }
+  /* ── MOBILE USER CARD (replaces table on mobile) ── */
+  .user-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
   }
+  .user-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .user-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .user-card-phone {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .user-card-pills {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .user-card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .user-card-meta-item span {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .user-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .user-card-actions .btn {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    padding: 9px 8px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 700px) {
+    /* topbar compact */
+    .topbar { padding: 0 12px; height: auto; min-height: 52px; flex-wrap: wrap; gap: 6px; padding-top: 8px; padding-bottom: 8px; }
+    .topbar-logo { font-size: 17px; }
+    .topbar-badge { font-size: 10px; padding: 2px 6px; }
+    .topbar-stat { font-size: 11px; }
+    .logout-btn { padding: 5px 10px; font-size: 11px; }
+
+    /* nav tabs */
+    .nav-tabs { padding: 10px 10px 0; gap: 3px; }
+    .nav-tab { padding: 7px 10px; font-size: 12px; }
+
+    /* content */
+    .tab-content { padding: 12px 10px; }
+
+    /* stats */
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .stat-value { font-size: 24px; }
+    .stat-card { padding: 12px 10px; border-radius: 12px; }
+
+    /* filter row */
+    .filter-row { gap: 7px; }
+    .filter-row select, .filter-row input { font-size: 13px; padding: 8px 10px; }
+
+    /* hide desktop table on mobile, show cards */
+    .desktop-table { display: none !important; }
+    .mobile-cards { display: block !important; }
+
+    /* deletion table — make scrollable */
+    .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+    .data-table { font-size: 12px; min-width: 560px; }
+    .data-table th, .data-table td { padding: 8px 10px; white-space: nowrap; }
+
+    /* trend bars */
+    .trend-bar-wrap { min-width: 50px; }
+    .trend-name { font-size: 13px; }
+    .trend-shops, .trend-price { width: 50px; font-size: 11px; }
+
+    /* deletion summary grid */
+    .deletion-summary-grid { grid-template-columns: 1fr 1fr; }
+
+    /* section title */
+    .section-title { font-size: 10px; }
+  }
+
+  /* Desktop: hide cards, show table */
+  .mobile-cards { display: none; }
 </style>
 </head>
 <body>
@@ -501,7 +593,8 @@
       </select>
       <button class="btn btn-gold" onclick="loadUsers()">🔄 รีเฟรช</button>
     </div>
-    <div class="data-table-wrap">
+    <!-- Desktop table -->
+    <div class="data-table-wrap desktop-table">
       <table class="data-table">
         <thead>
           <tr>
@@ -518,6 +611,10 @@
           <tr><td colspan="7" class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</td></tr>
         </tbody>
       </table>
+    </div>
+    <!-- Mobile cards -->
+    <div class="mobile-cards" id="users-cards">
+      <div class="loading-row"><span class="spin">⟳</span>กำลังโหลด...</div>
     </div>
   </div>
 
@@ -803,30 +900,67 @@ function renderUsers() {
     (!statusFilter || u.status === statusFilter) &&
     (!planFilter   || u.plan   === planFilter)
   );
+
+  const emptyHTML = `<div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-text">ไม่พบร้านค้า</div></div>`;
+
+  // ── Desktop table ──
   const tbody = document.getElementById('users-tbody');
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-text">ไม่พบร้านค้า</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">${emptyHTML}</td></tr>`;
+  } else {
+    tbody.innerHTML = list.map(u => `
+      <tr>
+        <td><strong>${u.shop_name || '—'}</strong><br><span style="font-size:11px;color:var(--muted);">${u.phone || ''}</span></td>
+        <td><span class="mono" style="font-size:12px;">${u.username}</span></td>
+        <td><span class="pill ${u.plan === 'pro' ? 'pill-gold' : 'pill-muted'}">${u.plan.toUpperCase()}</span></td>
+        <td><span class="pill ${u.status === 'active' ? 'pill-green' : 'pill-red'}">${u.status === 'active' ? 'Active' : 'รอ'}</span></td>
+        <td><span class="mono" style="font-size:12px;">${u.ai_today ?? 0}</span></td>
+        <td style="font-size:12px;color:var(--muted);">${timeAgo(u.last_sync)}</td>
+        <td>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            ${u.status === 'pending'
+              ? `<button class="btn btn-green btn-sm" onclick="approve('${u.username}')">✅ อนุมัติ</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="suspend('${u.username}')">⏸ ระงับ</button>`}
+            <button class="btn btn-ghost btn-sm" onclick="openEdit('${u.username}')">✏️ แก้ไข</button>
+            <button class="btn btn-ghost btn-sm" onclick="openReset('${u.username}','${(u.shop_name||'').replace(/'/g,"\\'")}'  )">🔒</button>
+            <button class="btn btn-red btn-sm" onclick="deleteUser('${u.username}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Mobile cards ──
+  const cardsEl = document.getElementById('users-cards');
+  if (!list.length) {
+    cardsEl.innerHTML = emptyHTML;
     return;
   }
-  tbody.innerHTML = list.map(u => `
-    <tr>
-      <td><strong>${u.shop_name || '—'}</strong><br><span style="font-size:11px;color:var(--muted);">${u.phone || ''}</span></td>
-      <td><span class="mono" style="font-size:12px;">${u.username}</span></td>
-      <td><span class="pill ${u.plan === 'pro' ? 'pill-gold' : 'pill-muted'}">${u.plan.toUpperCase()}</span></td>
-      <td><span class="pill ${u.status === 'active' ? 'pill-green' : 'pill-red'}">${u.status === 'active' ? 'Active' : 'รอ'}</span></td>
-      <td><span class="mono" style="font-size:12px;">${u.ai_today ?? 0}</span></td>
-      <td style="font-size:12px;color:var(--muted);">${timeAgo(u.last_sync)}</td>
-      <td>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;">
-          ${u.status === 'pending'
-            ? `<button class="btn btn-green btn-sm" onclick="approve('${u.username}')">✅ อนุมัติ</button>`
-            : `<button class="btn btn-ghost btn-sm" onclick="suspend('${u.username}')">⏸</button>`}
-          <button class="btn btn-ghost btn-sm" onclick="openEdit('${u.username}')">✏️</button>
-          <button class="btn btn-ghost btn-sm" onclick="openReset('${u.username}','${u.shop_name}')">🔒</button>
-          <button class="btn btn-red btn-sm" onclick="deleteUser('${u.username}')">🗑️</button>
+  cardsEl.innerHTML = list.map(u => `
+    <div class="user-card">
+      <div class="user-card-header">
+        <div>
+          <div class="user-card-name">${u.shop_name || '—'}</div>
+          <div class="user-card-phone">${u.phone || ''} · <span class="mono" style="font-size:11px;">${u.username}</span></div>
         </div>
-      </td>
-    </tr>
+        <div class="user-card-pills">
+          <span class="pill ${u.plan === 'pro' ? 'pill-gold' : 'pill-muted'}">${u.plan.toUpperCase()}</span>
+          <span class="pill ${u.status === 'active' ? 'pill-green' : 'pill-red'}">${u.status === 'active' ? 'Active' : 'รอ'}</span>
+        </div>
+      </div>
+      <div class="user-card-meta">
+        <div class="user-card-meta-item">AI วันนี้ <span>${u.ai_today ?? 0}</span></div>
+        <div class="user-card-meta-item">Sync <span>${timeAgo(u.last_sync)}</span></div>
+      </div>
+      <div class="user-card-actions">
+        ${u.status === 'pending'
+          ? `<button class="btn btn-green" onclick="approve('${u.username}')">✅ อนุมัติ</button>`
+          : `<button class="btn btn-ghost" onclick="suspend('${u.username}')">⏸ ระงับ</button>`}
+        <button class="btn btn-gold" onclick="openEdit('${u.username}')">✏️ แก้ไข</button>
+        <button class="btn btn-ghost" onclick="openReset('${u.username}','${(u.shop_name||'').replace(/'/g,"\\'")}'  )">🔒 รหัส</button>
+        <button class="btn btn-red" onclick="deleteUser('${u.username}')">🗑️ ลบ</button>
+      </div>
+    </div>
   `).join('');
 }
 
