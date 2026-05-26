@@ -123,6 +123,34 @@ CREATE TABLE IF NOT EXISTS branches (
 );
 CREATE INDEX IF NOT EXISTS idx_branches_owner ON branches (owner_shop_id);
 
+-- ตาราง bill_deletions  (tracking ทุกครั้งที่ร้านลบบิล)
+CREATE TABLE IF NOT EXISTS bill_deletions (
+    id          BIGSERIAL PRIMARY KEY,
+    shop_id     TEXT NOT NULL,
+    username    TEXT,
+    deleted_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    bill_time   TEXT,                      -- เวลาของบิลที่ถูกลบ
+    bill_total  INTEGER DEFAULT 0,
+    bill_items  JSONB,                     -- รายการสินค้าในบิลนั้น
+    bill_pay    TEXT,                      -- cash / transfer / free
+    reason      TEXT                       -- เหตุผล (optional)
+);
+CREATE INDEX IF NOT EXISTS idx_deletions_shop    ON bill_deletions (shop_id, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_deletions_date    ON bill_deletions (deleted_at);
+
+-- ตาราง menu_additions  (tracking เมนูใหม่ที่ร้านเพิ่มเข้ามา)
+CREATE TABLE IF NOT EXISTS menu_additions (
+    id          BIGSERIAL PRIMARY KEY,
+    shop_id     TEXT NOT NULL,
+    username    TEXT,
+    added_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    item_name   TEXT NOT NULL,
+    item_price  INTEGER DEFAULT 0,
+    item_key    TEXT                       -- product key ใน POS
+);
+CREATE INDEX IF NOT EXISTS idx_menu_shop   ON menu_additions (shop_id, added_at);
+CREATE INDEX IF NOT EXISTS idx_menu_name   ON menu_additions (item_name, added_at);
+
 -- ตาราง restock_alerts  (cache การคำนวณ restock prediction)
 CREATE TABLE IF NOT EXISTS restock_alerts (
     id          BIGSERIAL PRIMARY KEY,
@@ -755,9 +783,196 @@ def get_restock_summary_text(shop_id: str) -> str:
     return "\n".join(lines)
 
 
+
 # ════════════════════════════════════════════════════════════════
-# STATUS HELPER
+# BILL DELETIONS  (ติดตามการลบบิล)
 # ════════════════════════════════════════════════════════════════
+
+def log_bill_deletion(shop_id: str, username: str, bill: dict):
+    """
+    บันทึกทุกครั้งที่ร้านลบบิล
+    bill ควรมี: time, total, items (list), pay
+    """
+    if DB_ENABLED:
+        try:
+            with get_conn() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        INSERT INTO bill_deletions
+                            (shop_id, username, bill_time, bill_total, bill_items, bill_pay)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (
+                        shop_id,
+                        username,
+                        bill.get('time', ''),
+                        int(bill.get('total', 0)),
+                        json.dumps(bill.get('items', []), ensure_ascii=False),
+                        bill.get('pay', ''),
+                    ))
+        except Exception as e:
+            logger.error(f"log_bill_deletion DB failed: {e}")
+
+    # JSON fallback — เก็บไว้ใน shop folder
+    logs = _json_read_shop(shop_id, 'bill_deletions', [])
+    logs.append({
+        'deleted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'username':   username,
+        'bill_time':  bill.get('time', ''),
+        'bill_total': int(bill.get('total', 0)),
+        'bill_items': bill.get('items', []),
+        'bill_pay':   bill.get('pay', ''),
+    })
+    logs = logs[-500:]  # เก็บไว้สูงสุด 500 รายการ
+    _json_write_shop(shop_id, 'bill_deletions', logs)
+
+
+def get_bill_deletions(shop_id: str, limit: int = 100) -> list:
+    """ดึง bill deletion log ของร้านนี้"""
+    if DB_ENABLED:
+        try:
+            with get_conn() as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute("""
+                        SELECT username, deleted_at, bill_time, bill_total, bill_items, bill_pay
+                        FROM bill_deletions
+                        WHERE shop_id = %s
+                        ORDER BY deleted_at DESC LIMIT %s
+                    """, (shop_id, limit))
+                    return [dict(r) for r in cur.fetchall()]
+        except Exception as e:
+            logger.warning(f"get_bill_deletions DB failed, fallback: {e}")
+
+    logs = _json_read_shop(shop_id, 'bill_deletions', [])
+    return list(reversed(logs[-limit:]))
+
+
+def get_all_bill_deletions(days: int = 7, limit: int = 500) -> list:
+    """ดึง bill deletion log ทุกร้าน (สำหรับ server admin)"""
+    from datetime import timedelta
+    if not DB_ENABLED:
+        return []
+    try:
+        cutoff = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT d.shop_id, u.shop_name, d.username,
+                           d.deleted_at, d.bill_time, d.bill_total,
+                           d.bill_items, d.bill_pay
+                    FROM bill_deletions d
+                    LEFT JOIN users u ON u.shop_id = d.shop_id
+                    WHERE d.deleted_at >= %s
+                    ORDER BY d.deleted_at DESC LIMIT %s
+                """, (cutoff, limit))
+                return [dict(r) for r in cur.fetchall()]
+    except Exception as e:
+        logger.warning(f"get_all_bill_deletions failed: {e}")
+        return []
+
+
+# ════════════════════════════════════════════════════════════════
+# MENU ADDITIONS  (ติดตามเมนูใหม่)
+# ════════════════════════════════════════════════════════════════
+
+def log_menu_additions(shop_id: str, username: str, new_items: list):
+    """
+    บันทึกเมนูใหม่ที่ตรวจพบจากการ sync
+    new_items = list ของ product dict ที่เพิ่งเพิ่มเข้ามา (มี name, price, key)
+    """
+    if not new_items:
+        return
+
+    if DB_ENABLED:
+        try:
+            with get_conn() as conn:
+                with conn.cursor() as cur:
+                    for item in new_items:
+                        cur.execute("""
+                            INSERT INTO menu_additions
+                                (shop_id, username, item_name, item_price, item_key)
+                            VALUES (%s, %s, %s, %s, %s)
+                        """, (
+                            shop_id,
+                            username,
+                            item.get('name', '').strip(),
+                            int(item.get('price', 0)),
+                            item.get('key', ''),
+                        ))
+        except Exception as e:
+            logger.error(f"log_menu_additions DB failed: {e}")
+
+    # JSON fallback
+    logs = _json_read_shop(shop_id, 'menu_additions', [])
+    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    for item in new_items:
+        logs.append({
+            'added_at':   ts,
+            'username':   username,
+            'item_name':  item.get('name', '').strip(),
+            'item_price': int(item.get('price', 0)),
+            'item_key':   item.get('key', ''),
+        })
+    logs = logs[-1000:]
+    _json_write_shop(shop_id, 'menu_additions', logs)
+
+
+def detect_new_menu_items(shop_id: str, new_products: list) -> list:
+    """
+    เปรียบเทียบ new_products กับที่เก็บไว้ใน DB
+    คืน list ของสินค้าที่เพิ่มใหม่ (ชื่อยังไม่เคยมีมาก่อน)
+    """
+    if not new_products:
+        return []
+
+    old_products = read_shop_data(shop_id, 'products', [])
+    old_names = {
+        p.get('name', '').strip().lower()
+        for p in (old_products if isinstance(old_products, list) else [])
+        if p.get('name', '').strip()
+    }
+
+    new_items = []
+    for p in new_products:
+        name = p.get('name', '').strip()
+        if name and name.lower() not in old_names:
+            new_items.append(p)
+
+    return new_items
+
+
+def get_menu_additions_trend(days: int = 30, limit: int = 50) -> list:
+    """
+    รวมสถิติเมนูที่ถูกเพิ่มบ่อยที่สุดข้ามทุกร้าน
+    ใช้วิเคราะห์แนวโน้มว่าเมนูอะไรกำลังมาแรง
+    Returns list of {item_name, shop_count, total_additions, avg_price}
+    """
+    from datetime import timedelta
+    if not DB_ENABLED:
+        return []
+    try:
+        cutoff = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT
+                        item_name,
+                        COUNT(DISTINCT shop_id)   AS shop_count,
+                        COUNT(*)                  AS total_additions,
+                        ROUND(AVG(item_price), 0) AS avg_price,
+                        MAX(added_at)             AS last_seen
+                    FROM menu_additions
+                    WHERE added_at >= %s
+                      AND item_name <> ''
+                    GROUP BY item_name
+                    ORDER BY shop_count DESC, total_additions DESC
+                    LIMIT %s
+                """, (cutoff, limit))
+                return [dict(r) for r in cur.fetchall()]
+    except Exception as e:
+        logger.warning(f"get_menu_additions_trend failed: {e}")
+        return []
+
+
 
 def db_status() -> dict:
     """คืนสถานะ DB สำหรับ /api/health"""
