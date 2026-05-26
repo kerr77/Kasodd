@@ -1,7 +1,6 @@
 """
-app_v7.py — ค้าสด (KAASOD) SaaS v7
-NEW: PostgreSQL via Supabase (dual-write with JSON fallback)
-     ถ้าไม่มี DATABASE_URL จะทำงาน JSON mode เหมือนเดิม 100%
+app_v8.py — ค้าสด (KAASOD) SaaS v8
+Phase 1: Multi-Branch Dashboard + AI Auto-Restock Prediction
 """
 
 from flask import Flask, request, jsonify, session, redirect, Response
@@ -17,7 +16,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'kaasod-secret-2026')
 
 ADMIN_KEY           = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
 GEMINI_KEY          = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL        = 'gemini-3.1-flash-lite'
+GEMINI_MODEL        = 'gemini-3.5-flash-lite'
 STARTER_DAILY_LIMIT = 20
 
 # ── สร้าง DB schema ตอน startup (ถ้า DB_ENABLED) ─────────────────
@@ -178,8 +177,22 @@ def chat():
     if not contents:
         return jsonify({'error': {'code': 400, 'message': 'ไม่มีข้อความ', 'status': 'EMPTY'}}), 400
 
+    # ── inject restock context เข้า system_instruction ───────────
+    restock_text = DB.get_restock_summary_text(shop_id)
+    system_instruction = data.get('system_instruction')
+    if restock_text:
+        if system_instruction and isinstance(system_instruction, dict):
+            existing = system_instruction.get('parts', [{}])[0].get('text', '')
+            system_instruction['parts'] = [{'text': existing + '\n\n' + restock_text}]
+        else:
+            system_instruction = {'parts': [{'text': restock_text}]}
+
+    api_body: dict = {'contents': contents, 'generationConfig': gen_cfg}
+    if system_instruction:
+        api_body['system_instruction'] = system_instruction
+
     url  = f'https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_KEY}'
-    body = json.dumps({'contents': contents, 'generationConfig': gen_cfg}).encode()
+    body = json.dumps(api_body).encode()
     req  = urllib.request.Request(url, data=body, headers={'Content-Type': 'application/json'})
 
     try:
@@ -554,15 +567,192 @@ def get_sync():
 
 
 # ══════════════════════════════════════════════════════
-# HEALTH
+# MULTI-BRANCH
 # ══════════════════════════════════════════════════════
+
+@app.route('/api/branch/list')
+def branch_list():
+    """ดึงรายการสาขาทั้งหมดของ owner พร้อม summary ยอดขายวันนี้"""
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+
+    from datetime import timedelta
+    owner_shop_id = session['shop_id']
+    branches      = DB.get_branches(owner_shop_id)
+
+    if not branches:
+        return jsonify({'ok': True, 'branches': [], 'has_branches': False})
+
+    days = int(request.args.get('days', 1))
+    today = datetime.now().date()
+    date_range = [today - timedelta(days=i) for i in range(days)]
+
+    # รวม owner เองใน summary ด้วย
+    all_shop_ids = [owner_shop_id] + [b['branch_shop_id'] for b in branches]
+    summary_rows = DB.get_branch_summary(all_shop_ids, date_range)
+
+    # group by shop_id
+    summary_map: dict = {}
+    for row in summary_rows:
+        sid = row['shop_id']
+        if sid not in summary_map:
+            summary_map[sid] = {'bills': 0, 'revenue': 0, 'cash': 0, 'transfer': 0}
+        summary_map[sid]['bills']    += int(row['bills'] or 0)
+        summary_map[sid]['revenue']  += int(row['revenue'] or 0)
+        summary_map[sid]['cash']     += int(row['cash'] or 0)
+        summary_map[sid]['transfer'] += int(row['transfer'] or 0)
+
+    # ดึงชื่อร้านแต่ละสาขาจาก users
+    users = DB.load_users()
+    shop_name_map = {u['shop_id']: u['shop_name'] for u in users.values()}
+
+    result = []
+    for b in branches:
+        sid  = b['branch_shop_id']
+        stat = summary_map.get(sid, {'bills': 0, 'revenue': 0, 'cash': 0, 'transfer': 0})
+        result.append({
+            'branch_shop_id': sid,
+            'branch_name':    b['branch_name'],
+            'shop_name':      shop_name_map.get(sid, b['branch_name']),
+            'created_at':     str(b.get('created_at', '')),
+            **stat,
+        })
+
+    # owner summary
+    owner_stat = summary_map.get(owner_shop_id, {'bills': 0, 'revenue': 0, 'cash': 0, 'transfer': 0})
+    grand = {
+        'bills':    sum(r['bills']    for r in result) + owner_stat['bills'],
+        'revenue':  sum(r['revenue']  for r in result) + owner_stat['revenue'],
+        'cash':     sum(r['cash']     for r in result) + owner_stat['cash'],
+        'transfer': sum(r['transfer'] for r in result) + owner_stat['transfer'],
+    }
+
+    return jsonify({
+        'ok':          True,
+        'has_branches': True,
+        'owner_shop_id': owner_shop_id,
+        'owner_name':   session.get('shop_name', ''),
+        'owner_today':  owner_stat,
+        'branches':     result,
+        'grand_total':  grand,
+        'date_range':   [d.strftime('%Y-%m-%d') for d in date_range],
+    })
+
+
+@app.route('/api/branch/add', methods=['POST'])
+def branch_add():
+    """เพิ่มสาขาใหม่ — ต้องใช้ plan pro"""
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+    if session.get('plan') != 'pro':
+        return jsonify({'ok': False, 'msg': 'ฟีเจอร์ Multi-Branch ใช้ได้เฉพาะแพ็กเกจ Pro ครับ\nอัปเกรดได้ที่ Line: @kaasod'}), 403
+
+    d              = request.get_json(silent=True) or {}
+    branch_username = d.get('branch_username', '').strip().lower()
+    branch_name    = d.get('branch_name', '').strip()
+
+    if not branch_username or not branch_name:
+        return jsonify({'ok': False, 'msg': 'กรอกข้อมูลให้ครบ'}), 400
+
+    # ตรวจสอบว่า branch_username มีอยู่จริง
+    users = DB.load_users()
+    if branch_username not in users:
+        return jsonify({'ok': False, 'msg': f'ไม่พบ username: {branch_username}'}), 404
+
+    branch_user    = users[branch_username]
+    branch_shop_id = branch_user['shop_id']
+    owner_shop_id  = session['shop_id']
+
+    if branch_shop_id == owner_shop_id:
+        return jsonify({'ok': False, 'msg': 'ไม่สามารถเพิ่มร้านตัวเองเป็นสาขาได้'}), 400
+
+    ok = DB.add_branch(owner_shop_id, branch_shop_id, branch_name)
+    if not ok:
+        return jsonify({'ok': False, 'msg': 'เพิ่มสาขาไม่สำเร็จ กรุณาลองใหม่'}), 500
+
+    return jsonify({'ok': True, 'msg': f'เพิ่มสาขา "{branch_name}" ({branch_username}) แล้ว',
+                    'branch_shop_id': branch_shop_id})
+
+
+@app.route('/api/branch/remove', methods=['POST'])
+def branch_remove():
+    """ลบสาขาออกจาก group"""
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+
+    d              = request.get_json(silent=True) or {}
+    branch_shop_id = d.get('branch_shop_id', '').strip()
+    if not branch_shop_id:
+        return jsonify({'ok': False, 'msg': 'ต้องระบุ branch_shop_id'}), 400
+
+    ok = DB.remove_branch(session['shop_id'], branch_shop_id)
+    return jsonify({'ok': ok})
+
+
+# ══════════════════════════════════════════════════════
+# AI RESTOCK PREDICTION
+# ══════════════════════════════════════════════════════
+
+@app.route('/api/restock/alerts')
+def restock_alerts():
+    """ดึง restock alerts สำหรับร้านตัวเอง"""
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+
+    shop_id      = session['shop_id']
+    lookback     = int(request.args.get('days', 14))
+    alerts       = DB.calc_restock_alerts(shop_id, lookback_days=lookback)
+    critical_cnt = sum(1 for a in alerts if a['urgency'] == 'critical')
+    warning_cnt  = sum(1 for a in alerts if a['urgency'] == 'warning')
+
+    return jsonify({
+        'ok':           True,
+        'shop_id':      shop_id,
+        'lookback_days': lookback,
+        'critical':     critical_cnt,
+        'warning':      warning_cnt,
+        'alerts':       alerts,
+    })
+
+
+@app.route('/api/restock/branch-alerts')
+def restock_branch_alerts():
+    """ดึง restock alerts รวมทุกสาขา (pro only)"""
+    if 'shop_id' not in session:
+        return jsonify({'ok': False}), 401
+    if session.get('plan') != 'pro':
+        return jsonify({'ok': False, 'msg': 'Pro เท่านั้น'}), 403
+
+    owner_shop_id = session['shop_id']
+    branches      = DB.get_branches(owner_shop_id)
+    all_ids       = [owner_shop_id] + [b['branch_shop_id'] for b in branches]
+
+    users        = DB.load_users()
+    shop_name_map = {u['shop_id']: u['shop_name'] for u in users.values()}
+    shop_name_map[owner_shop_id] = session.get('shop_name', 'สาขาหลัก')
+
+    result = []
+    for sid in all_ids:
+        alerts = DB.calc_restock_alerts(sid)
+        critical = [a for a in alerts if a['urgency'] != 'ok']
+        if critical:
+            result.append({
+                'shop_id':   sid,
+                'shop_name': shop_name_map.get(sid, sid),
+                'alerts':    critical,
+            })
+
+    return jsonify({'ok': True, 'shops': result})
+
+
+
 
 @app.route('/api/health')
 def health():
     users = DB.load_users()
     return jsonify({
         'status':  'ok',
-        'version': 'v7',
+        'version': 'v8',
         'model':   GEMINI_MODEL,
         'starter_limit': STARTER_DAILY_LIMIT,
         'time':    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -588,5 +778,5 @@ def approve_legacy(username):
 
 
 if __name__ == '__main__':
-    print(f"🌿 ค้าสด v7 | {GEMINI_MODEL} | starter limit: {STARTER_DAILY_LIMIT}/day | db: {DB.db_status()['db_mode']}")
+    print(f"🌿 ค้าสด v8 | {GEMINI_MODEL} | starter limit: {STARTER_DAILY_LIMIT}/day | db: {DB.db_status()['db_mode']}")
     app.run(debug=True, host='0.0.0.0', port=5000)

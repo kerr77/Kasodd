@@ -109,6 +109,33 @@ CREATE TABLE IF NOT EXISTS ai_usage (
     count     INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (shop_id, use_date)
 );
+
+-- ตาราง branches  (Multi-Branch: สาขาย่อยของ owner)
+-- owner_shop_id = shop_id ของ owner หลัก (เจ้าของ)
+-- branch_shop_id = shop_id ของสาขา (แต่ละสาขาก็ยัง login เป็น user ของตัวเอง)
+CREATE TABLE IF NOT EXISTS branches (
+    id             BIGSERIAL PRIMARY KEY,
+    owner_shop_id  TEXT NOT NULL,
+    branch_shop_id TEXT NOT NULL,
+    branch_name    TEXT NOT NULL,
+    created_at     TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (owner_shop_id, branch_shop_id)
+);
+CREATE INDEX IF NOT EXISTS idx_branches_owner ON branches (owner_shop_id);
+
+-- ตาราง restock_alerts  (cache การคำนวณ restock prediction)
+CREATE TABLE IF NOT EXISTS restock_alerts (
+    id          BIGSERIAL PRIMARY KEY,
+    shop_id     TEXT NOT NULL,
+    product_name TEXT NOT NULL,
+    current_stock INTEGER DEFAULT 0,
+    avg_daily_sales NUMERIC(10,2) DEFAULT 0,
+    days_left   NUMERIC(10,1) DEFAULT 0,
+    urgency     TEXT NOT NULL DEFAULT 'ok',   -- 'critical' / 'warning' / 'ok'
+    calc_date   DATE NOT NULL DEFAULT CURRENT_DATE,
+    UNIQUE (shop_id, product_name, calc_date)
+);
+CREATE INDEX IF NOT EXISTS idx_restock_shop ON restock_alerts (shop_id, calc_date);
 """
 
 
@@ -458,6 +485,274 @@ def _json_read_sales(shop_id: str, date_str: str) -> list:
     if f.exists():
         return json.loads(f.read_text(encoding='utf-8'))
     return []
+
+
+# ════════════════════════════════════════════════════════════════
+# MULTI-BRANCH
+# ════════════════════════════════════════════════════════════════
+
+def add_branch(owner_shop_id: str, branch_shop_id: str, branch_name: str) -> bool:
+    """เพิ่มสาขาให้ owner"""
+    if not DB_ENABLED:
+        return False
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO branches (owner_shop_id, branch_shop_id, branch_name)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (owner_shop_id, branch_shop_id) DO UPDATE
+                        SET branch_name = EXCLUDED.branch_name
+                """, (owner_shop_id, branch_shop_id, branch_name))
+        return True
+    except Exception as e:
+        logger.error(f"add_branch failed: {e}")
+        return False
+
+
+def remove_branch(owner_shop_id: str, branch_shop_id: str) -> bool:
+    """ลบสาขาออกจาก group"""
+    if not DB_ENABLED:
+        return False
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    DELETE FROM branches
+                    WHERE owner_shop_id=%s AND branch_shop_id=%s
+                """, (owner_shop_id, branch_shop_id))
+        return True
+    except Exception as e:
+        logger.error(f"remove_branch failed: {e}")
+        return False
+
+
+def get_branches(owner_shop_id: str) -> list:
+    """ดึงรายการสาขาทั้งหมดของ owner"""
+    if not DB_ENABLED:
+        return []
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT branch_shop_id, branch_name, created_at
+                    FROM branches
+                    WHERE owner_shop_id = %s
+                    ORDER BY created_at
+                """, (owner_shop_id,))
+                return [dict(r) for r in cur.fetchall()]
+    except Exception as e:
+        logger.warning(f"get_branches failed: {e}")
+        return []
+
+
+def get_owner_of_branch(branch_shop_id: str) -> str | None:
+    """ค้นหาว่าสาขานี้อยู่ใน group ของ owner ใด"""
+    if not DB_ENABLED:
+        return None
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT owner_shop_id FROM branches
+                    WHERE branch_shop_id = %s LIMIT 1
+                """, (branch_shop_id,))
+                row = cur.fetchone()
+        return row[0] if row else None
+    except Exception as e:
+        logger.warning(f"get_owner_of_branch failed: {e}")
+        return None
+
+
+def get_branch_summary(shop_ids: list, date_range: list) -> list:
+    """ดึง sales summary ของหลายสาขาพร้อมกัน — ใช้ใน multi-branch dashboard"""
+    if not DB_ENABLED or not shop_ids or not date_range:
+        return []
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT
+                        shop_id,
+                        sale_date,
+                        COUNT(*)                                   AS bills,
+                        SUM(total)                                 AS revenue,
+                        SUM(CASE WHEN pay='cash'     THEN total ELSE 0 END) AS cash,
+                        SUM(CASE WHEN pay='transfer' THEN total ELSE 0 END) AS transfer
+                    FROM sales_log
+                    WHERE shop_id = ANY(%s) AND sale_date = ANY(%s)
+                    GROUP BY shop_id, sale_date
+                    ORDER BY shop_id, sale_date
+                """, (shop_ids, date_range))
+                return [dict(r) for r in cur.fetchall()]
+    except Exception as e:
+        logger.warning(f"get_branch_summary failed: {e}")
+        return []
+
+
+# ════════════════════════════════════════════════════════════════
+# AI RESTOCK PREDICTION
+# ════════════════════════════════════════════════════════════════
+
+def calc_restock_alerts(shop_id: str, lookback_days: int = 14) -> list:
+    """
+    คำนวณ restock prediction จาก sales_log + stock ปัจจุบัน
+    คืน list ของ {product_name, current_stock, avg_daily_sales, days_left, urgency}
+    urgency: 'critical' (<=3 วัน), 'warning' (<=7 วัน), 'ok'
+    """
+    from datetime import timedelta, date as date_type
+
+    today = datetime.now().date()
+    start = today - timedelta(days=lookback_days)
+
+    # ── ดึง sales ย้อนหลัง lookback_days ─────────────────────────
+    daily_sales: dict[str, float] = {}  # product_name → total qty sold
+    if DB_ENABLED:
+        try:
+            with get_conn() as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute("""
+                        SELECT items FROM sales_log
+                        WHERE shop_id = %s
+                          AND sale_date >= %s
+                          AND sale_date <= %s
+                    """, (shop_id, start, today))
+                    rows = cur.fetchall()
+            for row in rows:
+                items = row['items'] or []
+                for it in items:
+                    name = it.get('name', '').strip()
+                    qty  = it.get('qty', 1)
+                    if name:
+                        daily_sales[name] = daily_sales.get(name, 0) + qty
+        except Exception as e:
+            logger.warning(f"calc_restock_alerts sales query failed: {e}")
+            return []
+    else:
+        # JSON fallback — อ่านไฟล์ sales ย้อนหลัง
+        for i in range(lookback_days):
+            d = today - timedelta(days=i)
+            sales = _json_read_sales(shop_id, d.strftime('%Y-%m-%d'))
+            for s in sales:
+                for it in s.get('items', []):
+                    name = it.get('name', '').strip()
+                    qty  = it.get('qty', 1)
+                    if name:
+                        daily_sales[name] = daily_sales.get(name, 0) + qty
+
+    if not daily_sales:
+        return []
+
+    avg_daily: dict[str, float] = {k: v / lookback_days for k, v in daily_sales.items()}
+
+    # ── ดึง stock ปัจจุบัน ────────────────────────────────────────
+    stock_data: dict = read_shop_data(shop_id, 'stock', {})
+    products_data: list = read_shop_data(shop_id, 'products', [])
+
+    # build stock map: name → qty
+    stock_map: dict[str, int] = {}
+    if isinstance(stock_data, dict):
+        stock_map = {k: int(v) for k, v in stock_data.items() if str(v).isdigit() or isinstance(v, (int, float))}
+    elif isinstance(products_data, list):
+        # บางร้านเก็บ stock ใน products array
+        for p in products_data:
+            name = p.get('name', '').strip()
+            qty  = p.get('stock', p.get('qty', None))
+            if name and qty is not None:
+                stock_map[name] = int(qty)
+
+    # ── คำนวณ days_left และ urgency ──────────────────────────────
+    alerts = []
+    for name, avg in avg_daily.items():
+        if avg <= 0:
+            continue
+        stock = stock_map.get(name, None)
+        if stock is None:
+            continue  # ไม่มีข้อมูล stock — ข้าม
+
+        days_left = stock / avg if avg > 0 else 9999
+
+        if days_left <= 3:
+            urgency = 'critical'
+        elif days_left <= 7:
+            urgency = 'warning'
+        else:
+            urgency = 'ok'
+
+        alerts.append({
+            'product_name':    name,
+            'current_stock':   stock,
+            'avg_daily_sales': round(avg, 2),
+            'days_left':       round(days_left, 1),
+            'urgency':         urgency,
+        })
+
+    # ── เรียงตาม urgency และ days_left ───────────────────────────
+    order = {'critical': 0, 'warning': 1, 'ok': 2}
+    alerts.sort(key=lambda x: (order[x['urgency']], x['days_left']))
+
+    # ── cache ผลลัพธ์ใน DB (best-effort) ─────────────────────────
+    if DB_ENABLED and alerts:
+        try:
+            with get_conn() as conn:
+                with conn.cursor() as cur:
+                    for a in alerts:
+                        cur.execute("""
+                            INSERT INTO restock_alerts
+                                (shop_id, product_name, current_stock,
+                                 avg_daily_sales, days_left, urgency, calc_date)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (shop_id, product_name, calc_date) DO UPDATE SET
+                                current_stock   = EXCLUDED.current_stock,
+                                avg_daily_sales = EXCLUDED.avg_daily_sales,
+                                days_left       = EXCLUDED.days_left,
+                                urgency         = EXCLUDED.urgency
+                        """, (
+                            shop_id,
+                            a['product_name'],
+                            a['current_stock'],
+                            a['avg_daily_sales'],
+                            a['days_left'],
+                            a['urgency'],
+                            today,
+                        ))
+        except Exception as e:
+            logger.warning(f"cache restock_alerts failed (non-fatal): {e}")
+
+    return alerts
+
+
+def get_restock_summary_text(shop_id: str) -> str:
+    """
+    สร้างข้อความ restock summary สำหรับ inject เข้า AI system prompt
+    เพื่อให้ AI รู้ว่าสินค้าไหนกำลังจะหมด
+    """
+    alerts = calc_restock_alerts(shop_id)
+    critical = [a for a in alerts if a['urgency'] == 'critical']
+    warning  = [a for a in alerts if a['urgency'] == 'warning']
+
+    if not critical and not warning:
+        return ""
+
+    lines = ["⚠️ **ข้อมูลสต็อกที่ต้องสั่งเพิ่ม (จากการวิเคราะห์ยอดขาย 14 วันล่าสุด):**"]
+
+    if critical:
+        lines.append("🔴 วิกฤต (เหลือ ≤3 วัน):")
+        for a in critical:
+            lines.append(
+                f"  - {a['product_name']}: คงเหลือ {a['current_stock']} ชิ้น "
+                f"(ขายเฉลี่ย {a['avg_daily_sales']:.1f}/วัน → หมดใน ~{a['days_left']:.0f} วัน)"
+            )
+
+    if warning:
+        lines.append("🟡 ควรสั่ง (เหลือ ≤7 วัน):")
+        for a in warning:
+            lines.append(
+                f"  - {a['product_name']}: คงเหลือ {a['current_stock']} ชิ้น "
+                f"(ขายเฉลี่ย {a['avg_daily_sales']:.1f}/วัน → หมดใน ~{a['days_left']:.0f} วัน)"
+            )
+
+    return "\n".join(lines)
 
 
 # ════════════════════════════════════════════════════════════════
