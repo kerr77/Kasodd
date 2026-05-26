@@ -3,37 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🌿 ค้าสด — Real-time Monitor</title>
+<title>🐕 ค้าสด — Real-time Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700&family=Kanit:wght@700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:        #0a0908;
-  --bg2:       #131110;
-  --bg3:       #1c1916;
-  --bg4:       #252018;
-  --border:    #2a2318;
-  --border2:   #3a3025;
-  --gold:      #c9a84c;
-  --gold2:     #e8c56a;
-  --green:     #4aaa6a;
-  --green2:    #6ac882;
-  --orange:    #e07b3a;
-  --orange2:   #f09a5a;
-  --blue:      #5b8db8;
-  --blue2:     #7ab0d8;
-  --purple:    #9b6fd4;
-  --red:       #d45a5a;
-  --text:      #f0e8dc;
-  --text2:     #c0b09a;
-  --text3:     #7a6a58;
-  --pulse:     rgba(74,170,106,0.4);
+  --bg:        #07051a;
+  --bg2:       #0d0a28;
+  --bg3:       #110e33;
+  --bg4:       #17143d;
+  --border:    rgba(255,107,53,0.14);
+  --border2:   rgba(199,125,255,0.18);
+  --border-s:  #1f1b4e;
+  --gold:      #ff6b35;
+  --gold2:     #ffb347;
+  --green:     #2ecc8a;
+  --green2:    #52d990;
+  --orange:    #ff8c42;
+  --orange2:   #ffaa65;
+  --blue:      #5bc0de;
+  --blue2:     #7dd4ee;
+  --purple:    #c77dff;
+  --red:       #e74c3c;
+  --text:      #f5f0ff;
+  --text2:     #c8b8f0;
+  --text3:     #7a6aa8;
+  --pulse:     rgba(255,107,53,0.35);
+  --mono:      'Share Tech Mono', monospace;
+  --glow-o:    rgba(255,107,53,0.4);
+  --glow-p:    rgba(199,125,255,0.3);
+  --glow-g:    rgba(46,204,138,0.3);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-family: 'Noto Sans Thai', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -54,7 +59,7 @@ body {
   gap: 12px;
   flex-wrap: wrap;
 }
-.logo { color: var(--gold); font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.logo { color: var(--gold); font-size: 16px; font-weight: 800; font-family: 'Kanit', sans-serif; display: flex; align-items: center; gap: 8px; }
 .logo span { color: var(--text3); font-size: 12px; font-weight: 400; }
 .status-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .live-dot {
@@ -170,7 +175,7 @@ th {
 td {
   padding: 9px 12px; border-bottom: 1px solid var(--border);
   font-size: 13px; vertical-align: middle;
-  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-family: 'Noto Sans Thai', sans-serif;
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--bg3); }
@@ -180,7 +185,7 @@ tr:hover td { background: var(--bg3); }
   display: inline-block; padding: 2px 10px; border-radius: 20px;
   font-size: 11px; font-weight: 700;
 }
-.pill-green { background: rgba(74,170,106,.15); color: var(--green2); border: 1px solid rgba(74,170,106,.3); }
+.pill-green { background: rgba(46,204,113,.15); color: var(--green2); border: 1px solid rgba(46,204,113,.3); }
 .pill-orange { background: rgba(224,123,58,.15); color: var(--orange2); border: 1px solid rgba(224,123,58,.3); }
 .pill-blue { background: rgba(91,141,184,.15); color: var(--blue2); border: 1px solid rgba(91,141,184,.3); }
 .pill-purple { background: rgba(155,111,212,.15); color: var(--purple); border: 1px solid rgba(155,111,212,.3); }
@@ -216,7 +221,7 @@ tr:hover td { background: var(--bg3); }
   color: var(--text3); padding: 5px 14px; border-radius: 8px;
   cursor: pointer; font-size: 12px; font-family: inherit; transition: all .2s;
 }
-.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,.1); }
+.chat-filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(255,107,53,.1); }
 .chat-entries { display: flex; flex-direction: column; gap: 8px; }
 .chat-entry {
   background: var(--bg3); border: 1px solid var(--border);
@@ -235,7 +240,7 @@ tr:hover td { background: var(--bg3); }
 }
 .chat-bubble-user .role-lbl { font-size: 10px; color: var(--blue); font-weight: 700; margin-bottom: 4px; }
 .chat-bubble-ai {
-  background: rgba(74,170,106,.08); border: 1px solid rgba(74,170,106,.15);
+  background: rgba(46,204,113,.08); border: 1px solid rgba(46,204,113,.15);
   border-radius: 8px; padding: 8px 12px;
   font-size: 13px; line-height: 1.6;
 }
@@ -285,8 +290,8 @@ tr:hover td { background: var(--bg3); }
   font-weight: 700; cursor: pointer; font-family: inherit;
   border: 1px solid; transition: all .2s;
 }
-.act-btn-green { background: rgba(74,170,106,.15); color: var(--green2); border-color: rgba(74,170,106,.3); }
-.act-btn-green:hover { background: rgba(74,170,106,.25); }
+.act-btn-green { background: rgba(46,204,113,.15); color: var(--green2); border-color: rgba(46,204,113,.3); }
+.act-btn-green:hover { background: rgba(46,204,113,.25); }
 .act-btn-orange { background: rgba(224,123,58,.15); color: var(--orange2); border-color: rgba(224,123,58,.3); }
 .act-btn-orange:hover { background: rgba(224,123,58,.25); }
 .act-btn-blue { background: rgba(91,141,184,.15); color: var(--blue2); border-color: rgba(91,141,184,.3); }
@@ -333,9 +338,126 @@ tr:hover td { background: var(--bg3); }
 }
 .lock-btn:hover { background: var(--gold2); }
 .lock-err { color: var(--red); font-size: 12px; margin-top: 8px; display: none; }
+
+/* 🐕 Cartoon Hero extras for admin */
+body {
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255,107,53,0.05) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(199,125,255,0.05) 0%, transparent 45%);
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
+.card { border: 2px solid var(--border2) !important; border-radius: 16px !important; }
+.stat-card .val { font-family: 'JetBrains Mono', monospace !important; }
+.stat-card .lbl { font-family: 'Noto Sans Thai', sans-serif !important; }
+.topbar { border-bottom: 3px solid var(--gold) !important; box-shadow: 0 4px 20px rgba(255,107,53,0.15) !important; }
+.nav-tab.active { color: var(--gold) !important; }
+.nav-tab.active { border-bottom-color: var(--bg) !important; }
+.refresh-btn { border-radius: 12px !important; font-family: 'Kanit', sans-serif !important; }
+.refresh-btn:hover { border-color: var(--gold) !important; background: rgba(255,107,53,0.1) !important; }
+table thead th { font-family: 'Kanit', sans-serif !important; color: var(--gold) !important; }
+
+
+/* ══ ADMIN ATMOSPHERE ══ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,107,53,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,107,53,0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 0% 0%,   rgba(255,107,53,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 55% at 100% 100%, rgba(199,125,255,0.05) 0%, transparent 55%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: rgba(7,5,26,0.97) !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative;
+}
+.topbar::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+  background-size: 200% 100%;
+  animation: topbar-scan 4s linear infinite;
+  opacity: 0.55;
+}
+@keyframes topbar-scan { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.logo { font-family: 'Kanit', sans-serif !important; font-size: 18px !important; font-weight: 900 !important; text-shadow: 0 0 12px var(--glow-o) !important; }
+.logo span { font-family: 'Share Tech Mono', monospace !important; }
+
+/* ── NAV TABS ── */
+.nav-tabs { background: rgba(7,5,26,0.95) !important; border-bottom: 1px solid var(--border) !important; }
+.nav-tab { font-family: 'Share Tech Mono', monospace !important; font-size: 9px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; border-radius: 0 !important; }
+.nav-tab.active { color: var(--gold) !important; background: rgba(255,107,53,0.06) !important; border-color: var(--border) !important; text-shadow: 0 0 8px var(--glow-o) !important; }
+
+/* ── CARDS ── */
+.card {
+  background: linear-gradient(135deg, rgba(13,10,40,0.92), rgba(7,5,26,0.96)) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 2px solid rgba(255,107,53,0.25) !important;
+  border-radius: 2px !important;
+}
+.stat-card .val { font-family: 'Share Tech Mono', monospace !important; text-shadow: 0 0 15px currentColor !important; }
+.stat-card .lbl { font-family: 'Share Tech Mono', monospace !important; letter-spacing: 1.5px !important; }
+
+/* ── LIVE DOT ── */
+.live-dot { box-shadow: 0 0 0 0 var(--glow-g) !important; }
+
+/* ── REFRESH BTN ── */
+.refresh-btn {
+  background: rgba(7,5,26,0.8) !important;
+  border: 1px solid var(--border) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  letter-spacing: 1px !important; font-size: 9px !important;
+  border-radius: 1px !important;
+  color: var(--gold) !important;
+}
+.refresh-btn:hover { border-color: var(--gold) !important; box-shadow: 0 0 12px var(--glow-o) !important; }
+
+/* ── TABLE ── */
+table { border-collapse: collapse !important; }
+th { font-family: 'Share Tech Mono', monospace !important; font-size: 8px !important; letter-spacing: 1.5px !important; text-transform: uppercase !important; color: var(--gold2) !important; border-bottom: 1px solid rgba(255,107,53,0.2) !important; }
+td { border-bottom: 1px solid rgba(255,107,53,0.06) !important; }
+tr:hover td { background: rgba(255,107,53,0.03) !important; }
+
+/* ── INPUT/SELECT ── */
+input, select, textarea {
+  background: rgba(0,0,0,0.5) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom-color: rgba(255,107,53,0.3) !important;
+  color: var(--text) !important;
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  border-radius: 1px !important;
+}
+input:focus, select:focus { border-bottom-color: var(--gold) !important; outline: none !important; box-shadow: 0 2px 0 rgba(255,107,53,0.2) !important; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,107,53,0.2); border-radius: 2px; }
+
+/* ── MAIN ── */
+main { position: relative; z-index: 1; }
+.tab-content { position: relative; z-index: 1; }
+
 </style>
 </head>
 <body>
+<div class="pos-scan" style="position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent);opacity:0;animation:scan-pos 10s linear infinite;z-index:999;pointer-events:none;"></div>
+<style>@keyframes scan-pos{0%{top:0;opacity:0}3%{opacity:.5}97%{opacity:.2}100%{top:100vh;opacity:0}}</style>
 
 <!-- LOCK SCREEN -->
 <div id="lock-screen">
@@ -351,7 +473,7 @@ tr:hover td { background: var(--bg3); }
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo">🌿 ค้าสด <span>Real-time Monitor</span></div>
+  <div class="logo">🐕 ค้าสด <span>Real-time Monitor</span></div>
   <div class="status-bar">
     <span class="live-dot"></span>
     <span class="live-label">LIVE</span>

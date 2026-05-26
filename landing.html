@@ -3,249 +3,493 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ค้าสด — ระบบ POS สำหรับร้านค้าไทย</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Prompt:wght@700;800;900&display=swap" rel="stylesheet">
+<title>🐕 ค้าสด — POS สำหรับร้านค้าไทย</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;800&family=Kanit:wght@700;800;900&family=Mitr:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════════════════════════
+   🐕 ค้าสด — THAI HERO POS · LANDING v4.0
+   ══════════════════════════════════════════════════════ */
 :root {
-  --bg: #0f0e0c; --card: #1a1815; --gold: #c9a84c; --gold2: #e8c56a;
-  --orange: #e07b3a; --green: #5aaa6a; --text: #f0e8dc; --text2: #a89880;
-  --border: #2e2820; --red: #c0544a; --purple: #9b6fd4;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  --void:    #07051a;
+  --deep:    #0d0a28;
+  --shadow:  #110e33;
+  --blade:   #17143d;
+  --smoke:   #1f1b4e;
+  --surface: #261f5e;
 
-/* ── PARTICLES BG ── */
-.particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
-.particle {
-  position: absolute; border-radius: 50%; opacity: 0;
-  animation: float-up linear infinite;
+  --gold:    #ff6b35;
+  --gold2:   #ffb347;
+  --jade:    #1a8c6a;
+  --jade2:   #2ecc8a;
+  --purple:  #c77dff;
+  --purple2: #9b4dff;
+  --blood:   #c0392b;
+  --blood2:  #e74c3c;
+
+  --text:    #f5f0ff;
+  --text2:   #c8b8f0;
+  --muted:   #7a6aa8;
+  --mono:    'Share Tech Mono', monospace;
+  --thai:    'Noto Sans Thai', sans-serif;
+  --display: 'Kanit', sans-serif;
+
+  --glow-o:  rgba(255,107,53,0.4);
+  --glow-p:  rgba(199,125,255,0.3);
+  --glow-g:  rgba(46,204,138,0.3);
+  --border:  rgba(255,107,53,0.14);
+  --border2: rgba(199,125,255,0.14);
 }
-@keyframes float-up {
-  0%   { opacity: 0; transform: translateY(100vh) scale(0); }
-  10%  { opacity: 0.6; }
-  90%  { opacity: 0.2; }
-  100% { opacity: 0; transform: translateY(-20px) scale(1); }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--thai);
+  background: var(--void);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+  position: relative;
+}
+
+/* ── LAYERED ATMOSPHERE ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,107,53,0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,107,53,0.022) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 0% 0%,   rgba(255,107,53,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 100% 100%, rgba(199,125,255,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 40% at 50% 50%, rgba(7,5,26,0.6) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── FLOATING THAI CHARACTERS ── */
+.thai-bg {
+  position: fixed;
+  font-family: var(--display);
+  font-weight: 900;
+  color: rgba(255,107,53,0.025);
+  pointer-events: none; z-index: 0; user-select: none;
+  animation: thai-float 30s ease-in-out infinite;
+  line-height: 1;
+}
+.thai-bg:nth-child(1) { font-size: 280px; top: -80px; left: -60px; }
+.thai-bg:nth-child(2) { font-size: 200px; top: 38%; right: -50px; animation-delay: -10s; color: rgba(199,125,255,0.025); }
+.thai-bg:nth-child(3) { font-size: 240px; bottom: -80px; left: 25%; animation-delay: -20s; }
+@keyframes thai-float {
+  0%,100% { transform: translateY(0) rotate(-1.5deg); }
+  50%      { transform: translateY(-20px) rotate(1.5deg); }
+}
+
+/* ── SCAN LINE ── */
+.scan-line {
+  position: fixed; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--gold2) 50%, var(--gold) 70%, transparent 100%);
+  opacity: 0.5;
+  animation: scan-v 8s linear infinite;
+  z-index: 10; pointer-events: none;
+}
+@keyframes scan-v {
+  0%   { top: 0; opacity: 0; }
+  5%   { opacity: 0.5; }
+  95%  { opacity: 0.3; }
+  100% { top: 100vh; opacity: 0; }
 }
 
 /* ── HERO ── */
 .hero {
-  position: relative; z-index: 1;
-  text-align: center; padding: 56px 24px 36px;
-  background: radial-gradient(ellipse at top, #221e10 0%, var(--bg) 70%);
+  position: relative; z-index: 2;
+  text-align: center;
+  padding: 70px 24px 48px;
   border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
 .hero::before {
-  content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
-  animation: pulse-glow 3s ease-in-out infinite;
+  content: '';
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, rgba(199,125,255,0.04) 40%, transparent 65%);
+  animation: pulse-glow 4s ease-in-out infinite;
 }
 @keyframes pulse-glow {
-  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
-  50%       { transform: translateX(-50%) scale(1.15); opacity: 1; }
+  0%,100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+  50%     { transform: translateX(-50%) scale(1.12); opacity: 1; }
+}
+.hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(7,5,26,0) 60%, var(--void) 100%);
+  pointer-events: none;
 }
 
-.logo {
-  font-family: 'Prompt', sans-serif; font-size: 52px; font-weight: 900;
-  color: var(--gold); letter-spacing: -2px; line-height: 1;
-  text-shadow: 0 0 40px rgba(201,168,76,0.4);
+/* ── MASCOT RING ── */
+.mascot-ring {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 30% 30%, rgba(255,107,53,0.2), rgba(7,5,26,0.95));
+  box-shadow: 0 0 18px var(--glow-o), inset 0 0 12px rgba(255,107,53,0.05);
+  animation: ring-pulse 3.5s ease-in-out infinite;
+  margin: 0 auto 20px;
+  position: relative; overflow: hidden;
+}
+.mascot-ring::after {
+  content: '';
+  position: absolute; top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(transparent 270deg, rgba(255,107,53,0.45) 360deg);
+  animation: ring-spin 4s linear infinite;
+}
+@keyframes ring-pulse { 0%,100% { box-shadow: 0 0 18px var(--glow-o); } 50% { box-shadow: 0 0 35px var(--glow-o); } }
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+.mascot-char { font-size: 34px; position: relative; z-index: 1; animation: dog-wag 2s ease-in-out infinite; }
+@keyframes dog-wag { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+
+/* ── LOGO ── */
+.app-name {
+  font-family: var(--display);
+  font-size: 56px; font-weight: 900;
+  color: var(--gold);
+  letter-spacing: -1px; line-height: 1;
+  text-shadow: 0 0 40px var(--glow-o), 0 0 80px rgba(255,107,53,0.2);
   animation: logo-in .6s cubic-bezier(.34,1.56,.64,1) both;
 }
-@keyframes logo-in {
-  from { opacity: 0; transform: scale(.7) translateY(20px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-.logo span { color: var(--orange); }
+.app-name span { color: var(--gold2); }
+@keyframes logo-in { from { opacity: 0; transform: scale(.75) translateY(24px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
+.app-sub {
+  font-family: var(--mono);
+  font-size: 9px; color: var(--muted);
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-top: 6px;
+  animation: fade-up .5s .2s both;
+}
 .tagline {
-  margin-top: 10px; font-size: 15px; color: var(--text2); font-weight: 500;
-  animation: fade-up .6s .15s both;
+  margin-top: 14px;
+  font-size: 14px; color: var(--text2); font-weight: 500;
+  animation: fade-up .5s .3s both;
+  line-height: 1.7;
 }
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 16px; background: rgba(201,168,76,0.12);
-  border: 1px solid rgba(201,168,76,0.3); border-radius: 999px;
-  padding: 7px 18px; font-size: 13px; font-weight: 700; color: var(--gold);
-  animation: fade-up .6s .25s both;
+@keyframes fade-up { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
+
+.hero-status {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 18px;
+  background: rgba(46,204,138,0.07);
+  border: 1px solid rgba(46,204,138,0.25);
+  padding: 7px 18px; border-radius: 2px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  color: var(--jade2); letter-spacing: 1.5px;
+  animation: fade-up .5s .4s both;
 }
-.badge-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: blink 1.5s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-@keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--jade2); box-shadow: 0 0 8px var(--jade2);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity: .2; } }
+
+/* ── SECTION SEPARATOR ── */
+.sec-sep {
+  position: relative; z-index: 2;
+  padding: 20px 24px 0;
+  max-width: 480px; margin: 0 auto;
+}
+.sec-label {
+  font-family: var(--mono);
+  font-size: 8px; color: var(--muted);
+  letter-spacing: 3px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+}
+.sec-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
 
 /* ── PACKAGES ── */
-.pkg-wrap { position: relative; z-index: 1; padding: 28px 16px 8px; max-width: 480px; margin: 0 auto; }
-.pkg-title {
-  text-align: center; font-family: 'Prompt', sans-serif; font-size: 17px;
-  color: var(--text2); margin-bottom: 16px; letter-spacing: .5px;
-}
+.pkg-wrap { position: relative; z-index: 2; padding: 14px 16px 0; max-width: 480px; margin: 0 auto; }
 .pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .pkg-card {
-  background: var(--card); border: 2px solid var(--border);
-  border-radius: 20px; padding: 20px 14px 16px; cursor: pointer;
-  transition: all .25s cubic-bezier(.34,1.56,.64,1); position: relative;
-  text-align: center; overflow: hidden;
+  background: linear-gradient(135deg, rgba(23,20,61,0.95) 0%, rgba(13,10,40,0.98) 100%);
+  border: 1px solid var(--border);
+  border-top: 2px solid rgba(255,107,53,0.35);
+  border-radius: 2px; padding: 18px 14px 16px;
+  cursor: pointer; position: relative; overflow: hidden;
+  text-align: center;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
 }
-.pkg-card::after {
+.pkg-card::before {
   content: ''; position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255,107,53,0.08), transparent 65%);
   transition: opacity .3s;
-  background: radial-gradient(circle at 50% 0%, rgba(201,168,76,0.08), transparent 70%);
+}
+.pkg-card.selected::before { opacity: 1; }
+.pkg-card.selected {
+  border-color: var(--gold);
+  border-top-color: var(--gold);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255,107,53,0.2), 0 0 0 1px rgba(255,107,53,0.15);
+}
+.pkg-card.pro-card { border-top-color: rgba(199,125,255,0.45); }
+.pkg-card.pro-card::before { background: radial-gradient(circle at 50% 0%, rgba(199,125,255,0.1), transparent 65%); }
+.pkg-card.pro-card.selected {
+  border-color: var(--purple);
+  border-top-color: var(--purple);
+  box-shadow: 0 12px 40px rgba(199,125,255,0.2), 0 0 0 1px rgba(199,125,255,0.15);
+}
+
+/* shimmer scan on card top */
+.pkg-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  background-size: 200% 100%;
+  animation: card-scan 3s linear infinite;
+  opacity: 0;
+  transition: opacity .3s;
 }
 .pkg-card.selected::after { opacity: 1; }
-.pkg-card.selected { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(201,168,76,0.15); }
-.pkg-card.pro-card { border-color: rgba(155,111,212,0.35); }
-.pkg-card.pro-card::after { background: radial-gradient(circle at 50% 0%, rgba(155,111,212,0.1), transparent 70%); }
-.pkg-card.pro-card.selected { border-color: var(--purple); box-shadow: 0 8px 30px rgba(155,111,212,0.2); }
+@keyframes card-scan { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 .pkg-badge {
-  position: absolute; top: -1px; right: -1px;
-  background: linear-gradient(135deg, var(--purple), #7c4fc4);
-  color: white; font-size: 10px; font-weight: 800;
-  padding: 4px 10px; border-radius: 0 18px 0 12px;
+  position: absolute; top: 0; right: 0;
+  background: linear-gradient(135deg, var(--purple2), #7c3aed);
+  color: white; font-family: var(--mono); font-size: 7.5px;
+  font-weight: bold; letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 0 2px 0 8px;
 }
-.pkg-name { font-family: 'Prompt', sans-serif; font-size: 17px; font-weight: 800; margin-top: 4px; }
+.pkg-name {
+  font-family: var(--display); font-size: 16px; font-weight: 800;
+  color: var(--text); letter-spacing: 1px; margin-top: 2px;
+}
+.pro-card .pkg-name { color: var(--purple); text-shadow: 0 0 15px rgba(199,125,255,0.4); }
 .pkg-price {
-  font-family: 'Prompt', sans-serif; font-size: 30px; font-weight: 900;
-  color: var(--gold); line-height: 1; margin: 8px 0 4px;
+  font-family: var(--display); font-size: 32px; font-weight: 900;
+  color: var(--gold); line-height: 1; margin: 10px 0 4px;
+  text-shadow: 0 0 20px var(--glow-o);
 }
-.pkg-price span { font-size: 12px; color: var(--text2); font-family: 'Sarabun', sans-serif; font-weight: 400; }
-.pro-card .pkg-price { color: var(--purple); }
-.pkg-features { font-size: 12px; color: var(--text2); line-height: 2.1; margin-top: 10px; text-align: left; list-style: none; }
-.pkg-features li::before { content: '✓ '; color: var(--green); font-weight: 800; }
-.pkg-features li.ai::before { content: '🤖 '; }
-.pkg-features li.limit { color: rgba(201,168,76,0.7); font-size: 11px; }
-.pkg-features li.limit::before { content: '⚡ '; }
+.pro-card .pkg-price { color: var(--purple); text-shadow: 0 0 20px var(--glow-p); }
+.pkg-price span { font-size: 11px; color: var(--muted); font-family: var(--thai); font-weight: 400; }
+.pkg-features {
+  font-family: var(--thai); font-size: 11px; color: var(--text2);
+  line-height: 2.1; margin-top: 10px; text-align: left; list-style: none;
+}
+.pkg-features li { display: flex; align-items: baseline; gap: 5px; }
+.pkg-features li::before { content: '▸'; color: var(--jade2); font-size: 9px; flex-shrink: 0; }
+.pkg-features li.ai::before { content: '⚡'; font-size: 8px; }
+.pkg-features li.limit { color: rgba(255,107,53,0.65); font-size: 10px; }
+.pkg-features li.limit::before { content: '·'; color: var(--muted); }
 
-/* ── COMPARISON ── */
-.compare-wrap { max-width: 480px; margin: 16px auto 0; padding: 0 16px; position: relative; z-index: 1; }
+/* ── COMPARE BOX ── */
+.compare-wrap { max-width: 480px; margin: 12px auto 0; padding: 0 16px; position: relative; z-index: 2; }
 .compare-box {
-  background: rgba(155,111,212,0.06); border: 1px solid rgba(155,111,212,0.2);
-  border-radius: 14px; padding: 14px 16px; text-align: center;
+  background: rgba(155,77,255,0.05); border: 1px solid rgba(199,125,255,0.18);
+  border-left: 2px solid var(--purple);
+  padding: 12px 16px; text-align: center;
 }
-.compare-box p { font-size: 13px; color: var(--text2); line-height: 1.8; }
+.compare-box p { font-size: 12px; color: var(--text2); line-height: 1.9; font-family: var(--thai); }
 .compare-box strong { color: var(--purple); }
-.compare-box .upgrade-hint {
-  margin-top: 8px; font-size: 12px; color: rgba(155,111,212,0.7);
-  font-style: italic;
-}
+.compare-hint { margin-top: 6px; font-family: var(--mono); font-size: 8px; color: rgba(199,125,255,0.55); letter-spacing: 0.5px; }
 
 /* ── FEATURES ── */
-.features { position: relative; z-index: 1; padding: 24px 16px 8px; display: grid; gap: 10px; max-width: 480px; margin: 0 auto; }
+.features { position: relative; z-index: 2; padding: 14px 16px 0; display: flex; flex-direction: column; gap: 8px; max-width: 480px; margin: 0 auto; }
 .feat {
-  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-  padding: 14px 16px; display: flex; align-items: center; gap: 14px;
-  transition: transform .2s, border-color .2s;
-  animation: fade-up .5s both;
+  background: linear-gradient(135deg, rgba(23,20,61,0.9) 0%, rgba(13,10,40,0.95) 100%);
+  border: 1px solid var(--border); border-left: 2px solid rgba(255,107,53,0.4);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 13px;
+  animation: feat-in .4s both;
+  transition: border-left-color .2s, box-shadow .2s;
 }
-.feat:active { transform: scale(.98); }
-.feat-icon { font-size: 26px; flex-shrink: 0; }
-.feat-text { font-size: 13px; line-height: 1.5; }
-.feat-text strong { display: block; font-size: 14px; color: var(--gold); margin-bottom: 2px; }
+.feat:hover { border-left-color: var(--gold); box-shadow: 0 0 0 1px var(--border), inset 3px 0 0 rgba(255,107,53,0.08); }
+@keyframes feat-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+.feat-icon { font-size: 22px; flex-shrink: 0; width: 30px; text-align: center; }
+.feat-text { font-size: 12px; line-height: 1.6; }
+.feat-text strong {
+  display: block; font-family: var(--display); font-size: 13px; font-weight: 700;
+  color: var(--gold2); margin-bottom: 1px;
+}
 
 /* ── TABS ── */
-.tab-wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
-.tabs { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 5px; margin-bottom: 16px; }
-.tab-btn {
-  flex: 1; padding: 11px; border: none; border-radius: 10px;
-  background: none; color: var(--text2); font-family: 'Sarabun', sans-serif;
-  font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s;
+.tab-wrap { position: relative; z-index: 2; max-width: 480px; margin: 14px auto 0; padding: 0 16px 50px; }
+.tabs {
+  display: flex;
+  background: rgba(13,10,40,0.8); border: 1px solid var(--border);
+  padding: 4px; margin-bottom: 12px; gap: 4px;
 }
-.tab-btn.active { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #0f0e0c; }
+.tab-btn {
+  flex: 1; padding: 11px;
+  background: none; border: none;
+  color: var(--muted); font-family: var(--mono);
+  font-size: 9px; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; transition: all .18s;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: var(--void);
+  box-shadow: 0 0 14px var(--glow-o);
+}
 
 /* ── FORM ── */
-.form-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 22px 18px; }
-.form-title { font-family: 'Prompt', sans-serif; font-size: 19px; font-weight: 800; color: var(--gold); margin-bottom: 16px; text-align: center; }
-.field { margin-bottom: 13px; }
-.field label { display: block; font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 5px; }
-.field input {
-  width: 100%; padding: 13px 14px; background: #0f0e0c;
-  border: 1.5px solid var(--border); border-radius: 10px;
-  color: var(--text); font-family: 'Sarabun', sans-serif; font-size: 15px;
-  outline: none; transition: border-color .2s, box-shadow .2s;
+.form-card {
+  background: linear-gradient(135deg, rgba(17,14,51,0.97) 0%, rgba(7,5,26,0.99) 100%);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  padding: 22px 18px;
+  position: relative; overflow: hidden;
 }
-.field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+.form-card::before {
+  content: '── REGISTER ──';
+  position: absolute; top: -9px; left: 18px;
+  font-family: var(--mono); font-size: 7.5px; color: var(--gold);
+  background: var(--deep); padding: 0 8px; letter-spacing: 2px;
+}
+#tab-login.form-card::before { content: '── LOGIN ──'; }
+.form-title {
+  font-family: var(--display); font-size: 18px; font-weight: 800;
+  color: var(--gold); margin-bottom: 16px; text-align: center;
+  text-shadow: 0 0 15px var(--glow-o);
+}
+
+.field { margin-bottom: 12px; }
+.field label {
+  display: block; font-family: var(--mono); font-size: 7.5px;
+  font-weight: bold; color: var(--muted); margin-bottom: 5px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+.field input {
+  width: 100%; padding: 11px 12px;
+  background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+  border-bottom-color: rgba(255,107,53,0.3);
+  color: var(--text); font-family: var(--thai); font-size: 15px;
+  border-radius: 1px; outline: none;
+  transition: border-bottom-color .2s, box-shadow .2s;
+}
+.field input:focus {
+  border-bottom-color: var(--gold);
+  box-shadow: 0 2px 0 rgba(255,107,53,0.2);
+}
+.field input::placeholder { color: var(--muted); font-size: 13px; }
 
 .plan-info {
-  background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2);
-  border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
-  font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 8px;
+  background: rgba(255,107,53,0.06); border: 1px solid rgba(255,107,53,0.18);
+  border-left: 2px solid var(--gold);
+  padding: 9px 12px; margin-bottom: 14px;
+  font-size: 12px; color: var(--text2);
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--thai);
 }
-.plan-info strong { color: var(--gold); font-size: 14px; }
+.plan-info strong { color: var(--gold); font-family: var(--display); font-weight: 700; }
 
 .btn-submit {
-  width: 100%; padding: 15px;
-  background: linear-gradient(135deg, var(--gold), var(--orange));
-  border: none; border-radius: 12px; color: #0f0e0c;
-  font-family: 'Prompt', sans-serif; font-size: 17px; font-weight: 800;
-  cursor: pointer; margin-top: 4px;
-  transition: transform .15s, opacity .15s, box-shadow .15s;
-  box-shadow: 0 4px 20px rgba(201,168,76,0.25);
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border: none; color: var(--void);
+  font-family: var(--display); font-size: 16px; font-weight: 900;
+  cursor: pointer; margin-top: 4px; letter-spacing: 0.5px;
+  transition: all .15s;
+  box-shadow: 0 4px 20px var(--glow-o);
+  border-radius: 1px;
 }
-.btn-submit:active { transform: scale(.97); opacity: .9; }
-.btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn-submit:hover { transform: translateY(-1px); box-shadow: 0 8px 30px var(--glow-o); }
+.btn-submit:active { transform: scale(.97) translateY(1px); opacity: .9; box-shadow: 0 2px 10px var(--glow-o); }
+.btn-submit:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
-.alert { display: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 13px; text-align: center; }
-.alert.success { background: rgba(90,170,106,0.15); color: var(--green); border: 1px solid rgba(90,170,106,0.3); }
-.alert.error   { background: rgba(192,84,74,0.15);  color: var(--red);   border: 1px solid rgba(192,84,74,0.3); }
+/* ── ALERT ── */
+.alert { display: none; padding: 10px 12px; font-family: var(--mono); font-size: 10px; margin-bottom: 12px; letter-spacing: 0.5px; }
+.alert.success { background: rgba(46,204,138,0.08); color: var(--jade2); border: 1px solid rgba(46,204,138,0.25); border-left: 2px solid var(--jade2); }
+.alert.error   { background: rgba(231,76,60,0.08); color: var(--blood2); border: 1px solid rgba(231,76,60,0.25); border-left: 2px solid var(--blood2); }
 .alert.show    { display: block; animation: shake .3s both; }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
 
+/* ── PAYMENT BOX ── */
 .payment-box {
-  display: none; margin-top: 16px;
-  background: rgba(201,168,76,0.07); border: 1.5px solid rgba(201,168,76,0.3);
-  border-radius: 16px; padding: 22px; text-align: center;
+  display: none; margin-top: 14px;
+  background: rgba(46,204,138,0.05); border: 1px solid rgba(46,204,138,0.2);
+  border-top: 2px solid var(--jade2);
+  padding: 20px; text-align: center; position: relative;
+}
+.payment-box::before {
+  content: '── PAYMENT ──';
+  position: absolute; top: -9px; left: 16px;
+  font-family: var(--mono); font-size: 7.5px; color: var(--jade2);
+  background: var(--deep); padding: 0 8px; letter-spacing: 2px;
 }
 .payment-box.show { display: block; animation: pop-in .4s cubic-bezier(.34,1.56,.64,1) both; }
-@keyframes pop-in { from{opacity:0;transform:scale(.85)} to{opacity:1;transform:scale(1)} }
-.payment-box h3 { font-family: 'Prompt', sans-serif; font-size: 18px; color: var(--gold); margin-bottom: 6px; }
-.payment-amount { font-family: 'Prompt', sans-serif; font-size: 44px; font-weight: 900; color: var(--gold2); line-height: 1; margin: 10px 0; }
-.payment-amount span { font-size: 16px; color: var(--text2); }
-.payment-detail { font-size: 14px; color: var(--text2); line-height: 2; }
+@keyframes pop-in { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
+.payment-box h3 { font-family: var(--display); font-size: 17px; font-weight: 800; color: var(--jade2); margin-bottom: 6px; text-shadow: 0 0 15px var(--glow-g); }
+.payment-amount { font-family: var(--display); font-size: 50px; font-weight: 900; color: var(--gold); line-height: 1; margin: 12px 0; text-shadow: 0 0 25px var(--glow-o); }
+.payment-amount span { font-size: 15px; color: var(--muted); font-family: var(--thai); font-weight: 400; }
+.payment-detail { font-family: var(--mono); font-size: 11px; color: var(--text2); line-height: 2; }
 .payment-detail strong { color: var(--text); }
 .payment-note {
-  margin-top: 14px; font-size: 13px; color: var(--text2);
-  background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; line-height: 1.8;
+  margin-top: 12px; font-size: 12px; color: var(--text2);
+  background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+  padding: 10px; line-height: 1.9; font-family: var(--thai);
 }
-.payment-note strong { color: var(--gold); }
+.payment-note strong { color: var(--gold); font-family: var(--display); }
 
-.footer { position: relative; z-index: 1; text-align: center; padding: 28px 20px; color: var(--text2); font-size: 12px; border-top: 1px solid var(--border); }
+/* ── FOOTER ── */
+.footer {
+  position: relative; z-index: 2;
+  text-align: center; padding: 24px 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 8px;
+  color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,107,53,0.25); border-radius: 2px; }
+
 .hidden { display: none !important; }
-
-/* shimmer on pkg-badge */
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-.pkg-badge-shine {
-  background: linear-gradient(90deg, var(--purple) 25%, #c084fc 50%, var(--purple) 75%);
-  background-size: 200% auto;
-  animation: shimmer 2.5s linear infinite;
-}
 </style>
 </head>
 <body>
 
-<!-- PARTICLES -->
-<div class="particles" id="particles"></div>
+<!-- FLOATING THAI CHARS -->
+<div class="thai-bg">ค้า</div>
+<div class="thai-bg">สด</div>
+<div class="thai-bg">🐕</div>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="logo">💰 ค้า<span>สด 💰</span></div>
-  <div class="tagline">ระบบ POS สำหรับร้านค้าไทย ใช้ง่าย ไม่ต้องซื้ออุปกรณ์ใหม่</div>
-  <div class="hero-badge">
-    <span class="badge-dot"></span>
-    ให้บริการอยู่ตอนนี้
+<!-- SCAN LINE -->
+<div class="scan-line"></div>
+
+<!-- ─── HERO ─────────────────────────────── -->
+<section class="hero">
+  <div class="mascot-ring">
+    <span class="mascot-char">🐕</span>
   </div>
-</div>
+  <div class="app-name">ค้า<span>สด</span></div>
+  <div class="app-sub">KAASOD POS · ระบบ POS สำหรับร้านค้าไทย · v2.0</div>
+  <div class="tagline">ใช้มือถือเครื่องเดิม · ไม่ต้องติดตั้ง · มี AI ประจำร้าน</div>
+  <div class="hero-status">
+    <div class="status-dot"></div>
+    ONLINE — ให้บริการอยู่ตอนนี้
+  </div>
+</section>
 
-<!-- PACKAGES -->
+<!-- ─── PACKAGES ──────────────────────────── -->
+<div class="sec-sep">
+  <div class="sec-label">PACKAGES — เลือกแพ็กเกจ</div>
+</div>
 <div class="pkg-wrap">
-  <div class="pkg-title">เลือกแพ็กเกจที่ใช่สำหรับคุณ</div>
   <div class="pkg-grid">
 
     <div class="pkg-card selected" id="pkg-starter" onclick="selectPlan('starter')">
-      <div class="pkg-name">Starter</div>
+      <div class="pkg-name">STARTER</div>
       <div class="pkg-price">199 <span>฿/เดือน</span></div>
       <ul class="pkg-features">
         <li>POS ขายของ</li>
@@ -258,8 +502,8 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
     </div>
 
     <div class="pkg-card pro-card" id="pkg-pro" onclick="selectPlan('pro')">
-      <div class="pkg-badge pkg-badge-shine">แนะนำ 🔥</div>
-      <div class="pkg-name" style="color:var(--purple)">Pro</div>
+      <div class="pkg-badge">แนะนำ ⚡</div>
+      <div class="pkg-name">PRO</div>
       <div class="pkg-price">399 <span>฿/เดือน</span></div>
       <ul class="pkg-features">
         <li>ทุกอย่างใน Starter</li>
@@ -273,16 +517,19 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
   </div>
 </div>
 
-<!-- COMPARE BOX -->
+<!-- ─── COMPARE ───────────────────────────── -->
 <div class="compare-wrap">
   <div class="compare-box">
-    <p>Starter ได้ใช้ <strong>AI 20 ข้อความต่อวัน</strong> ฟรี<br>
-    เมื่อใช้ครบแล้วอัปเกรดเป็น Pro ใช้ได้ <strong>ไม่จำกัด</strong></p>
-    <p class="upgrade-hint">เพิ่มแค่วันละ 6.67 บาท ได้ AI ประจำร้านเต็มรูปแบบ</p>
+    <p>Starter ได้ใช้ <strong>AI 20 ข้อความต่อวัน</strong> ฟรีรวมอยู่แล้ว<br>
+    Pro ใช้ AI ได้ <strong>ไม่จำกัด</strong> ทุกฟีเจอร์เต็มรูปแบบ</p>
+    <div class="compare-hint">// เพิ่มแค่วันละ 6.67 บาท · AI เต็มระบบ · ไม่มีหมด</div>
   </div>
 </div>
 
-<!-- FEATURES -->
+<!-- ─── FEATURES ──────────────────────────── -->
+<div class="sec-sep" style="margin-top:14px">
+  <div class="sec-label">FEATURES — ทำไมต้องค้าสด</div>
+</div>
 <div class="features">
   <div class="feat" style="animation-delay:.05s">
     <div class="feat-icon">📱</div>
@@ -321,29 +568,32 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
   </div>
 </div>
 
-<!-- TABS + FORM -->
+<!-- ─── TABS + FORM ────────────────────────── -->
+<div class="sec-sep" style="margin-top:14px">
+  <div class="sec-label">ACCESS — เข้าสู่ระบบ</div>
+</div>
 <div class="tab-wrap">
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('register')">สมัครสมาชิก</button>
-    <button class="tab-btn" onclick="showTab('login')">เข้าสู่ระบบ</button>
+    <button class="tab-btn active" onclick="showTab('register')">▶ สมัครสมาชิก</button>
+    <button class="tab-btn" onclick="showTab('login')">◀ เข้าสู่ระบบ</button>
   </div>
 
   <!-- REGISTER -->
   <div id="tab-register" class="form-card">
-    <div class="form-title">🌿 สมัครใช้งาน</div>
+    <div class="form-title">🐕 สมัครใช้งาน</div>
     <div id="reg-alert" class="alert"></div>
     <div id="reg-form">
       <div class="plan-info">
-        <span>📦</span>
+        <span id="plan-icon">📦</span>
         <div>แพ็กเกจที่เลือก: <strong id="plan-display">Starter — 199฿/เดือน</strong></div>
       </div>
       <div class="field">
-        <label>ชื่อร้านของคุณ</label>
+        <label>ชื่อร้าน</label>
         <input type="text" id="reg-shop" placeholder="เช่น ร้านข้าวต้มป้าแดง">
       </div>
       <div class="field">
-        <label>ชื่อผู้ใช้ (ภาษาอังกฤษ)</label>
-        <input type="text" id="reg-user" placeholder="เช่น paadaeng99" autocapitalize="none">
+        <label>ชื่อผู้ใช้ (EN)</label>
+        <input type="text" id="reg-user" placeholder="paadaeng99" autocapitalize="none">
       </div>
       <div class="field">
         <label>รหัสผ่าน</label>
@@ -353,12 +603,12 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
         <label>เบอร์โทรศัพท์</label>
         <input type="tel" id="reg-phone" placeholder="08X-XXX-XXXX">
       </div>
-      <button class="btn-submit" id="reg-btn" onclick="doRegister()">สมัครเลย — 199฿/เดือน</button>
+      <button class="btn-submit" id="reg-btn" onclick="doRegister()">สมัครเลย — 199฿/เดือน ▶</button>
     </div>
 
     <div id="payment-box" class="payment-box">
-      <h3>✅ สมัครสำเร็จแล้ว!</h3>
-      <div style="font-size:13px;color:var(--text2)">โอนเงินเพื่อเปิดใช้งาน</div>
+      <h3>✓ สมัครสำเร็จแล้ว</h3>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px">โอนเงินเพื่อเปิดใช้งาน</div>
       <div class="payment-amount" id="pay-amount">199 <span>฿/เดือน</span></div>
       <div class="payment-detail">
         <strong>PromptPay:</strong> [เบอร์ของคุณ]<br>
@@ -367,7 +617,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
       <div class="payment-note">
         หลังโอนแล้ว แคปหน้าจอส่งมาที่<br>
         <strong>Line: @kaasod</strong><br>
-        ทีมงานจะเปิดใช้งานให้ภายใน 30 นาที 🚀
+        ทีมงานจะเปิดใช้งานให้ภายใน 30 นาที
       </div>
     </div>
   </div>
@@ -384,57 +634,36 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
       <label>รหัสผ่าน</label>
       <input type="password" id="login-pass" placeholder="รหัสผ่าน">
     </div>
-    <button class="btn-submit" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <button class="btn-submit" onclick="doLogin()">เข้าสู่ระบบ ▶</button>
   </div>
 </div>
 
-<div class="footer">ค้าสด (KAASOD) © 2026 · ระบบ POS สำหรับร้านค้าไทย</div>
+<div class="footer">🐕 ค้าสด (KAASOD) © 2026 · THAI POS SYSTEM · ALL RIGHTS RESERVED</div>
 
 <script>
-// ── PARTICLES ──────────────────────────────────────────
-(function() {
-  const wrap  = document.getElementById('particles');
-  const colors = ['#c9a84c','#e07b3a','#9b6fd4','#5aaa6a','#e8c56a'];
-  for (let i = 0; i < 18; i++) {
-    const el  = document.createElement('div');
-    const sz  = Math.random() * 5 + 2;
-    const dur = Math.random() * 12 + 8;
-    const del = Math.random() * 10;
-    const col = colors[Math.floor(Math.random() * colors.length)];
-    el.className = 'particle';
-    el.style.cssText = `
-      width:${sz}px; height:${sz}px; background:${col};
-      left:${Math.random()*100}%;
-      animation-duration:${dur}s; animation-delay:-${del}s;
-      filter: blur(${Math.random()>.5?1:0}px);
-    `;
-    wrap.appendChild(el);
-  }
-})();
-
-// ── PLAN SELECT ─────────────────────────────────────────
+// ── PLAN SELECT ──
 let selectedPlan = 'starter';
-
 function selectPlan(plan) {
   selectedPlan = plan;
   document.getElementById('pkg-starter').classList.toggle('selected', plan === 'starter');
   document.getElementById('pkg-pro').classList.toggle('selected', plan === 'pro');
   const price = plan === 'pro' ? 399 : 199;
-  const icon  = plan === 'pro' ? '🤖' : '📦';
-  const label = plan === 'pro' ? 'Pro — 399฿/เดือน 🤖' : 'Starter — 199฿/เดือน';
+  const icon  = plan === 'pro' ? '⚡' : '📦';
+  const label = plan === 'pro' ? 'Pro — 399฿/เดือน' : 'Starter — 199฿/เดือน';
   document.getElementById('plan-display').textContent = label;
-  document.querySelector('.plan-info span').textContent = icon;
-  document.getElementById('reg-btn').textContent = `สมัครเลย — ${price}฿/เดือน`;
+  document.getElementById('plan-icon').textContent = icon;
+  const btn = document.getElementById('reg-btn');
+  btn.textContent = `สมัครเลย — ${price}฿/เดือน ▶`;
   if (plan === 'pro') {
-    document.getElementById('reg-btn').style.background = 'linear-gradient(135deg, #9b6fd4, #7c4fc4)';
-    document.getElementById('reg-btn').style.boxShadow  = '0 4px 20px rgba(155,111,212,0.3)';
+    btn.style.background = 'linear-gradient(135deg, #9b4dff, #c77dff)';
+    btn.style.boxShadow  = '0 4px 20px rgba(199,125,255,0.3)';
   } else {
-    document.getElementById('reg-btn').style.background = 'linear-gradient(135deg, var(--gold), var(--orange))';
-    document.getElementById('reg-btn').style.boxShadow  = '0 4px 20px rgba(201,168,76,0.25)';
+    btn.style.background = 'linear-gradient(135deg, #ff6b35, #ffb347)';
+    btn.style.boxShadow  = '0 4px 20px rgba(255,107,53,0.3)';
   }
 }
 
-// ── TABS ────────────────────────────────────────────────
+// ── TABS ──
 function showTab(tab) {
   document.getElementById('tab-register').classList.toggle('hidden', tab !== 'register');
   document.getElementById('tab-login').classList.toggle('hidden', tab !== 'login');
@@ -443,77 +672,62 @@ function showTab(tab) {
   );
 }
 
-// ── ALERTS ──────────────────────────────────────────────
+// ── ALERT ──
 function showAlert(id, msg, type) {
   const el = document.getElementById(id);
   el.textContent = msg;
   el.className = `alert ${type} show`;
 }
 
-// ── REGISTER ────────────────────────────────────────────
+// ── REGISTER ──
 async function doRegister() {
   const shop  = document.getElementById('reg-shop').value.trim();
   const user  = document.getElementById('reg-user').value.trim();
   const pass  = document.getElementById('reg-pass').value.trim();
   const phone = document.getElementById('reg-phone').value.trim();
-
-  if (!shop || !user || !pass || !phone) {
-    showAlert('reg-alert', 'กรอกข้อมูลให้ครบทุกช่องก่อนนะครับ', 'error'); return;
-  }
-  if (pass.length < 6) {
-    showAlert('reg-alert', 'รหัสผ่านต้องมีอย่างน้อย 6 ตัว', 'error'); return;
-  }
-
+  if (!shop || !user || !pass || !phone) { showAlert('reg-alert', '// กรอกข้อมูลให้ครบทุกช่องก่อนนะครับ', 'error'); return; }
+  if (pass.length < 6) { showAlert('reg-alert', '// รหัสผ่านต้องมีอย่างน้อย 6 ตัว', 'error'); return; }
   const btn = document.getElementById('reg-btn');
-  btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
-
+  btn.disabled = true; btn.textContent = '// กำลังสมัคร...';
   try {
-    const res  = await fetch('/api/register', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ shop_name: shop, username: user, password: pass, phone, plan: selectedPlan })
-    });
+    const res  = await fetch('/api/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({shop_name:shop,username:user,password:pass,phone,plan:selectedPlan}) });
     const data = await res.json();
     if (data.ok) {
       document.getElementById('reg-form').style.display = 'none';
       document.getElementById('payment-box').classList.add('show');
       document.getElementById('pay-amount').innerHTML = `${data.price} <span>฿/เดือน</span>`;
     } else {
-      showAlert('reg-alert', data.msg, 'error');
+      showAlert('reg-alert', '// ' + data.msg, 'error');
       btn.disabled = false;
-      btn.textContent = `สมัครเลย — ${selectedPlan === 'pro' ? 399 : 199}฿/เดือน`;
+      btn.textContent = `สมัครเลย — ${selectedPlan === 'pro' ? 399 : 199}฿/เดือน ▶`;
     }
-  } catch (e) {
-    showAlert('reg-alert', 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
+  } catch(e) {
+    showAlert('reg-alert', '// เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
     btn.disabled = false;
-    btn.textContent = `สมัครเลย — ${selectedPlan === 'pro' ? 399 : 199}฿/เดือน`;
+    btn.textContent = `สมัครเลย — ${selectedPlan === 'pro' ? 399 : 199}฿/เดือน ▶`;
   }
 }
 
-// ── LOGIN ───────────────────────────────────────────────
+// ── LOGIN ──
 async function doLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
-  if (!user || !pass) { showAlert('login-alert', 'กรอกชื่อผู้ใช้และรหัสผ่านครับ', 'error'); return; }
-
+  if (!user || !pass) { showAlert('login-alert', '// กรอกชื่อผู้ใช้และรหัสผ่านครับ', 'error'); return; }
   const btn = document.querySelector('#tab-login .btn-submit');
-  btn.disabled = true; btn.textContent = 'กำลังเข้าสู่ระบบ...';
-
+  btn.disabled = true; btn.textContent = '// กำลังเข้าสู่ระบบ...';
   try {
-    const res  = await fetch('/api/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: user, password: pass })
-    });
+    const res  = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:user,password:pass}) });
     const data = await res.json();
     if (data.ok) {
-      showAlert('login-alert', `ยินดีต้อนรับ ${data.shop_name} 🎉`, 'success');
+      showAlert('login-alert', `✓ ยินดีต้อนรับ ${data.shop_name}`, 'success');
       setTimeout(() => { window.location.href = '/pos'; }, 900);
     } else {
-      showAlert('login-alert', data.msg, 'error');
-      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+      showAlert('login-alert', '// ' + data.msg, 'error');
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ ▶';
     }
-  } catch (e) {
-    showAlert('login-alert', 'เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
-    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+  } catch(e) {
+    showAlert('login-alert', '// เกิดข้อผิดพลาด ลองใหม่อีกครั้งครับ', 'error');
+    btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ ▶';
   }
 }
 
