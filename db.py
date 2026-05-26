@@ -358,6 +358,78 @@ def get_sales(shop_id: str, dates: list) -> list:
     return result
 
 
+def delete_sale_from_log(shop_id: str, bill: dict):
+    """
+    ลบบิลออกจาก sales_log ทันทีที่ร้านลบบิล
+    เพื่อให้ยอดรวมใน admin dashboard ตรงกับยอดร้านแบบ real-time
+    bill ควรมี: time, total, pay  (และ _date หรือ date ถ้ามี)
+    """
+    bill_time  = bill.get('time', '')
+    bill_total = int(bill.get('total', 0))
+
+    # หาวันที่ของบิล: ลอง _date → date → prefix จาก time → วันนี้
+    raw_date = bill.get('_date') or bill.get('date') or ''
+    if not raw_date and bill_time and len(bill_time) >= 10:
+        raw_date = bill_time[:10]   # กรณี time = '2026-05-27 03:25:53'
+    if not raw_date:
+        raw_date = datetime.now().strftime('%Y-%m-%d')
+    bill_date = raw_date[:10]
+
+    # ── PostgreSQL ──────────────────────────────────────────────────
+    if DB_ENABLED:
+        try:
+            with get_conn() as conn:
+                with conn.cursor() as cur:
+                    # ใช้ subquery เพื่อลบแค่ 1 แถว (กัน edge case ยอดซ้ำ)
+                    cur.execute("""
+                        DELETE FROM sales_log
+                        WHERE id = (
+                            SELECT id FROM sales_log
+                            WHERE shop_id = %s
+                              AND total    = %s
+                              AND sale_date = %s::date
+                              AND (
+                                  raw->>'time' = %s
+                               OR raw->>'_ts'  = %s
+                               OR raw->>'_ts' LIKE %s
+                              )
+                            ORDER BY sale_ts DESC
+                            LIMIT 1
+                        )
+                    """, (
+                        shop_id,
+                        bill_total,
+                        bill_date,
+                        bill_time,
+                        bill_time,
+                        bill_time[:19] + '%',   # prefix match กรณี microseconds
+                    ))
+                    deleted_rows = cur.rowcount
+            if deleted_rows == 0:
+                logger.warning(
+                    f"delete_sale_from_log: ไม่พบแถวที่ตรง "
+                    f"shop={shop_id} date={bill_date} time={bill_time} total={bill_total}"
+                )
+        except Exception as e:
+            logger.error(f"delete_sale_from_log DB failed: {e}")
+
+    # ── JSON fallback ───────────────────────────────────────────────
+    sales = _json_read_sales(shop_id, bill_date)
+    new_sales = []
+    removed = False
+    for s in sales:
+        if (
+            not removed
+            and int(s.get('total', -1)) == bill_total
+            and (s.get('time') == bill_time or s.get('_ts', '').startswith(bill_time[:19]))
+        ):
+            removed = True   # ลบแค่ 1 รายการ
+            continue
+        new_sales.append(s)
+    if removed:
+        _json_write_sales(shop_id, bill_date, new_sales)
+
+
 # ════════════════════════════════════════════════════════════════
 # CHAT LOGS
 # ════════════════════════════════════════════════════════════════
@@ -513,6 +585,11 @@ def _json_read_sales(shop_id: str, date_str: str) -> list:
     if f.exists():
         return json.loads(f.read_text(encoding='utf-8'))
     return []
+
+def _json_write_sales(shop_id: str, date_str: str, sales: list):
+    """เขียน sales list กลับลงไฟล์ (ใช้หลังลบบิล)"""
+    f = _shop_dir(shop_id) / f'sales_{date_str}.json'
+    f.write_text(json.dumps(sales, ensure_ascii=False, indent=2), encoding='utf-8')
 
 
 # ════════════════════════════════════════════════════════════════

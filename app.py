@@ -339,7 +339,12 @@ def delete_sale_endpoint():
     d        = request.get_json(silent=True) or {}
     bill     = d.get('bill', d)   # รองรับทั้ง {bill: ...} และส่ง bill ตรงๆ
 
+    # 1) บันทึก deletion log (audit trail)
     DB.log_bill_deletion(shop_id, username, bill)
+
+    # 2) ลบออกจาก sales_log → ยอดรวม admin ตรงกับยอดร้านแบบ real-time
+    DB.delete_sale_from_log(shop_id, bill)
+
     return jsonify({'ok': True})
 
 
