@@ -552,6 +552,39 @@
 
   .divider { height: 1px; background: var(--border); margin: 12px 0; }
 
+  /* ===== COST / PROFIT SECTION ===== */
+  .profit-card {
+    background: var(--card); border-radius: var(--radius-md);
+    border: 1px solid var(--border2); padding: 14px; margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .profit-headline {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .profit-headline-label { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+  .profit-big { font-size: 28px; font-weight: 800; font-family: 'Prompt', sans-serif; }
+  .profit-big.pos { color: var(--green); }
+  .profit-big.neg { color: var(--red); }
+  .profit-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .profit-row:last-child { border-bottom: none; }
+  .profit-row .pval { font-weight: 800; font-family: 'Prompt', sans-serif; }
+  .profit-item-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .profit-item-table th { text-align: left; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 1px; padding: 4px 6px; border-bottom: 1px solid var(--border2); }
+  .profit-item-table td { padding: 6px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .profit-item-table tr:last-child td { border-bottom: none; }
+  .margin-pill {
+    display: inline-block; padding: 2px 7px; border-radius: 20px;
+    font-size: 10px; font-weight: 800; font-family: 'Prompt', sans-serif;
+  }
+  .margin-pill.high { background: rgba(126,196,126,0.2); color: var(--green); border: 1px solid rgba(126,196,126,0.3); }
+  .margin-pill.mid  { background: rgba(201,162,39,0.15); color: var(--accent); border: 1px solid rgba(201,162,39,0.25); }
+  .margin-pill.low  { background: rgba(255,61,90,0.12); color: var(--red); border: 1px solid rgba(255,61,90,0.25); }
+  .margin-pill.none { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
@@ -1780,6 +1813,64 @@
     <div id="redeem-log-list"></div>
   </div>
 
+  <!-- ===== COST / PROFIT SECTION ===== -->
+  <div id="profit-section">
+    <p class="sec-title">💰 ทุนและกำไร</p>
+    <div class="profit-card" id="profit-summary-card">
+      <div class="profit-headline">
+        <div>
+          <div class="profit-headline-label">กำไรจากต้นทุน (กะนี้)</div>
+          <div class="profit-big pos" id="profit-gross">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="profit-margin-pct"></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;margin-bottom:3px;">MARGIN</div>
+          <div id="profit-margin-donut" style="font-size:32px;font-weight:900;font-family:'Prompt',sans-serif;color:var(--accent);">—</div>
+        </div>
+      </div>
+      <div class="profit-row">
+        <span>รายได้ (ยอดขาย)</span>
+        <span class="pval" style="color:var(--accent);" id="prow-revenue">฿0</span>
+      </div>
+      <div class="profit-row">
+        <span>ต้นทุนสินค้า (COGS)</span>
+        <span class="pval" style="color:var(--red);" id="prow-cogs">฿0</span>
+      </div>
+      <div class="profit-row">
+        <span>กำไรขั้นต้น</span>
+        <span class="pval" id="prow-gross">฿0</span>
+      </div>
+      <div class="profit-row">
+        <span>หักรายจ่าย (Petty Cash)</span>
+        <span class="pval" style="color:var(--red);" id="prow-petty">฿0</span>
+      </div>
+      <div class="profit-row" style="border-top:1.5px solid var(--accent);margin-top:4px;">
+        <span style="font-weight:800;">กำไรสุทธิ (หลังหักทุก)</span>
+        <span class="pval" id="prow-net">฿0</span>
+      </div>
+      <div id="profit-no-cost-note" style="display:none;margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(201,162,39,0.1);border:1px dashed rgba(201,162,39,0.3);font-size:11px;color:var(--muted);">
+        ℹ️ ยังไม่ได้กรอกต้นทุนสินค้า — ไปที่ <strong style="color:var(--accent);">Admin → จัดการสินค้า</strong> แล้วกรอกต้นทุนแต่ละชิ้นเพื่อดูกำไรจริง
+      </div>
+    </div>
+
+    <!-- Per-product profit table -->
+    <div class="profit-card" id="profit-per-product-card">
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">กำไรรายสินค้า (กะนี้)</div>
+      <table class="profit-item-table">
+        <thead>
+          <tr>
+            <th>สินค้า</th>
+            <th style="text-align:right;">ขาย</th>
+            <th style="text-align:right;">ทุน/ชิ้น</th>
+            <th style="text-align:right;">กำไร</th>
+            <th style="text-align:center;">Margin</th>
+          </tr>
+        </thead>
+        <tbody id="profit-item-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <button class="export-btn" onclick="exportCSV()">📋 Export CSV</button>
   <div class="divider"></div>
   <p class="sec-title">ประวัติรายการ</p>
@@ -2043,7 +2134,13 @@
     <h3 id="add-product-title">➕ เพิ่มสินค้าใหม่</h3>
     <input type="text" id="new-prod-name" placeholder="ชื่อสินค้า" style="width:100%;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:15px;font-family:'Sarabun',sans-serif;margin-bottom:10px;">
     <input type="text" id="new-prod-key" placeholder="รหัส (ภาษาไทย ไม่มีช่องว่าง)" style="width:100%;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:15px;font-family:'Sarabun',sans-serif;margin-bottom:10px;">
-    <input type="number" id="new-prod-price" placeholder="ราคา (฿)" inputmode="numeric" min="1" style="width:100%;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:15px;font-family:'Sarabun',sans-serif;margin-bottom:10px;">
+    <input type="number" id="new-prod-price" placeholder="ราคาขาย (฿)" inputmode="numeric" min="1" style="width:100%;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:15px;font-family:'Sarabun',sans-serif;margin-bottom:10px;" oninput="updateCostPreview()">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <input type="number" id="new-prod-cost" placeholder="ต้นทุน (฿) — ไม่บังคับ" inputmode="numeric" min="0" step="0.01"
+        style="flex:1;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-size:15px;font-family:'Sarabun',sans-serif;"
+        oninput="updateCostPreview()">
+      <div id="cost-margin-preview" style="font-size:12px;color:var(--green);min-width:70px;text-align:right;font-weight:700;font-family:'Prompt',sans-serif;"></div>
+    </div>
 
     <!-- แบ่งขาย toggle -->
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
@@ -2787,6 +2884,114 @@ document.getElementById('member-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') goToPayModal();
 });
 
+// ===================================================================
+// 💰 COST / PROFIT ENGINE
+// ===================================================================
+function renderProfitSection() {
+  const history = loadHistory();
+  const shiftHistory = filterByShift(history);
+  const effProds = getEffectiveProducts();
+  const pettyTotal = loadPetty().reduce((s, p) => s + p.amount, 0);
+
+  // คำนวณ qty ขายแต่ละชิ้นในกะ
+  const soldQty = {}; // key → qty
+  let totalRevenue = 0;
+  shiftHistory.forEach(h => {
+    if (h.pay === 'free') return; // ไม่นับแลกฟรี
+    h.items.forEach(it => {
+      if ((it.price || 0) >= 0) {
+        soldQty[it.key] = (soldQty[it.key] || 0) + (it.qty || 1);
+        totalRevenue += (it.price || 0) * (it.qty || 1);
+      }
+    });
+  });
+
+  // คำนวณ COGS
+  let totalCOGS = 0;
+  let hasCostData = false;
+  const itemRows = [];
+
+  effProds.filter(p => !p.promoBase).forEach(p => {
+    const qty = soldQty[p.key] || 0;
+    if (qty === 0) return;
+    const revenue = p.price * qty;
+    const cost = p.cost || 0;
+    const cogs = cost * qty;
+    const profit = revenue - cogs;
+    const margin = p.price > 0 && cost > 0 ? Math.round((p.price - cost) / p.price * 100) : null;
+
+    if (cost > 0) { hasCostData = true; totalCOGS += cogs; }
+    itemRows.push({ name: p.name, qty, revenue, cost, cogs, profit, margin });
+  });
+
+  const grossProfit = totalRevenue - totalCOGS;
+  const netProfit = grossProfit - pettyTotal;
+  const overallMargin = totalRevenue > 0 ? Math.round(grossProfit / totalRevenue * 100) : 0;
+
+  // อัปเดต summary card
+  const grossEl = document.getElementById('profit-gross');
+  if (grossEl) {
+    grossEl.textContent = hasCostData ? `฿${grossProfit.toLocaleString()}` : '—';
+    grossEl.className = 'profit-big ' + (grossProfit >= 0 ? 'pos' : 'neg');
+  }
+  const pctEl = document.getElementById('profit-margin-pct');
+  if (pctEl) pctEl.textContent = hasCostData ? `Gross Margin ${overallMargin}%` : 'กรอกต้นทุนสินค้าเพื่อดูกำไรจริง';
+
+  const donutEl = document.getElementById('profit-margin-donut');
+  if (donutEl) {
+    if (hasCostData) {
+      const col = overallMargin >= 40 ? 'var(--green)' : overallMargin >= 20 ? 'var(--accent)' : 'var(--red)';
+      donutEl.style.color = col;
+      donutEl.textContent = overallMargin + '%';
+    } else {
+      donutEl.textContent = '—';
+      donutEl.style.color = 'var(--muted)';
+    }
+  }
+
+  const setVal = (id, val, color) => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = val; if (color) el.style.color = color; }
+  };
+  setVal('prow-revenue', `฿${totalRevenue.toLocaleString()}`, 'var(--accent)');
+  setVal('prow-cogs', hasCostData ? `-฿${totalCOGS.toLocaleString()}` : 'ไม่มีข้อมูลต้นทุน', 'var(--red)');
+  setVal('prow-gross', hasCostData ? `฿${grossProfit.toLocaleString()}` : '—', grossProfit >= 0 ? 'var(--green)' : 'var(--red)');
+  setVal('prow-petty', pettyTotal > 0 ? `-฿${pettyTotal.toLocaleString()}` : '฿0', 'var(--red)');
+  const netEl = document.getElementById('prow-net');
+  if (netEl) {
+    netEl.textContent = hasCostData ? `฿${netProfit.toLocaleString()}` : `฿${(totalRevenue - pettyTotal).toLocaleString()} (ยังไม่หักต้นทุน)`;
+    netEl.style.color = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  const noteEl = document.getElementById('profit-no-cost-note');
+  if (noteEl) noteEl.style.display = hasCostData ? 'none' : 'block';
+
+  // อัปเดตตารางรายสินค้า
+  const tbody = document.getElementById('profit-item-tbody');
+  if (tbody) {
+    if (itemRows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px;">ยังไม่มียอดขายในกะนี้</td></tr>`;
+    } else {
+      tbody.innerHTML = itemRows.sort((a, b) => b.revenue - a.revenue).map(r => {
+        let marginBadge = '<span class="margin-pill none">—</span>';
+        if (r.margin !== null) {
+          const cls = r.margin >= 40 ? 'high' : r.margin >= 20 ? 'mid' : 'low';
+          marginBadge = `<span class="margin-pill ${cls}">${r.margin}%</span>`;
+        }
+        const profitStr = r.cost > 0 ? (r.profit >= 0 ? `<span style="color:var(--green);">+฿${r.profit.toLocaleString()}</span>` : `<span style="color:var(--red);">-฿${Math.abs(r.profit).toLocaleString()}</span>`) : '<span style="color:var(--muted);">—</span>';
+        return `<tr>
+          <td><strong>${r.name}</strong><br><span style="color:var(--muted);font-size:10px;">×${r.qty} ชิ้น</span></td>
+          <td style="text-align:right;font-family:'Prompt',sans-serif;font-weight:700;">฿${r.revenue.toLocaleString()}</td>
+          <td style="text-align:right;color:var(--muted);">${r.cost > 0 ? '฿' + r.cost : '—'}</td>
+          <td style="text-align:right;">${profitStr}</td>
+          <td style="text-align:center;">${marginBadge}</td>
+        </tr>`;
+      }).join('');
+    }
+  }
+}
+
+
 // ===== HISTORY TAB =====
 function renderHistory() {
   const allHistory = loadHistory();
@@ -2907,6 +3112,8 @@ function renderHistory() {
       </div>
     </div>`;
   }).join('');
+  // อัปเดตส่วนทุน/กำไรด้วย
+  renderProfitSection();
 }
 
 function clearHistory() {
@@ -3160,6 +3367,10 @@ function buildShopSystem() {
   
   const prodLines = effProds.filter(p => !p.promoBase).map(p => {
     let line = `- ${p.name}: ฿${p.price}`;
+    if (p.cost > 0) {
+      const margin = Math.round((p.price - p.cost) / p.price * 100);
+      line += ` (ทุน ฿${p.cost}, กำไร ฿${p.price - p.cost}, margin ${margin}%)`;
+    }
     if (p.splitUnitQty) {
       line += ` (1 ${p.stockUnit||'หน่วย'} = ${p.splitUnitQty} ${p.splitUnitLabel||'หน่วยย่อย'})`;
       if (p.splitTiers && p.splitTiers.length > 0) {
@@ -3240,9 +3451,12 @@ ${promoLines}
 รูปแบบที่ใช้ได้:
 
 ▶ เพิ่มสต็อก (ของมาลง / เติมสต็อก):
-<ACTION>{"type":"add_stock","key":"[product_key]","qty":[number],"round":[round_number],"name":"[product_name]"}</ACTION>
+<ACTION>{"type":"add_stock","key":"[product_key]","qty":[number],"round":[round_number],"name":"[product_name]","cost":[cost_per_unit_optional]}</ACTION>
 ตัวอย่าง: "น้ำส้ม 50 ขวดมาลงนะ"
 <ACTION>{"type":"add_stock","key":"orange_juice","qty":50,"round":1,"name":"น้ำส้ม"}</ACTION>
+ตัวอย่าง: "น้ำสตรอเบอรี่มาลง 100 ขวด ต้นทุน 15 บาท" (สินค้ามีอยู่แล้วในระบบ)
+<ACTION>{"type":"add_stock","key":"strawberry_juice","qty":100,"round":1,"name":"น้ำสตรอเบอรี่","cost":15}</ACTION>
+หมายเหตุ: ใส่ cost เมื่อผู้ใช้บอกต้นทุนมาด้วย — ระบบจะอัปเดตต้นทุนสินค้าให้อัตโนมัติ
 
 ▶ ลบ/ตัดสต็อก (ของหาย เสีย ทิ้ง ปรับลด หรือสั่งให้ลบออก):
 <ACTION>{"type":"reduce_stock","key":"[product_key]","qty":[number],"name":"[product_name]"}</ACTION>
@@ -3255,10 +3469,12 @@ ${promoLines}
 <ACTION>{"type":"set_stock","key":"orange_juice","qty":80,"name":"น้ำส้ม"}</ACTION>
 
 ▶ สร้างสินค้าใหม่ (มีสินค้าใหม่เข้ามา ยังไม่เคยมีในระบบ):
-<ACTION>{"type":"create_product","key":"[unique_key_no_spaces]","name":"[product_name]","price":[price_number],"qty":[initial_stock_qty]}</ACTION>
-ตัวอย่าง: "มีน้ำผลไม้รวมมาใหม่ ราคา 70 บาท จำนวน 100 ขวด"
-<ACTION>{"type":"create_product","key":"mixed_fruit_juice","name":"น้ำผลไม้รวม","price":70,"qty":100}</ACTION>
-หมายเหตุ: key ต้องเป็นภาษาอังกฤษ ไม่มีช่องว่าง ไม่ซ้ำกับสินค้าที่มีอยู่แล้ว
+<ACTION>{"type":"create_product","key":"[unique_key_no_spaces]","name":"[product_name]","price":[price_number],"cost":[cost_number],"qty":[initial_stock_qty]}</ACTION>
+ตัวอย่าง: "มีน้ำผลไม้รวมมาใหม่ ราคา 70 บาท ต้นทุน 25 บาท จำนวน 100 ขวด"
+<ACTION>{"type":"create_product","key":"mixed_fruit_juice","name":"น้ำผลไม้รวม","price":70,"cost":25,"qty":100}</ACTION>
+ตัวอย่าง: "น้ำสตรอเบอรี่ขวดละ 50 บาท ต้นทุน 15 บาท มาลง 100 ขวด"
+<ACTION>{"type":"create_product","key":"strawberry_juice","name":"น้ำสตรอเบอรี่","price":50,"cost":15,"qty":100}</ACTION>
+หมายเหตุ: key ต้องเป็นภาษาอังกฤษ ไม่มีช่องว่าง ไม่ซ้ำกับสินค้าที่มีอยู่แล้ว | cost คือต้นทุนต่อชิ้น (ไม่บังคับ แต่ควรใส่ถ้ามีข้อมูล)
 
 ▶ บันทึกรายจ่าย Petty Cash (ซื้อของ จ่ายค่าใช้จ่ายต่างๆ):
 <ACTION>{"type":"add_petty","desc":"[ชื่อรายการ]","amount":[จำนวนเงิน]}</ACTION>
@@ -3330,6 +3546,11 @@ ${promoLines}
 <ACTION>{"type":"open_shift","float":[จำนวนเงินตั้งต้น],"staffName":"[ชื่อพนักงาน]"}</ACTION>
 ตัวอย่าง: "เปิดกะ เงินในลิ้นชัก 500 บาท" → <ACTION>{"type":"open_shift","float":500,"staffName":""}</ACTION>
 หมายเหตุ: ใช้เฉพาะเมื่อยังไม่มีกะเปิดอยู่
+
+▶ ตั้งต้นทุนสินค้า (กรอกต้นทุนเพื่อคำนวณกำไร):
+<ACTION>{"type":"update_product_cost","key":"[product_key]","cost":[ราคาต้นทุน],"name":"[ชื่อสินค้า]"}</ACTION>
+ตัวอย่าง: "ต้นทุนน้ำส้ม 15 บาทนะ" → <ACTION>{"type":"update_product_cost","key":"orange_juice","cost":15,"name":"น้ำส้ม"}</ACTION>
+หมายเหตุ: ต้นทุนใช้คำนวณกำไรต่อชิ้นและ margin% ในหน้าประวัติ
 
 ▶ แก้ราคาสินค้า (อัปเดตราคาสินค้าที่มีอยู่แล้ว):
 <ACTION>{"type":"update_product_price","key":"[product_key]","price":[ราคาใหม่],"name":"[ชื่อสินค้า]"}</ACTION>
@@ -3544,16 +3765,26 @@ function renderAdminProducts() {
   const saved = getEffectiveProducts().filter(p => !p.promoBase);
   const list = document.getElementById('admin-product-list');
   if (!list) return;
-  list.innerHTML = saved.map((p, i) => `
-    <div class="prod-edit-item">
-      <span style="font-size:11px;color:var(--muted);min-width:18px;">${i+1}.</span>
-      <input class="prod-edit-name" value="${p.name}" id="pe-name-${i}" onchange="updateProductField(${i},'name',this.value)">
-      <input class="prod-edit-price" type="number" value="${p.price}" id="pe-price-${i}" onchange="updateProductField(${i},'price',parseFloat(this.value)||0)">
+  list.innerHTML = saved.map((p, i) => {
+    const cost = p.cost || 0;
+    const margin = cost > 0 && p.price > 0 ? Math.round((p.price - cost) / p.price * 100) : null;
+    const marginColor = margin === null ? 'var(--muted)' : margin >= 40 ? 'var(--green)' : margin >= 20 ? 'var(--accent)' : 'var(--red)';
+    const marginBadge = margin !== null
+      ? `<span style="font-size:10px;font-weight:800;color:${marginColor};background:rgba(0,0,0,0.2);border-radius:4px;padding:1px 5px;margin-left:2px;">${margin}%</span>`
+      : '';
+    return `
+    <div class="prod-edit-item" style="flex-wrap:wrap;gap:5px;">
+      <span style="font-size:11px;color:var(--muted);min-width:18px;align-self:center;">${i+1}.</span>
+      <input class="prod-edit-name" value="${p.name}" id="pe-name-${i}" onchange="updateProductField(${i},'name',this.value)" style="min-width:0;flex:2;">
+      <input class="prod-edit-price" type="number" value="${p.price}" id="pe-price-${i}" onchange="updateProductField(${i},'price',parseFloat(this.value)||0)" title="ราคาขาย">
+      <input class="prod-edit-price" type="number" value="${cost > 0 ? cost : ''}" id="pe-cost-${i}" placeholder="ทุน฿" onchange="updateProductField(${i},'cost',parseFloat(this.value)||0);renderAdminProducts();" title="ต้นทุน" style="border-color:rgba(126,196,126,0.4);color:var(--green);">
+      ${marginBadge}
       ${p.splitTiers && p.splitTiers.length > 0
         ? `<button onclick="openEditSplitModal('${p.key}')" title="แก้ไขแบ่งขาย" style="padding:3px 7px;border-radius:6px;background:rgba(245,200,66,0.15);border:1px solid var(--accent);color:var(--accent);font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">✂️${p.splitTiers.length}</button>`
         : `<button onclick="openEditSplitModal('${p.key}')" title="เพิ่มแบ่งขาย" style="padding:3px 7px;border-radius:6px;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:10px;cursor:pointer;">+✂️</button>`}
       <button class="prod-edit-del" onclick="deleteCustomProduct(${i})">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('') + (saved.length > 0 ? `<div style="font-size:10px;color:var(--muted);padding:6px 4px;">💡 คอลัมน์สีเขียว = ต้นทุน (฿) | ตัวเลข % = Margin</div>` : '');
 }
 
 function updateProductField(idx, field, val) {
@@ -3654,6 +3885,8 @@ function openAddProductModal() {
   document.getElementById('new-prod-name').value = '';
   document.getElementById('new-prod-key').value = '';
   document.getElementById('new-prod-price').value = '';
+  document.getElementById('new-prod-cost').value = '';
+  document.getElementById('cost-margin-preview').textContent = '';
   document.getElementById('new-prod-split').checked = false;
   document.getElementById('new-prod-unit-qty').value = '';
   document.getElementById('new-prod-unit-label').value = '';
@@ -3661,6 +3894,21 @@ function openAddProductModal() {
   document.getElementById('split-section').style.display = 'none';
   document.getElementById('add-product-modal').classList.add('open');
   setTimeout(() => document.getElementById('new-prod-name').focus(), 100);
+}
+
+function updateCostPreview() {
+  const price = parseFloat(document.getElementById('new-prod-price')?.value) || 0;
+  const cost = parseFloat(document.getElementById('new-prod-cost')?.value) || 0;
+  const prev = document.getElementById('cost-margin-preview');
+  if (!prev) return;
+  if (price > 0 && cost > 0) {
+    const profit = price - cost;
+    const margin = Math.round(profit / price * 100);
+    const col = margin >= 40 ? 'var(--green)' : margin >= 20 ? 'var(--accent)' : 'var(--red)';
+    prev.innerHTML = `<span style="color:${col};">+฿${profit.toFixed(0)} (${margin}%)</span>`;
+  } else {
+    prev.textContent = '';
+  }
 }
 
 function openEditSplitModal(parentKey) {
@@ -3673,6 +3921,8 @@ function openEditSplitModal(parentKey) {
   document.getElementById('new-prod-name').value = parent.name;
   document.getElementById('new-prod-key').value = parent.key;
   document.getElementById('new-prod-price').value = parent.price;
+  document.getElementById('new-prod-cost').value = parent.cost || '';
+  updateCostPreview();
   document.getElementById('new-prod-split').checked = true;
   document.getElementById('split-section').style.display = 'block';
   document.getElementById('new-prod-unit-qty').value = parent.splitUnitQty || '';
@@ -3693,6 +3943,7 @@ function saveNewProduct() {
   const name = document.getElementById('new-prod-name').value.trim();
   const key = document.getElementById('new-prod-key').value.trim().replace(/\s/g,'');
   const price = parseFloat(document.getElementById('new-prod-price').value) || 0;
+  const cost = parseFloat(document.getElementById('new-prod-cost').value) || 0;
   if (!name || !key || price <= 0) { showToast('กรุณากรอกข้อมูลให้ครบ', true); return; }
 
   const hasSplit = document.getElementById('new-prod-split').checked;
@@ -3714,6 +3965,7 @@ function saveNewProduct() {
     // Editing existing product
     const prod = prods[existingIdx];
     prod.name = name; prod.price = price;
+    if (cost > 0) prod.cost = cost; else delete prod.cost;
     if (hasSplit) {
       prod.splitUnitQty = splitUnitQty;
       prod.splitUnitLabel = splitUnitLabel;
@@ -3726,6 +3978,7 @@ function saveNewProduct() {
   } else {
     if (existingIdx >= 0) { showToast('รหัสซ้ำกัน', true); return; }
     const newProd = { key, name, price };
+    if (cost > 0) newProd.cost = cost;
     if (hasSplit) { newProd.splitUnitQty = splitUnitQty; newProd.splitUnitLabel = splitUnitLabel; newProd.splitTiers = splitTiers; newProd.stockUnit = stockUnitVal || (splitUnitLabel ? name.substring(0,4) : 'หน่วย'); }
     prods.push(newProd);
     saveCustomProducts(prods);
@@ -5455,13 +5708,20 @@ async function popupSendChat() {
           if (action.type === 'add_stock' && action.key && action.qty > 0) {
             stock[action.key] = (stock[action.key] || 0) + action.qty;
             saveStock();
+            // อัปเดต cost ถ้า AI ส่งมาด้วย (กรณีของเดิมที่ยังไม่มีต้นทุน)
+            if (action.cost > 0) {
+              const prods = getEffectiveProducts();
+              const pi = prods.findIndex(p => p.key === action.key);
+              if (pi >= 0) { prods[pi].cost = action.cost; saveCustomProducts(prods.filter(p => !p.promoBase)); renderAdminProducts(); }
+            }
             aiAddDeliveryLog(action.key, action.name || action.key, action.qty, '🤖AI เพิ่มสต็อก');
             renderProducts();
             renderStock();
             setTimeout(() => {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
-              chip.textContent = `✅ ระบบอัปเดตสต็อก: ${action.name || action.key} +${action.qty} (รอบ ${action.round || '?'})`;
+              const costStr = action.cost > 0 ? ` | ทุน ฿${action.cost}` : '';
+              chip.textContent = `✅ ระบบอัปเดตสต็อก: ${action.name || action.key} +${action.qty} (รอบ ${action.round || '?'})${costStr}`;
               box.appendChild(chip);
               box.scrollTop = box.scrollHeight;
             }, 300);
@@ -5512,17 +5772,20 @@ async function popupSendChat() {
             const prods = getEffectiveProducts();
             const existingIdx = prods.findIndex(p => p.key === action.key);
             if (existingIdx >= 0) {
-              // มีอยู่แล้ว — แค่เพิ่มสต็อก
+              // มีอยู่แล้ว — อัปเดต cost ถ้ามี + เพิ่มสต็อก
+              if (action.cost > 0) prods[existingIdx].cost = action.cost;
+              saveCustomProducts(prods.filter(p => !p.promoBase));
               if (action.qty > 0) {
                 stock[action.key] = (stock[action.key] || 0) + action.qty;
                 saveStock();
                 aiAddDeliveryLog(action.key, action.name, action.qty, '🤖AI เพิ่มสินค้าที่มีอยู่แล้ว');
               }
             } else {
-              // สร้างใหม่
+              // สร้างใหม่ — รวม cost ด้วย
               const newProd = { key: action.key, name: action.name, price: action.price };
+              if (action.cost > 0) newProd.cost = action.cost;
               prods.push(newProd);
-              saveCustomProducts(prods);
+              saveCustomProducts(prods.filter(p => !p.promoBase));
               stock[action.key] = action.qty || 0;
               saveStock();
               if (action.qty > 0) {
@@ -5536,7 +5799,10 @@ async function popupSendChat() {
             setTimeout(() => {
               const chip = document.createElement('div');
               chip.className = 'chat-msg system';
-              chip.textContent = `✨ สร้างสินค้าใหม่: ${action.name} ราคา ฿${action.price} จำนวน ${action.qty || 0} ชิ้น`;
+              const cost = action.cost || 0;
+              const margin = cost > 0 && action.price > 0 ? Math.round((action.price - cost) / action.price * 100) : null;
+              const marginStr = margin !== null ? ` | ทุน ฿${cost} กำไร ฿${action.price - cost} (margin ${margin}%)` : '';
+              chip.textContent = `✨ ${existingIdx >= 0 ? 'อัปเดต' : 'สร้างใหม่'}: ${action.name} ราคา ฿${action.price}${marginStr} | สต็อก ${action.qty || 0} ชิ้น`;
               box.appendChild(chip);
               box.scrollTop = box.scrollHeight;
             }, 300);
@@ -6208,6 +6474,25 @@ async function popupSendChat() {
               }
               box.appendChild(chip); box.scrollTop = box.scrollHeight;
             }, 300);
+          }
+
+          // --- ตั้งต้นทุนสินค้า ---
+          else if (action.type === 'update_product_cost' && action.key) {
+            const costProds = getEffectiveProducts();
+            const costIdx = costProds.findIndex(p => p.key === action.key);
+            if (costIdx >= 0 && action.cost >= 0) {
+              costProds[costIdx].cost = parseFloat(action.cost) || 0;
+              saveCustomProducts(costProds.filter(p => !p.promoBase));
+              renderAdminProducts();
+              setTimeout(() => {
+                const chip = document.createElement('div');
+                chip.className = 'chat-msg system';
+                const p = costProds[costIdx];
+                const margin = p.price > 0 && p.cost > 0 ? Math.round((p.price - p.cost) / p.price * 100) : '—';
+                chip.textContent = `💰 ตั้งต้นทุน ${action.name||p.name}: ฿${action.cost} | กำไร ฿${p.price - action.cost} | margin ${margin}%`;
+                box.appendChild(chip); box.scrollTop = box.scrollHeight;
+              }, 300);
+            }
           }
 
           // --- N5. จัดระดับสมาชิก (Member Tier) ---
