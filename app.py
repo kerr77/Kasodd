@@ -14,10 +14,12 @@ import db as DB
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'kaasod-secret-2026')
 
-ADMIN_KEY           = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
-GEMINI_KEY          = os.environ.get('GEMINI_API_KEY', '')
-GEMINI_MODEL        = 'gemini-3.1-flash-lite'
-STARTER_DAILY_LIMIT = 20
+ADMIN_KEY                    = os.environ.get('ADMIN_KEY', 'kaasod-admin-2026')
+GEMINI_KEY                   = os.environ.get('GEMINI_API_KEY', '')
+GEMINI_MODEL                 = 'gemini-3.1-flash-lite'
+STARTER_AUTOMATION_LIMIT     = 20   # จำกัดเฉพาะ automation actions (Starter)
+# หมายเหตุ: การพูดคุยกับ AI ทั่วไปไม่จำกัดทั้ง 2 แพ็กเกจ
+#           Pro = automation ไม่จำกัด, Starter = automation 20 ครั้ง/วัน
 
 # ── สร้าง DB schema ตอน startup (ถ้า DB_ENABLED) ─────────────────
 with app.app_context():
@@ -134,17 +136,19 @@ def me():
         return jsonify({'ok': False}), 401
     shop_id   = session['shop_id']
     plan      = session.get('plan', 'starter')
-    usage     = DB.get_today_usage(shop_id)
-    remaining = None if plan == 'pro' else max(0, STARTER_DAILY_LIMIT - usage)
+    auto_usage     = DB.get_today_usage(shop_id)
+    auto_remaining = None if plan == 'pro' else max(0, STARTER_AUTOMATION_LIMIT - auto_usage)
     return jsonify({
         'ok': True,
-        'shop_id':        shop_id,
-        'shop_name':      session['shop_name'],
-        'username':       session['username'],
-        'plan':           plan,
-        'ai_usage_today': usage,
-        'ai_remaining':   remaining,
-        'ai_daily_limit': STARTER_DAILY_LIMIT if plan == 'starter' else None,
+        'shop_id':               shop_id,
+        'shop_name':             session['shop_name'],
+        'username':              session['username'],
+        'plan':                  plan,
+        'auto_usage_today':      auto_usage,
+        'auto_remaining':        auto_remaining,
+        'auto_daily_limit':      STARTER_AUTOMATION_LIMIT if plan == 'starter' else None,
+        # AI chat ไม่จำกัดทั้ง 2 แพ็กเกจ
+        'ai_chat_unlimited':     True,
     })
 
 
@@ -162,20 +166,31 @@ def chat():
     shop_id = session['shop_id']
     plan    = session.get('plan', 'starter')
 
-    if plan == 'starter':
-        usage = DB.get_today_usage(shop_id)
-        if usage >= STARTER_DAILY_LIMIT:
-            return jsonify({'error': {
-                'code': 429,
-                'message': f'⚠️ ใช้ AI ครบ {STARTER_DAILY_LIMIT} ข้อความวันนี้แล้วครับ\n\n🚀 อัปเกรดเป็น Pro 399฿/เดือน ใช้ได้ไม่จำกัด!\nติดต่อ Line: @kaasod',
-                'status': 'QUOTA_EXCEEDED'
-            }}), 429
-
     data     = request.get_json(silent=True) or {}
     contents = data.get('contents', [])
     gen_cfg  = data.get('generationConfig', {'maxOutputTokens': 1000, 'temperature': 0.7})
     if not contents:
         return jsonify({'error': {'code': 400, 'message': 'ไม่มีข้อความ', 'status': 'EMPTY'}}), 400
+
+    # ── ตรวจสอบ automation flag ────────────────────────────────────
+    # is_automation = True เมื่อ client ส่ง action ที่ต้องการให้ AI
+    # ทำงานอัตโนมัติ เช่น สั่งลงสต็อก, auto-restock, วิเคราะห์ยอด ฯลฯ
+    # การพูดคุยทั่วไปกับ AI ไม่จำกัด ทั้ง Starter และ Pro
+    is_automation = bool(data.get('is_automation', False))
+
+    if is_automation and plan == 'starter':
+        auto_usage = DB.get_today_usage(shop_id)
+        if auto_usage >= STARTER_AUTOMATION_LIMIT:
+            return jsonify({'error': {
+                'code': 429,
+                'message': (
+                    f'⚠️ ใช้ AI Automation ครบ {STARTER_AUTOMATION_LIMIT} ครั้งวันนี้แล้วครับ\n\n'
+                    f'💬 พูดคุยกับ AI ได้ปกติ ไม่จำกัด\n'
+                    f'🚀 อัปเกรดเป็น Pro 399฿/เดือน เพื่อ Automation ไม่จำกัด!\n'
+                    f'ติดต่อ Line: @kaasod'
+                ),
+                'status': 'AUTOMATION_QUOTA_EXCEEDED'
+            }}), 429
 
     # ── inject restock context เข้า system_instruction ───────────
     restock_text = DB.get_restock_summary_text(shop_id)
@@ -197,8 +212,12 @@ def chat():
 
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
-            resp      = json.loads(r.read())
-            new_count = DB.increment_usage(shop_id)
+            resp = json.loads(r.read())
+
+            # นับ usage เฉพาะ automation actions เท่านั้น
+            new_auto_count = None
+            if is_automation:
+                new_auto_count = DB.increment_usage(shop_id)
 
             # บันทึก chat log ผ่าน DB layer
             try:
@@ -222,11 +241,17 @@ def chat():
             except Exception:
                 pass
 
+            # ส่ง automation quota กลับให้ client (เฉพาะ Starter)
             if plan == 'starter':
-                remaining = max(0, STARTER_DAILY_LIMIT - new_count)
+                used = new_auto_count if new_auto_count is not None else DB.get_today_usage(shop_id)
+                remaining = max(0, STARTER_AUTOMATION_LIMIT - used)
                 resp['_quota'] = {
-                    'used': new_count, 'remaining': remaining,
-                    'limit': STARTER_DAILY_LIMIT, 'warn': remaining <= 5
+                    'type':           'automation',
+                    'used':           used,
+                    'remaining':      remaining,
+                    'limit':          STARTER_AUTOMATION_LIMIT,
+                    'warn':           remaining <= 5,
+                    'chat_unlimited': True,
                 }
             return jsonify(resp)
 
@@ -241,12 +266,18 @@ def chat():
 def chat_status():
     if 'shop_id' not in session:
         return jsonify({'ai_ready': False})
-    shop_id   = session['shop_id']
-    plan      = session.get('plan', 'starter')
-    usage     = DB.get_today_usage(shop_id)
-    remaining = None if plan == 'pro' else max(0, STARTER_DAILY_LIMIT - usage)
-    return jsonify({'ai_ready': bool(GEMINI_KEY), 'plan': plan,
-                    'usage_today': usage, 'remaining': remaining})
+    shop_id       = session['shop_id']
+    plan          = session.get('plan', 'starter')
+    auto_usage    = DB.get_today_usage(shop_id)
+    auto_remaining = None if plan == 'pro' else max(0, STARTER_AUTOMATION_LIMIT - auto_usage)
+    return jsonify({
+        'ai_ready':        bool(GEMINI_KEY),
+        'plan':            plan,
+        'chat_unlimited':  True,            # พูดคุยได้ทุกแพ็กเกจ ไม่จำกัด
+        'auto_usage_today': auto_usage,
+        'auto_remaining':  auto_remaining,
+        'auto_limit':      STARTER_AUTOMATION_LIMIT if plan == 'starter' else None,
+    })
 
 
 # ══════════════════════════════════════════════════════
@@ -968,7 +999,8 @@ def health():
         'status':  'ok',
         'version': 'v8',
         'model':   GEMINI_MODEL,
-        'starter_limit': STARTER_DAILY_LIMIT,
+        'starter_automation_limit': STARTER_AUTOMATION_LIMIT,
+        'starter_chat_limit':       'unlimited',
         'time':    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'total':   len(users),
         'active':  sum(1 for u in users.values() if u['status'] == 'active'),
@@ -992,5 +1024,5 @@ def approve_legacy(username):
 
 
 if __name__ == '__main__':
-    print(f"🌿 ค้าสด v8 | {GEMINI_MODEL} | starter limit: {STARTER_DAILY_LIMIT}/day | db: {DB.db_status()['db_mode']}")
+    print(f"🌿 ค้าสด v8 | {GEMINI_MODEL} | starter automation limit: {STARTER_AUTOMATION_LIMIT}/day | chat: unlimited | db: {DB.db_status()['db_mode']}")
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -771,8 +771,9 @@ tr:hover td{background:rgba(201,162,39,0.04);}
       <div class="sec-hdr"><h3>🕐 Server Time</h3></div>
       <div class="mono" id="srv-time" style="font-size:28px;color:var(--gold2);margin:8px 0;">--:--:--</div>
       <div style="font-size:12px;color:var(--text3)" id="srv-date">-- / -- / ----</div>
-      <div style="margin-top:16px;font-size:12px;color:var(--text3)">Starter Daily Limit</div>
+      <div style="margin-top:16px;font-size:12px;color:var(--text3)">Starter Automation Limit/วัน</div>
       <div class="mono" style="font-size:22px;color:var(--blue2);margin-top:4px;" id="srv-limit">—</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">💬 AI Chat: ไม่จำกัดทุกแพ็กเกจ</div>
     </div>
     <div class="card">
       <div class="sec-hdr"><h3>📡 API Health</h3></div>
@@ -1044,7 +1045,7 @@ async function loadHealth(){
     document.getElementById('srv-version').textContent=d.version||'—';
     document.getElementById('srv-model').textContent=d.model||'—';
     document.getElementById('srv-aikey').textContent=d.ai_key?'✅ พร้อม':'❌ ไม่มี';
-    document.getElementById('srv-limit').textContent=d.starter_limit||'—';
+    document.getElementById('srv-limit').textContent=(d.starter_automation_limit||d.starter_limit||'—')+' ครั้ง';
     document.getElementById('resp-time').textContent=`${ms} ms`;
     document.getElementById('last-health').textContent=new Date().toLocaleTimeString('th-TH');
     if(d.time){const p=d.time.split(' ');document.getElementById('srv-time').textContent=p[1]||d.time;document.getElementById('srv-date').textContent=p[0]||'';}
