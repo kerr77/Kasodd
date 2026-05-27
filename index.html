@@ -5509,6 +5509,9 @@ async function popupSendChat() {
   document.getElementById('popup-chat-tips').style.display = 'none';
   popupAppendMsg('user', msg);
 
+  // [FIX B] Force reload stock จาก localStorage ทุก turn — ป้องกัน AI เห็น stale cache
+  try { stock = JSON.parse(localStorage.getItem(LS_STOCK) || '{}'); } catch(e) {}
+
   // ─── Build full context ───────────────────────────────────
   const effProdsChat = getEffectiveProducts().filter(p => !p.promoBase && !p.group);
   const stockSummary = getEffectiveProducts().filter(p => !p.promoBase)
@@ -5705,11 +5708,21 @@ async function popupSendChat() {
         const quotaRes = await fetch('/api/automation/use', { method: 'POST' });
         if (!quotaRes.ok && quotaRes.status === 429) {
           const qErr = await quotaRes.json();
-          // หมด quota — แสดง error แต่ยังแสดง reply ข้อความส่วนที่ไม่ใช่ ACTION
-          const textOnly = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
-          if (textOnly) popupAppendMsg('bot', textOnly, true);
+          // [FIX A+C] หมด quota — rollback user msg แล้ว inject ข้อความที่ถูกต้องแทน
+          // เพื่อให้ AI ไม่จำว่า action นี้ถูก execute จริง
+          popupChatHist.pop(); // เอา user message เดิมออกก่อน (Fix C)
+
+          const quotaBlockedMsg = 'ขออภัยครับ ขณะนี้ท่านใช้ AI Automation ครบโควต้าวันนี้แล้ว กรุณาตรวจสอบแพ็กเกจของท่าน หรืออัปเกรดเป็น Pro เพื่อใช้งานได้ไม่จำกัด 🚀';
+          // [FIX A] inject [SYSTEM] blocked notice เพื่อให้ AI รู้ใน next turn ว่า action ไม่ได้ถูก execute
+          const blockedNotice = '[SYSTEM] ACTION นี้ถูกยกเลิก เนื่องจาก Automation quota หมดแล้ว สต็อกและข้อมูลทุกอย่างไม่มีการเปลี่ยนแปลง กรุณาแจ้งผู้ใช้ว่าต้องอัปเกรดแพ็กเกจ';
+
+          // push user msg + bot reply ที่ถูกต้อง (ไม่มี action content เลย)
+          popupChatHist.push({ role: 'user', content: msg });
+          popupChatHist.push({ role: 'assistant', content: blockedNotice });
+
+          // แสดง UI: ซ่อน action — แสดงแค่ quota exceeded message
+          popupAppendMsg('bot', quotaBlockedMsg, true);
           popupAppendMsg('error', qErr.error?.message || '⚠️ Automation quota หมดแล้ว');
-          popupChatHist.push({ role: 'assistant', content: textOnly || reply });
           saveCurrentSession();
           return;
         }
