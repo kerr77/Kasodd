@@ -5672,21 +5672,15 @@ async function popupSendChat() {
       contents.push({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] });
     });
 
-    // ── ตรวจว่าเป็น automation request หรือเปล่า ─────────────────
-    // ดู keyword ที่บ่งบอกว่าต้องการให้ AI ทำ action อัตโนมัติ
-    const lastUserMsg = (msgs.slice(-1)[0]?.content || '').toLowerCase();
-    const autoKeywords = ['ลงของ','ลงสต็อก','เพิ่มสต็อก','ตัดสต็อก','ตั้งสต็อก','สร้างสินค้า',
-      'บันทึกบิล','สร้างโปร','ลบโปร','เพิ่มสมาชิก','เพิ่มแต้ม','ตั้งส่วนลด','วิเคราะห์'];
-    const isAutomation = autoKeywords.some(k => lastUserMsg.includes(k));
-
-    // เรียกผ่าน server proxy — key อยู่ฝั่ง server ปลอดภัย
+    // เรียกผ่าน server proxy — ส่งแบบ chat ปกติ ไม่ระบุ is_automation ล่วงหน้า
+    // (จะตรวจ ACTION ใน reply แล้วค่อย check/nab quota ทีหลัง)
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents,
         generationConfig: { maxOutputTokens: 1000, temperature: 0.7 },
-        is_automation: isAutomation,   // ← แจ้ง server ว่าเป็น automation หรือเปล่า
+        is_automation: false,   // chat ทั่วไป ไม่นับ quota
       })
     });
 
@@ -5695,9 +5689,6 @@ async function popupSendChat() {
       const err = await res.json();
       if (res.status === 403) {
         popupAppendMsg('error', '❌ ยังไม่ได้เปิดใช้งาน AI — ติดต่อทีมงานเพื่อเปิด package AI');
-      } else if (res.status === 429 && err.error?.status === 'AUTOMATION_QUOTA_EXCEEDED') {
-        // หมด automation quota — แต่ยังคุยได้ปกติ
-        popupAppendMsg('error', err.error.message);
       } else {
         popupAppendMsg('error', '❌ ' + (err.error?.message || err.error || 'เกิดข้อผิดพลาด'));
       }
@@ -5705,18 +5696,41 @@ async function popupSendChat() {
       return;
     }
     const data = await res.json();
-
-    // ── แสดง automation quota warning (Starter เท่านั้น) ──────────
-    if (data._quota && data._quota.type === 'automation' && data._quota.warn) {
-      setTimeout(() => {
-        const chip = document.createElement('div');
-        chip.className = 'chat-msg system';
-        chip.textContent = `⚠️ AI Automation เหลือ ${data._quota.remaining}/${data._quota.limit} ครั้งวันนี้ · พูดคุยได้ปกติไม่จำกัด · อัปเกรด Pro เพื่อ Automation ไม่จำกัด`;
-        document.getElementById('popup-chat-history')?.appendChild(chip);
-        document.getElementById('popup-chat-history').scrollTop = 9999;
-      }, 400);
-    }
     let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับคำตอบ';
+
+    // ── ตรวจ ACTION ใน reply — ถ้ามีให้ check quota ก่อน execute ──
+    // (นับ quota เฉพาะ Starter เมื่อ AI จะทำ automation จริงๆ)
+    if (reply.includes('<ACTION>')) {
+      try {
+        const quotaRes = await fetch('/api/automation/use', { method: 'POST' });
+        if (!quotaRes.ok && quotaRes.status === 429) {
+          const qErr = await quotaRes.json();
+          // หมด quota — แสดง error แต่ยังแสดง reply ข้อความส่วนที่ไม่ใช่ ACTION
+          const textOnly = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
+          if (textOnly) popupAppendMsg('bot', textOnly, true);
+          popupAppendMsg('error', qErr.error?.message || '⚠️ Automation quota หมดแล้ว');
+          popupChatHist.push({ role: 'assistant', content: textOnly || reply });
+          saveCurrentSession();
+          return;
+        }
+        // quota ok — ดึง quota info จาก response แสดง warning ถ้าใกล้หมด
+        if (quotaRes.ok) {
+          const qData = await quotaRes.json();
+          if (qData.warn) {
+            setTimeout(() => {
+              const chip = document.createElement('div');
+              chip.className = 'chat-msg system';
+              chip.textContent = `⚠️ AI Automation เหลือ ${qData.remaining}/${qData.limit} ครั้งวันนี้ · พูดคุยได้ปกติไม่จำกัด · อัปเกรด Pro เพื่อ Automation ไม่จำกัด`;
+              document.getElementById('popup-chat-history')?.appendChild(chip);
+              document.getElementById('popup-chat-history').scrollTop = 9999;
+            }, 600);
+          }
+        }
+      } catch(e) {
+        // network error ขณะ check quota — ยอมให้ผ่านได้ (fail open) แต่ log ไว้
+        console.warn('automation quota check failed:', e);
+      }
+    }
 
     // Process ACTION tags (same as main chat)
     const box = document.getElementById('popup-chat-history');

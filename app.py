@@ -172,25 +172,8 @@ def chat():
     if not contents:
         return jsonify({'error': {'code': 400, 'message': 'ไม่มีข้อความ', 'status': 'EMPTY'}}), 400
 
-    # ── ตรวจสอบ automation flag ────────────────────────────────────
-    # is_automation = True เมื่อ client ส่ง action ที่ต้องการให้ AI
-    # ทำงานอัตโนมัติ เช่น สั่งลงสต็อก, auto-restock, วิเคราะห์ยอด ฯลฯ
-    # การพูดคุยทั่วไปกับ AI ไม่จำกัด ทั้ง Starter และ Pro
-    is_automation = bool(data.get('is_automation', False))
-
-    if is_automation and plan == 'starter':
-        auto_usage = DB.get_today_usage(shop_id)
-        if auto_usage >= STARTER_AUTOMATION_LIMIT:
-            return jsonify({'error': {
-                'code': 429,
-                'message': (
-                    f'⚠️ ใช้ AI Automation ครบ {STARTER_AUTOMATION_LIMIT} ครั้งวันนี้แล้วครับ\n\n'
-                    f'💬 พูดคุยกับ AI ได้ปกติ ไม่จำกัด\n'
-                    f'🚀 อัปเกรดเป็น Pro 399฿/เดือน เพื่อ Automation ไม่จำกัด!\n'
-                    f'ติดต่อ Line: @kaasod'
-                ),
-                'status': 'AUTOMATION_QUOTA_EXCEEDED'
-            }}), 429
+    # หมายเหตุ: quota automation ถูกจัดการที่ /api/automation/use
+    # /api/chat ให้ผ่านได้เสมอ (chat ไม่จำกัดทุก plan)
 
     # ── inject restock context เข้า system_instruction ───────────
     restock_text = DB.get_restock_summary_text(shop_id)
@@ -214,12 +197,7 @@ def chat():
         with urllib.request.urlopen(req, timeout=30) as r:
             resp = json.loads(r.read())
 
-            # นับ usage เฉพาะ automation actions เท่านั้น
-            new_auto_count = None
-            if is_automation:
-                new_auto_count = DB.increment_usage(shop_id)
-
-            # บันทึก chat log ผ่าน DB layer
+            # บันทึก chat log ผ่าน DB layer (ไม่นับ automation quota ที่นี่)
             try:
                 user_msg = ''
                 ai_reply = ''
@@ -241,18 +219,7 @@ def chat():
             except Exception:
                 pass
 
-            # ส่ง automation quota กลับให้ client (เฉพาะ Starter)
-            if plan == 'starter':
-                used = new_auto_count if new_auto_count is not None else DB.get_today_usage(shop_id)
-                remaining = max(0, STARTER_AUTOMATION_LIMIT - used)
-                resp['_quota'] = {
-                    'type':           'automation',
-                    'used':           used,
-                    'remaining':      remaining,
-                    'limit':          STARTER_AUTOMATION_LIMIT,
-                    'warn':           remaining <= 5,
-                    'chat_unlimited': True,
-                }
+            # /api/chat ไม่คืน _quota — quota จัดการที่ /api/automation/use
             return jsonify(resp)
 
     except urllib.error.HTTPError as e:
@@ -262,7 +229,49 @@ def chat():
         return jsonify({'error': {'code': 500, 'message': str(e), 'status': 'SERVER_ERROR'}}), 500
 
 
-@app.route('/api/chat/status')
+@app.route('/api/automation/use', methods=['POST'])
+def automation_use():
+    """
+    Client เรียกหลังจาก AI reply มี <ACTION> tag
+    - Starter: ตรวจ quota → ถ้าหมดคืน 429, ถ้ายังอยู่ increment แล้วคืน quota info
+    - Pro: ผ่านเลย ไม่นับ
+    """
+    if 'shop_id' not in session:
+        return jsonify({'error': {'code': 401, 'message': 'ไม่ได้ login'}}), 401
+
+    shop_id = session['shop_id']
+    plan    = session.get('plan', 'starter')
+
+    if plan == 'pro':
+        return jsonify({'ok': True, 'plan': 'pro', 'unlimited': True})
+
+    # Starter — ตรวจก่อน increment
+    usage = DB.get_today_usage(shop_id)
+    if usage >= STARTER_AUTOMATION_LIMIT:
+        return jsonify({'error': {
+            'code': 429,
+            'message': (
+                f'⚠️ ใช้ AI Automation ครบ {STARTER_AUTOMATION_LIMIT} ครั้งวันนี้แล้วครับ\n\n'
+                f'💬 พูดคุยกับ AI ได้ปกติ ไม่จำกัด\n'
+                f'🚀 อัปเกรดเป็น Pro 399฿/เดือน เพื่อ Automation ไม่จำกัด!\n'
+                f'ติดต่อ Line: @kaasod'
+            ),
+            'status': 'AUTOMATION_QUOTA_EXCEEDED'
+        }}), 429
+
+    new_count = DB.increment_usage(shop_id)
+    remaining = max(0, STARTER_AUTOMATION_LIMIT - new_count)
+    return jsonify({
+        'ok':       True,
+        'plan':     'starter',
+        'used':     new_count,
+        'remaining': remaining,
+        'limit':    STARTER_AUTOMATION_LIMIT,
+        'warn':     remaining <= 5,
+    })
+
+
+
 def chat_status():
     if 'shop_id' not in session:
         return jsonify({'ai_ready': False})
