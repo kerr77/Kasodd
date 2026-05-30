@@ -1639,6 +1639,394 @@
   /* ══ History rows ══ */
   .history-head { background: var(--card2) !important; }
   .history-item { border: 1.5px solid var(--border) !important; background: var(--card) !important; }
+
+  /* ══════════════════════════════════════════════
+     🎙️ VOICE MODE — Live AI Voice Chat
+  ══════════════════════════════════════════════ */
+
+  /* Voice button in popup header */
+  .voice-mode-btn {
+    all: unset !important;
+    width: 36px !important; height: 36px !important;
+    border-radius: 50% !important;
+    background: rgba(201,162,39,0.10) !important;
+    border: 1.5px solid rgba(201,162,39,0.28) !important;
+    color: #C9A227 !important;
+    font-size: 17px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    transition: all .2s !important;
+    box-sizing: border-box !important;
+  }
+  .voice-mode-btn.active {
+    background: rgba(255,61,90,0.15) !important;
+    border-color: #FF3D5A !important;
+    color: #FF3D5A !important;
+    animation: voice-btn-pulse 1.5s ease-in-out infinite !important;
+  }
+  .voice-mode-btn:active { transform: scale(0.9) !important; }
+  @keyframes voice-btn-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,61,90,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255,61,90,0); }
+  }
+
+  /* Voice overlay — full-screen live mode */
+  .voice-overlay {
+    position: fixed; inset: 0;
+    background: rgba(8,10,4,0.97);
+    z-index: 1500;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    backdrop-filter: blur(16px);
+  }
+  .voice-overlay.open { display: flex; }
+  @keyframes voice-overlay-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .voice-overlay.open { animation: voice-overlay-in .25s ease; }
+
+  /* Radial atmosphere */
+  .voice-overlay::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(201,162,39,0.08), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Top bar */
+  .voice-top-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    z-index: 1;
+  }
+  .voice-top-title {
+    font-family: 'Prompt', sans-serif;
+    font-size: 14px; font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .voice-top-close {
+    background: none; border: none;
+    color: var(--muted); font-size: 22px;
+    cursor: pointer; padding: 4px;
+  }
+  .voice-top-close:active { color: var(--red); }
+
+  /* Settings toggle button */
+  .voice-settings-btn {
+    background: none; border: 1px solid var(--border2);
+    color: var(--muted); font-size: 14px; padding: 4px 10px;
+    border-radius: 20px; cursor: pointer;
+    font-family: 'Sarabun', sans-serif; font-size: 12px;
+  }
+  .voice-settings-btn:active { color: var(--accent); border-color: var(--accent); }
+
+  /* Avatar orb */
+  .voice-orb-wrap {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    width: 200px; height: 200px;
+    margin-bottom: 8px;
+  }
+  .voice-orb-rings {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    animation: voice-ring-spin 8s linear infinite;
+  }
+  .voice-orb-rings::before, .voice-orb-rings::after {
+    content: '';
+    position: absolute; border-radius: 50%;
+    border: 1.5px solid transparent;
+  }
+  .voice-orb-rings::before {
+    inset: 8px;
+    border-top-color: rgba(201,162,39,0.4);
+    border-right-color: rgba(201,162,39,0.2);
+    animation: voice-ring-spin 4s linear infinite;
+  }
+  .voice-orb-rings::after {
+    inset: 20px;
+    border-bottom-color: rgba(232,201,106,0.3);
+    border-left-color: rgba(232,201,106,0.15);
+    animation: voice-ring-spin 6s linear infinite reverse;
+  }
+  @keyframes voice-ring-spin { to { transform: rotate(360deg); } }
+
+  .voice-orb {
+    width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(201,162,39,0.25), rgba(17,20,8,0.9));
+    border: 2.5px solid rgba(201,162,39,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 52px;
+    box-shadow: 0 0 40px rgba(201,162,39,0.15), inset 0 0 30px rgba(201,162,39,0.05);
+    position: relative; z-index: 1;
+    transition: transform .3s, box-shadow .3s;
+  }
+  .voice-orb.listening {
+    box-shadow: 0 0 60px rgba(255,61,90,0.3), 0 0 20px rgba(255,61,90,0.2), inset 0 0 30px rgba(255,61,90,0.08) !important;
+    border-color: rgba(255,61,90,0.5) !important;
+    animation: orb-breathe 1s ease-in-out infinite;
+  }
+  .voice-orb.speaking {
+    box-shadow: 0 0 60px rgba(126,196,126,0.3), 0 0 20px rgba(126,196,126,0.2), inset 0 0 30px rgba(126,196,126,0.08) !important;
+    border-color: rgba(126,196,126,0.5) !important;
+    animation: orb-breathe-speak 0.6s ease-in-out infinite;
+  }
+  @keyframes orb-breathe {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes orb-breathe-speak {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* Sound wave bars */
+  .voice-wave {
+    display: flex; align-items: center; gap: 4px;
+    height: 40px; margin: 4px 0 16px;
+  }
+  .voice-wave-bar {
+    width: 4px; border-radius: 2px;
+    background: var(--accent);
+    height: 6px;
+    transition: height .1s ease;
+  }
+  .voice-wave.listening .voice-wave-bar {
+    animation: wave-dance 0.5s ease-in-out infinite;
+    background: #FF3D5A;
+  }
+  .voice-wave.speaking .voice-wave-bar {
+    animation: wave-dance 0.4s ease-in-out infinite;
+    background: var(--green);
+  }
+  .voice-wave-bar:nth-child(1) { animation-delay: 0s; }
+  .voice-wave-bar:nth-child(2) { animation-delay: .08s; }
+  .voice-wave-bar:nth-child(3) { animation-delay: .16s; }
+  .voice-wave-bar:nth-child(4) { animation-delay: .24s; }
+  .voice-wave-bar:nth-child(5) { animation-delay: .32s; }
+  .voice-wave-bar:nth-child(6) { animation-delay: .4s; }
+  .voice-wave-bar:nth-child(7) { animation-delay: .48s; }
+  .voice-wave-bar:nth-child(8) { animation-delay: .16s; }
+  .voice-wave-bar:nth-child(9) { animation-delay: .08s; }
+  @keyframes wave-dance {
+    0%,100% { height: 6px; }
+    50% { height: 30px; }
+  }
+
+  /* Status text */
+  .voice-status {
+    font-size: 15px; font-weight: 700; color: var(--text2);
+    min-height: 22px; text-align: center;
+    font-family: 'Sarabun', sans-serif;
+    letter-spacing: 0.5px;
+    transition: color .3s;
+  }
+  .voice-status.listening { color: #FF3D5A !important; }
+  .voice-status.speaking  { color: var(--green) !important; }
+
+  /* Transcript box */
+  .voice-transcript {
+    width: 90%; max-width: 380px;
+    min-height: 64px; max-height: 130px;
+    overflow-y: auto;
+    background: rgba(26,31,10,0.7);
+    border: 1px solid rgba(201,162,39,0.18);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 14px; color: var(--text2);
+    text-align: center; line-height: 1.7;
+    margin: 10px 0 6px;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .voice-transcript-interim {
+    color: var(--muted); font-style: italic;
+  }
+
+  /* AI reply bubble in voice mode */
+  .voice-reply {
+    width: 90%; max-width: 380px;
+    min-height: 52px; max-height: 140px;
+    overflow-y: auto;
+    background: rgba(26,31,10,0.85);
+    border: 1px solid rgba(201,162,39,0.22);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px 14px 14px 14px;
+    padding: 10px 14px;
+    font-size: 14px; color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    font-family: 'Sarabun', sans-serif;
+    display: none;
+  }
+  .voice-reply.visible { display: block; }
+
+  /* Controls row */
+  .voice-controls {
+    display: flex; align-items: center; gap: 16px;
+    margin-top: 4px;
+  }
+  .voice-mic-btn {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, #C9A227, #E8C96A);
+    border: none; color: #111408; font-size: 28px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 24px rgba(201,162,39,0.4), 0 2px 8px rgba(0,0,0,0.5);
+    transition: all .2s;
+    position: relative;
+  }
+  .voice-mic-btn.listening {
+    background: linear-gradient(135deg, #FF3D5A, #ff6b7a) !important;
+    box-shadow: 0 6px 24px rgba(255,61,90,0.5), 0 2px 8px rgba(0,0,0,0.5) !important;
+    animation: mic-pulse 1s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  .voice-mic-btn:active { transform: scale(0.92) !important; }
+
+  .voice-end-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,61,90,0.15);
+    border: 2px solid rgba(255,61,90,0.4);
+    color: #FF3D5A; font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s;
+  }
+  .voice-end-btn:active { background: rgba(255,61,90,0.3); transform: scale(0.92); }
+
+  /* Settings panel */
+  .voice-settings-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--border2);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 30px;
+    transform: translateY(100%);
+    transition: transform .3s ease;
+    z-index: 2;
+  }
+  .voice-settings-panel.open { transform: translateY(0); }
+  .voice-settings-title {
+    font-family: 'Prompt', sans-serif; font-size: 14px; font-weight: 800;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .voice-setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px; color: var(--text2);
+  }
+  .voice-setting-row:last-child { border-bottom: none; }
+  .voice-setting-label { font-weight: 700; flex: 1; }
+  .voice-setting-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Toggle switch */
+  .voice-toggle {
+    width: 44px; height: 24px; border-radius: 12px;
+    border: none; cursor: pointer;
+    background: var(--border2);
+    position: relative; transition: background .2s; flex-shrink: 0;
+  }
+  .voice-toggle.on { background: var(--green); }
+  .voice-toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%; background: #fff;
+    transition: left .2s;
+  }
+  .voice-toggle.on::after { left: 23px; }
+
+  /* ══ ACTION CONFIRM POPUP ══ */
+  .action-confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    display: none;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .action-confirm-overlay.open { display: flex; }
+
+  .action-confirm-popup {
+    background: var(--card);
+    border: 1.5px solid var(--border2);
+    border-top: 3px solid var(--accent);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    width: 88%; max-width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    animation: action-pop-in .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes action-pop-in {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .action-confirm-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(201,162,39,0.12); border: 1px solid rgba(201,162,39,0.3);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 11px; font-weight: 800; color: var(--accent);
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .action-confirm-title {
+    font-family: 'Prompt', sans-serif; font-size: 16px; font-weight: 800;
+    color: var(--text); margin-bottom: 8px;
+  }
+  .action-confirm-desc {
+    font-size: 13px; color: var(--text2); line-height: 1.7;
+    margin-bottom: 14px; padding: 10px 12px;
+    background: var(--card2); border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .action-confirm-desc .action-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 0; font-size: 13px;
+  }
+  .action-confirm-desc .action-item-key { color: var(--muted); font-size: 11px; min-width: 60px; }
+  .action-confirm-desc .action-item-val { font-weight: 700; color: var(--text); }
+  .action-confirm-desc .action-item-val.accent { color: var(--accent); }
+  .action-confirm-desc .action-item-val.green { color: var(--green); }
+  .action-confirm-desc .action-item-val.red { color: var(--red); }
+
+  .action-confirm-checkbox-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+  }
+  .action-confirm-checkbox-row input[type=checkbox] {
+    width: 15px !important; height: 15px !important;
+    accent-color: var(--accent) !important;
+    flex-shrink: 0;
+  }
+
+  .action-confirm-btns {
+    display: flex; gap: 10px;
+  }
+  .action-confirm-cancel {
+    flex: 1; padding: 12px; border-radius: var(--radius-sm);
+    background: var(--surface); border: 1px solid var(--border2);
+    color: var(--text2); font-family: 'Sarabun', sans-serif;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .action-confirm-ok {
+    flex: 1.5; padding: 12px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, #C9A227, #A07B18);
+    border: none; color: #141618;
+    font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 800;
+    cursor: pointer; box-shadow: 0 4px 0 #7A5C10;
+    transition: transform .08s, box-shadow .08s;
+  }
+  .action-confirm-ok:active { transform: translateY(4px); box-shadow: 0 0 0 #7A5C10; }
 </style>
 </head>
 <body>
@@ -5330,6 +5718,7 @@ if ('serviceWorker' in navigator) {
         <span class="ai-popup-title" id="popup-assistant-name">ผู้ช่วย AI</span>
         <span class="ai-popup-sub">● ออนไลน์</span>
       </div>
+      <button class="voice-mode-btn" id="voice-mode-btn" onclick="openVoiceMode()" title="โหมดคุยด้วยเสียง">🎙️</button>
       <button class="ai-popup-close" onclick="closeAiPopup()">✕</button>
     </div>
 
@@ -5374,10 +5763,116 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
-<script>
-// =====================================================
-//  AI POPUP — Floating Chat Window
-// =====================================================
+<!-- ===== 🎙️ VOICE MODE OVERLAY ===== -->
+<div class="voice-overlay" id="voice-overlay">
+  <!-- Top bar -->
+  <div class="voice-top-bar">
+    <div class="voice-top-title">🎙️ โหมดคุยด้วยเสียง</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="voice-settings-btn" onclick="toggleVoiceSettings()">⚙️ ตั้งค่า</button>
+      <button class="voice-top-close" onclick="closeVoiceMode()">✕</button>
+    </div>
+  </div>
+
+  <!-- Orb -->
+  <div class="voice-orb-wrap">
+    <div class="voice-orb-rings"></div>
+    <div class="voice-orb" id="voice-orb"><span id="voice-orb-avatar">🤖</span></div>
+  </div>
+
+  <!-- Sound wave visualizer -->
+  <div class="voice-wave" id="voice-wave">
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+    <div class="voice-wave-bar"></div>
+  </div>
+
+  <!-- Status -->
+  <div class="voice-status" id="voice-status">กดปุ่มไมค์เพื่อเริ่มพูด</div>
+
+  <!-- Transcript (what user said) -->
+  <div class="voice-transcript" id="voice-transcript">
+    <span style="color:var(--muted);font-size:13px;">คำพูดจะปรากฏที่นี่...</span>
+  </div>
+
+  <!-- AI reply in voice mode -->
+  <div class="voice-reply" id="voice-reply"></div>
+
+  <!-- Controls -->
+  <div class="voice-controls">
+    <button class="voice-end-btn" onclick="closeVoiceMode()" title="จบการสนทนา">📵</button>
+    <button class="voice-mic-btn" id="voice-mic-btn" onclick="toggleVoiceListening()">🎤</button>
+    <button class="voice-end-btn" onclick="voiceClearTranscript()" title="ล้างข้อความ">🗑️</button>
+  </div>
+
+  <!-- Settings panel (slide up) -->
+  <div class="voice-settings-panel" id="voice-settings-panel">
+    <div class="voice-settings-title">⚙️ ตั้งค่าเสียง</div>
+
+    <div class="voice-setting-row">
+      <div>
+        <div class="voice-setting-label">🔊 AI อ่านคำตอบออกเสียง</div>
+        <div class="voice-setting-sub">ให้ AI พูดตอบกลับด้วยเสียง</div>
+      </div>
+      <button class="voice-toggle on" id="voice-tts-toggle" onclick="toggleVoiceSetting('tts')"></button>
+    </div>
+
+    <div class="voice-setting-row">
+      <div>
+        <div class="voice-setting-label">🎙️ ฟังอัตโนมัติหลัง AI พูดจบ</div>
+        <div class="voice-setting-sub">เปิดไมค์ต่อเนื่องโดยอัตโนมัติ</div>
+      </div>
+      <button class="voice-toggle on" id="voice-auto-listen-toggle" onclick="toggleVoiceSetting('autoListen')"></button>
+    </div>
+
+    <div class="voice-setting-row">
+      <div>
+        <div class="voice-setting-label">✅ แสดง popup ยืนยันคำสั่ง</div>
+        <div class="voice-setting-sub">ก่อน AI ดำเนินการเปลี่ยนข้อมูล</div>
+      </div>
+      <button class="voice-toggle on" id="voice-confirm-toggle" onclick="toggleVoiceSetting('confirm')"></button>
+    </div>
+
+    <div class="voice-setting-row">
+      <div>
+        <div class="voice-setting-label">🌐 ภาษาที่ใช้พูด</div>
+        <div class="voice-setting-sub">ภาษาสำหรับรับเสียง</div>
+      </div>
+      <select id="voice-lang-select" onchange="saveVoiceSetting('lang', this.value)"
+        style="background:var(--card2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:4px 8px;font-family:'Sarabun',sans-serif;font-size:12px;">
+        <option value="th-TH">🇹🇭 ไทย</option>
+        <option value="en-US">🇺🇸 English</option>
+      </select>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button onclick="toggleVoiceSettings()" style="width:100%;padding:11px;border-radius:10px;background:var(--accent);border:none;color:#141618;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:800;cursor:pointer;">ปิดตั้งค่า ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ✅ ACTION CONFIRM POPUP ===== -->
+<div class="action-confirm-overlay" id="action-confirm-overlay">
+  <div class="action-confirm-popup">
+    <div class="action-confirm-badge" id="action-confirm-badge">⚡ คำสั่ง AI</div>
+    <div class="action-confirm-title" id="action-confirm-title">ยืนยันคำสั่ง</div>
+    <div class="action-confirm-desc" id="action-confirm-desc"></div>
+    <label class="action-confirm-checkbox-row">
+      <input type="checkbox" id="action-no-show-again" onchange="handleNoShowAgain(this)">
+      อย่าแสดง popup ยืนยันอีก (สามารถเปิดได้ที่ตั้งค่าเสียง)
+    </label>
+    <div class="action-confirm-btns">
+      <button class="action-confirm-cancel" onclick="cancelActionConfirm()">❌ ยกเลิก</button>
+      <button class="action-confirm-ok" onclick="okActionConfirm()">✅ ยืนยัน</button>
+    </div>
+  </div>
+</div>
 
 let popupChatHist = [];
 let popupSessionId = null;
@@ -6692,6 +7187,507 @@ function popupChatKeyDown(e) {
 }
 
 // Hide FAB when on the AI tab (not needed there) — handled in switchTab above
+
+// =====================================================
+// 🎙️ VOICE MODE — Live AI Voice Chat System
+// =====================================================
+
+// ── Voice Settings ──
+const VOICE_SETTINGS_KEY = 'pos_voice_settings';
+
+function loadVoiceSettings() {
+  try { return JSON.parse(localStorage.getItem(VOICE_SETTINGS_KEY) || '{}'); } catch { return {}; }
+}
+function saveVoiceSetting(key, val) {
+  const s = loadVoiceSettings();
+  s[key] = val;
+  localStorage.setItem(VOICE_SETTINGS_KEY, JSON.stringify(s));
+}
+function getVoiceSetting(key, def) {
+  const s = loadVoiceSettings();
+  return key in s ? s[key] : def;
+}
+
+function applyVoiceSettingsUI() {
+  const tts = getVoiceSetting('tts', true);
+  const auto = getVoiceSetting('autoListen', true);
+  const confirm = getVoiceSetting('confirm', true);
+  const lang = getVoiceSetting('lang', 'th-TH');
+  setToggleState('voice-tts-toggle', tts);
+  setToggleState('voice-auto-listen-toggle', auto);
+  setToggleState('voice-confirm-toggle', confirm);
+  const langSel = document.getElementById('voice-lang-select');
+  if (langSel) langSel.value = lang;
+}
+
+function setToggleState(id, on) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (on) el.classList.add('on'); else el.classList.remove('on');
+}
+
+function toggleVoiceSetting(key) {
+  const defaults = { tts: true, autoListen: true, confirm: true };
+  const cur = getVoiceSetting(key, defaults[key] ?? true);
+  saveVoiceSetting(key, !cur);
+  applyVoiceSettingsUI();
+}
+
+function handleNoShowAgain(cb) {
+  if (cb.checked) {
+    saveVoiceSetting('confirm', false);
+    applyVoiceSettingsUI();
+  }
+}
+
+// ── Voice State ──
+let voiceRecognition = null;
+let voiceIsListening = false;
+let voiceSynthesis = window.speechSynthesis;
+let voiceCurrentAction = null; // pending action waiting for confirm
+let voiceActionCallback = null;
+
+// ── Open / Close Voice Mode ──
+function openVoiceMode() {
+  const overlay = document.getElementById('voice-overlay');
+  overlay.classList.add('open');
+  applyVoiceSettingsUI();
+
+  // Apply AI avatar to voice orb
+  const avatar = localStorage.getItem('pos_assistant_avatar') || '🤖';
+  document.getElementById('voice-orb-avatar').textContent = avatar;
+
+  setVoiceStatus('idle', 'กดปุ่มไมค์เพื่อเริ่มพูด');
+}
+
+function closeVoiceMode() {
+  stopVoiceListening();
+  stopVoiceSpeaking();
+  document.getElementById('voice-overlay').classList.remove('open');
+  document.getElementById('voice-settings-panel').classList.remove('open');
+}
+
+function toggleVoiceSettings() {
+  document.getElementById('voice-settings-panel').classList.toggle('open');
+}
+
+function setVoiceStatus(mode, text) {
+  const statusEl = document.getElementById('voice-status');
+  const orbEl = document.getElementById('voice-orb');
+  const waveEl = document.getElementById('voice-wave');
+  statusEl.textContent = text;
+  statusEl.className = 'voice-status ' + (mode !== 'idle' ? mode : '');
+  orbEl.className = 'voice-orb ' + (mode !== 'idle' ? mode : '');
+  waveEl.className = 'voice-wave ' + (mode !== 'idle' ? mode : '');
+}
+
+// ── Mic Toggle ──
+function toggleVoiceListening() {
+  if (voiceIsListening) {
+    stopVoiceListening();
+  } else {
+    startVoiceListening();
+  }
+}
+
+function startVoiceListening() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showToast('เบราว์เซอร์ไม่รองรับการรับเสียง', true);
+    return;
+  }
+  stopVoiceSpeaking();
+
+  voiceRecognition = new SpeechRecognition();
+  const lang = getVoiceSetting('lang', 'th-TH');
+  voiceRecognition.lang = lang;
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = true;
+
+  voiceRecognition.onstart = () => {
+    voiceIsListening = true;
+    document.getElementById('voice-mic-btn').classList.add('listening');
+    setVoiceStatus('listening', '🔴 กำลังฟัง...');
+    document.getElementById('voice-transcript').innerHTML = '<span class="voice-transcript-interim">กำลังฟัง...</span>';
+  };
+
+  voiceRecognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    const transcriptEl = document.getElementById('voice-transcript');
+    if (final) {
+      transcriptEl.innerHTML = `<strong>${final}</strong>`;
+      voiceHandleTranscript(final.trim());
+    } else {
+      transcriptEl.innerHTML = `<span class="voice-transcript-interim">${interim}</span>`;
+    }
+  };
+
+  voiceRecognition.onerror = (e) => {
+    voiceIsListening = false;
+    document.getElementById('voice-mic-btn').classList.remove('listening');
+    if (e.error === 'no-speech') {
+      setVoiceStatus('idle', 'ไม่ได้ยินเสียง ลองพูดอีกครั้ง');
+    } else if (e.error === 'not-allowed') {
+      setVoiceStatus('idle', '⚠️ กรุณาอนุญาตไมโครโฟน');
+    } else {
+      setVoiceStatus('idle', 'เกิดข้อผิดพลาด: ' + e.error);
+    }
+  };
+
+  voiceRecognition.onend = () => {
+    voiceIsListening = false;
+    document.getElementById('voice-mic-btn').classList.remove('listening');
+  };
+
+  voiceRecognition.start();
+}
+
+function stopVoiceListening() {
+  if (voiceRecognition) {
+    try { voiceRecognition.stop(); } catch(e) {}
+    voiceRecognition = null;
+  }
+  voiceIsListening = false;
+  document.getElementById('voice-mic-btn').classList.remove('listening');
+}
+
+function voiceClearTranscript() {
+  document.getElementById('voice-transcript').innerHTML = '<span style="color:var(--muted);font-size:13px;">คำพูดจะปรากฏที่นี่...</span>';
+  const replyEl = document.getElementById('voice-reply');
+  replyEl.classList.remove('visible');
+  replyEl.textContent = '';
+  setVoiceStatus('idle', 'กดปุ่มไมค์เพื่อเริ่มพูด');
+}
+
+function stopVoiceSpeaking() {
+  if (voiceSynthesis && voiceSynthesis.speaking) {
+    voiceSynthesis.cancel();
+  }
+}
+
+// ── Handle voice transcript → send to AI ──
+async function voiceHandleTranscript(text) {
+  if (!text) return;
+  setVoiceStatus('speaking', '🤖 AI กำลังคิด...');
+
+  const apiKey = localStorage.getItem('pos_ai_key') || '';
+  if (!apiKey) {
+    setVoiceStatus('idle', '⚠️ ยังไม่ได้ตั้งค่า API Key');
+    voiceSpeakText('ยังไม่ได้ตั้งค่า API Key กรุณาไปตั้งค่าก่อนนะคะ');
+    return;
+  }
+
+  // Build context (same as popupSendChat)
+  const effProds = typeof getEffectiveProducts === 'function' ? getEffectiveProducts() : [];
+  const stockData = typeof stock !== 'undefined' ? stock : {};
+  const historyData = typeof loadHistory === 'function' ? loadHistory() : [];
+  const membersData = typeof getMembers === 'function' ? getMembers() : [];
+
+  const stockSummary = effProds.filter(p => !p.promoBase).map(p => {
+    const qty = stockData[p.key] ?? 0;
+    return `${p.name}: ${qty} (ราคา ฿${p.price}${p.cost?', ต้นทุน ฿'+p.cost:''})`;
+  }).join('\n');
+
+  const today = new Date().toLocaleDateString('th-TH');
+  const todayBills = historyData.filter(h => h.time && h.time.startsWith(today));
+  const totalRevenue = todayBills.reduce((s, h) => s + (h.total || 0), 0);
+
+  const systemPrompt = `คุณคือ ${localStorage.getItem('pos_assistant_name') || 'AI ผู้ช่วยร้าน'} ผู้ช่วย POS AI ของร้านนี้ คุยกันด้วยเสียงแบบ live
+ตอบสั้นๆ กระชับ เป็นธรรมชาติ เหมาะสำหรับการฟัง ไม่ต้องใส่ markdown bullet points
+เมื่อผู้ใช้สั่งให้ดำเนินการในระบบ ให้ตอบในรูปแบบ:
+[คำตอบสั้นๆ] จากนั้นออก <ACTION>{"type":"...","...":"..."}</ACTION>
+
+ข้อมูลระบบ:
+สต็อก: ${stockSummary}
+ยอดวันนี้: ${todayBills.length} บิล รวม ฿${totalRevenue.toLocaleString()}
+สมาชิก: ${membersData.length} คน
+
+รองรับคำสั่ง action type เดียวกับ chat ปกติ: add_stock, set_price, set_cost, add_member, add_points, record_sale, record_expense, open_shift เป็นต้น`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 512,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+
+    const data = await resp.json();
+    let reply = data?.content?.[0]?.text || 'ขอโทษค่ะ ไม่สามารถตอบได้ตอนนี้';
+
+    // Extract and handle ACTION
+    const actionMatch = reply.match(/<ACTION>([\s\S]*?)<\/ACTION>/);
+    if (actionMatch) {
+      let actionData = null;
+      try { actionData = JSON.parse(actionMatch[1]); } catch(e) {}
+      if (actionData) {
+        reply = reply.replace(/<ACTION>[\s\S]*?<\/ACTION>/g, '').trim();
+        const shouldConfirm = getVoiceSetting('confirm', true);
+        if (shouldConfirm) {
+          // Show action confirm popup, pause until user confirms
+          await showActionConfirmPopup(actionData, text);
+        } else {
+          // Execute immediately
+          executeVoiceAction(actionData);
+        }
+      }
+    }
+
+    // Show reply and speak
+    const replyEl = document.getElementById('voice-reply');
+    replyEl.textContent = reply;
+    replyEl.classList.add('visible');
+
+    setVoiceStatus('speaking', '🔊 AI กำลังพูด...');
+
+    // Also add to chat history
+    popupChatHist.push({ role: 'user', content: text });
+    popupChatHist.push({ role: 'assistant', content: reply });
+    popupAppendMsg('user', text);
+    popupAppendMsg('bot', reply, true);
+    saveCurrentSession();
+
+    if (getVoiceSetting('tts', true)) {
+      await voiceSpeakText(reply);
+    }
+
+    setVoiceStatus('idle', 'กดปุ่มไมค์เพื่อพูดอีกครั้ง');
+
+    // Auto-listen
+    if (getVoiceSetting('autoListen', true)) {
+      setTimeout(() => {
+        if (document.getElementById('voice-overlay').classList.contains('open')) {
+          startVoiceListening();
+        }
+      }, 600);
+    }
+
+  } catch(e) {
+    setVoiceStatus('idle', '❌ เชื่อมต่อไม่ได้: ' + e.message);
+  }
+}
+
+// ── TTS ──
+function voiceSpeakText(text) {
+  return new Promise((resolve) => {
+    if (!voiceSynthesis || !text) { resolve(); return; }
+    stopVoiceSpeaking();
+    const utter = new SpeechSynthesisUtterance(text);
+    const lang = getVoiceSetting('lang', 'th-TH');
+    utter.lang = lang;
+    utter.rate = 1.05;
+    utter.pitch = 1.0;
+    utter.onend = resolve;
+    utter.onerror = resolve;
+    voiceSynthesis.speak(utter);
+  });
+}
+
+// ── Action Confirm Popup ──
+function showActionConfirmPopup(action, originalText) {
+  return new Promise((resolve) => {
+    voiceActionCallback = (confirmed) => {
+      if (confirmed) executeVoiceAction(action);
+      resolve();
+    };
+    voiceCurrentAction = action;
+
+    // Build description
+    const badgeMap = {
+      add_stock: '📦 เพิ่มสต็อก',
+      set_price: '💱 แก้ราคา',
+      set_cost: '💰 ตั้งต้นทุน',
+      record_sale: '🧾 บันทึกขาย',
+      add_member: '👤 เพิ่มสมาชิก',
+      add_points: '⭐ เพิ่มแต้ม',
+      record_expense: '💸 บันทึกค่าใช้จ่าย',
+      open_shift: '🌅 เปิดกะ',
+      close_shift: '🌙 ปิดกะ',
+      set_member_tier: '🏅 เปลี่ยนระดับสมาชิก',
+    };
+
+    document.getElementById('action-confirm-badge').textContent = badgeMap[action.type] || '⚡ คำสั่ง AI';
+    document.getElementById('action-confirm-title').textContent = 'ยืนยันการดำเนินการ';
+    document.getElementById('action-no-show-again').checked = false;
+
+    // Build detail rows
+    const descEl = document.getElementById('action-confirm-desc');
+    let html = '';
+    const labelMap = {
+      name: 'สินค้า', qty: 'จำนวน', price: 'ราคา', cost: 'ต้นทุน',
+      total: 'ยอด', pay: 'ชำระ', phone: 'เบอร์', points: 'แต้ม',
+      amount: 'จำนวนเงิน', desc: 'รายการ', float: 'เงินตั้งต้น', tier: 'ระดับ'
+    };
+    const colorMap = {
+      qty: 'green', price: 'accent', cost: 'accent', total: 'accent', points: 'accent', amount: 'red'
+    };
+
+    // Show original voice command
+    html += `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-style:italic;">"${originalText}"</div>`;
+
+    Object.entries(action).forEach(([k, v]) => {
+      if (k === 'type' || v === undefined || v === null || v === '') return;
+      const label = labelMap[k] || k;
+      const colorClass = colorMap[k] || '';
+      html += `<div class="action-item">
+        <span class="action-item-key">${label}</span>
+        <span class="action-item-val ${colorClass}">${v}</span>
+      </div>`;
+    });
+
+    descEl.innerHTML = html;
+    document.getElementById('action-confirm-overlay').classList.add('open');
+  });
+}
+
+function okActionConfirm() {
+  document.getElementById('action-confirm-overlay').classList.remove('open');
+  if (voiceActionCallback) { voiceActionCallback(true); voiceActionCallback = null; }
+}
+
+function cancelActionConfirm() {
+  document.getElementById('action-confirm-overlay').classList.remove('open');
+  if (voiceActionCallback) { voiceActionCallback(false); voiceActionCallback = null; }
+  setVoiceStatus('idle', 'ยกเลิกคำสั่งแล้ว');
+  showToast('ยกเลิกคำสั่งแล้ว');
+}
+
+// ── Execute voice action (mirrors popup chat action logic) ──
+function executeVoiceAction(action) {
+  if (!action || !action.type) return;
+  try {
+    // Add stock
+    if (action.type === 'add_stock' && action.name && action.qty > 0) {
+      const prods = getEffectiveProducts();
+      let p = prods.find(x => x.name === action.name || x.key === action.name);
+      if (!p) p = prods.find(x => x.name.includes(action.name) || action.name.includes(x.name));
+      if (p) {
+        stock[p.key] = (stock[p.key] || 0) + parseInt(action.qty);
+        saveStock();
+        renderStock(); renderProducts();
+        showToast(`✅ เพิ่มสต็อก ${p.name} +${action.qty}`);
+        // Delivery log
+        if (typeof loadDelivery === 'function') {
+          const dlist = loadDelivery();
+          dlist.unshift({ time: new Date().toLocaleString('th-TH'), key: p.key, name: p.name, qty: parseInt(action.qty), note: '(เสียง)', round: dlist.length + 1 });
+          saveDelivery(dlist);
+          renderDeliveryLog();
+        }
+        // Also set price/cost if given
+        if (action.price || action.cost) {
+          const allProds = getEffectiveProducts();
+          const idx = allProds.findIndex(x => x.key === p.key);
+          if (idx >= 0) {
+            if (action.price) allProds[idx].price = parseFloat(action.price);
+            if (action.cost) allProds[idx].cost = parseFloat(action.cost);
+            saveCustomProducts(allProds.filter(x => !x.promoBase));
+            renderAdminProducts(); renderProducts(); renderStock();
+          }
+        }
+      }
+    }
+    // Set price
+    else if (action.type === 'set_price' && action.name && action.price >= 0) {
+      const prods = getEffectiveProducts();
+      const idx = prods.findIndex(x => x.name === action.name || x.name.includes(action.name) || action.name.includes(x.name));
+      if (idx >= 0) {
+        prods[idx].price = parseFloat(action.price);
+        saveCustomProducts(prods.filter(x => !x.promoBase));
+        renderAdminProducts(); renderProducts(); renderStock();
+        showToast(`💱 แก้ราคา ${prods[idx].name} → ฿${action.price}`);
+      }
+    }
+    // Set cost
+    else if (action.type === 'set_cost' && action.name && action.cost >= 0) {
+      const prods = getEffectiveProducts();
+      const idx = prods.findIndex(x => x.name === action.name || x.name.includes(action.name) || action.name.includes(x.name));
+      if (idx >= 0) {
+        prods[idx].cost = parseFloat(action.cost);
+        saveCustomProducts(prods.filter(x => !x.promoBase));
+        renderAdminProducts(); renderProducts(); renderStock();
+        showToast(`💰 ตั้งต้นทุน ${prods[idx].name} → ฿${action.cost}`);
+      }
+    }
+    // Add member
+    else if (action.type === 'add_member' && action.phone) {
+      const members = getMembers();
+      if (!members.find(m => m.phone === action.phone)) {
+        members.unshift({ phone: action.phone, name: action.name || action.phone, points: 0, bills: 0, spend: 0, joined: new Date().toLocaleDateString('th-TH'), tier: 'regular' });
+        saveMembers(members);
+        if (typeof renderCRM === 'function') renderCRM();
+        showToast(`👤 เพิ่มสมาชิก ${action.name || action.phone}`);
+      }
+    }
+    // Add points
+    else if (action.type === 'add_points' && action.phone && action.points) {
+      const members = getMembers();
+      const idx = members.findIndex(m => m.phone === action.phone);
+      if (idx >= 0) {
+        members[idx].points = (members[idx].points || 0) + parseInt(action.points);
+        saveMembers(members);
+        if (typeof renderCRM === 'function') renderCRM();
+        showToast(`⭐ เพิ่ม ${action.points} แต้มให้ ${members[idx].name}`);
+      }
+    }
+    // Record expense
+    else if (action.type === 'record_expense' && action.amount > 0) {
+      if (typeof addPettyCashDirect === 'function') {
+        addPettyCashDirect(action.desc || 'ค่าใช้จ่าย (เสียง)', parseInt(action.amount));
+      } else {
+        // Fallback
+        const pettyKey = 'pos_petty_v1';
+        let petty = [];
+        try { petty = JSON.parse(localStorage.getItem(pettyKey) || '[]'); } catch {}
+        petty.unshift({ time: new Date().toLocaleString('th-TH'), desc: action.desc || 'ค่าใช้จ่าย', amount: parseInt(action.amount) });
+        localStorage.setItem(pettyKey, JSON.stringify(petty));
+        showToast(`💸 บันทึก ${action.desc} ฿${action.amount}`);
+      }
+    }
+    // Open shift
+    else if (action.type === 'open_shift') {
+      if (typeof confirmOpenShiftDirect === 'function') {
+        confirmOpenShiftDirect(action.float || 0);
+      } else {
+        showToast('🌅 เปิดกะแล้ว (ใช้ UI ปกติเพื่อยืนยัน)');
+      }
+    }
+
+    // Chat message feedback
+    const feedbackMap = {
+      add_stock: `📦 เพิ่มสต็อก ${action.name} ${action.qty} หน่วย`,
+      set_price: `💱 แก้ราคา ${action.name} → ฿${action.price}`,
+      set_cost: `💰 ตั้งต้นทุน ${action.name} ฿${action.cost}`,
+      add_member: `👤 เพิ่มสมาชิก ${action.phone}`,
+      add_points: `⭐ เพิ่ม ${action.points} แต้มให้ ${action.phone}`,
+      record_expense: `💸 บันทึก ${action.desc} ฿${action.amount}`,
+    };
+    const box = document.getElementById('popup-chat-history');
+    if (box && feedbackMap[action.type]) {
+      const chip = document.createElement('div');
+      chip.className = 'chat-msg system';
+      chip.textContent = '✅ ' + feedbackMap[action.type];
+      box.appendChild(chip);
+      box.scrollTop = box.scrollHeight;
+    }
+
+  } catch(e) {
+    showToast('❌ ดำเนินการไม่ได้: ' + e.message, true);
+  }
+}
 
 // ===================================================================
 // 🚪 LOGOUT — sync ก่อน logout แล้ว redirect ไปหน้า login
